@@ -215,8 +215,8 @@ def get_plexhistory(key):
     plex = PlexServer()
     accounts = {a.accountID:a.name for a in plex.systemAccounts()}
     ignored = _get_config('plex', 'ignore').split(',')
-    mindate = datetime.now() - timedelta(days=14)
-    history = plex.history(100000, mindate=mindate)
+    mindate = datetime.now() - timedelta(days=30)
+    history = plex.history(10, mindate=mindate)
     for vdata in history:
         video = {}
         video['type'] = vdata.type
