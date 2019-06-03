@@ -17,8 +17,6 @@ elements = {
   {kind='line', from={x=100,y=669}, to={x=190,y=669}, color='0x000000', alpha=0.2, thickness=24}, -- FileSystems Chart
   {kind='line', from={x=0,y=785}, to={x=200,y=785}, color='0xFFEEEE', alpha=0.05, thickness=40}, -- TVShows
   {kind='line', from={x=0,y=910}, to={x=200,y=910}, color='0xFFEEEE', alpha=0.05, thickness=40}, -- PlexServer
-  {kind='line', from={x=24,y=939}, to={x=24,y=977}, color='0xFFEEEE', alpha=0.1, thickness=27}, -- PlexServer Session0
-  {kind='line', from={x=24,y=983}, to={x=24,y=1021}, color='0xFFEEEE', alpha=0.1, thickness=27}, -- PlexServer Session1
 
   -- Veritcal CPU Bars
   {kind='bar_graph',from={x=160,y=271},to={x=160,y=253},conky_value='cpu cpu1',background_color=0xFFFFFF,background_alpha=0.1,background_thickness=3,bar_color=0xD79921,bar_thickness=3},

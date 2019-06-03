@@ -63,7 +63,6 @@ def _mb_to_str(value, precision=0):
 
 
 def _rget(obj, attrstr, default=None, delim='.'):
-    """ Recursivley lookup a value in a json tree. """
     try:
         parts = attrstr.split(delim, 1)
         attr = parts[0]
@@ -195,7 +194,7 @@ def get_plexadded(key):
     """ Fetch plex recently added. """
     values = []
     plex = PlexServer()
-    ignored = _get_config('plex', 'ignore').split(',')
+    ignored = _get_config('plexadded', 'ignore').split(',')
     recent = plex.library.recentlyAdded()
     recent = sorted(recent, key=lambda v:v.addedAt, reverse=True)
     for vdata in recent[:10]:
@@ -214,16 +213,19 @@ def get_plexhistory(key):
     values = []
     plex = PlexServer()
     accounts = {a.accountID:a.name for a in plex.systemAccounts()}
-    ignored = _get_config('plex', 'ignore').split(',')
+    ignored = _get_config('plexhistory', 'ignore').split(',')
+    names = _get_config('plexhistory', 'names').split(',')
+    names = {n.split(':')[0]:n.split(':')[1] for n in names}
     mindate = datetime.now() - timedelta(days=30)
     history = plex.history(10, mindate=mindate)
     for vdata in history:
         video = {}
         video['type'] = vdata.type
         video['viewed'] = _datetime_to_str(vdata.viewedAt)
-        video['title'] = _video_title(vdata)
+        video['title'] = _video_title(vdata)[:15]
         video['account'] = accounts.get(vdata.accountID, 'Unknown')
-        if not _ignored(video['title'], ignored):
+        video['account'] = names.get(video['account'], video['account'])[:6]
+        if not _ignored(video['account'], ignored):
             values.append(video)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         json.dump(values, handle)
@@ -264,7 +266,7 @@ def get_sickrage(key):
     values = []
     host = _get_config('sickrage', 'host')
     apikey = _get_config('sickrage', 'apikey')
-    ignored = _get_config('plex', 'ignore').split(',')
+    ignored = _get_config('sickrage', 'ignore').split(',')
     url = SICKRAGE_URL.replace('{host}', host).replace('{apikey}', apikey)
     response = requests.get(url)
     data = json.loads(response.content.decode('utf8'))
