@@ -113,7 +113,7 @@ ${voffset 17}${goto 100}${color3}${upspeedgraph enp0s31f6 12,90}${color}
 ${goto 100}${color4}${downspeedgraph enp0s31f6 -11,90}${color}
 ${voffset -29}${goto 10}${font ubuntu:bold:size=9}Network${font}
 ${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py externalip.ip}${color}
-${voffset 15}${goto 10}enp0s31f6${alignr 10}${addr enp0s31f6}
+${voffset 15}${goto 10}enp0s31f6${alignr 10}${addr br0}
 ${goto 10}${color2}Upload${color}${alignr 10}${upspeed enp0s31f6}/s of ${totalup enp0s31f6}
 ${goto 10}${color2}Download${color}${alignr 10}${downspeed enp0s31f6}/s of ${totaldown enp0s31f6}
 \

@@ -20,6 +20,7 @@ Copy the pkmeter scripts into place..
 ```bash
 git clone https://github.com/mjs7231/pkmeter-conky.git
 ln -s ~/Projects/pkmeter-conky/pkmeter ~/.pkmeter
+ln -s ~/.pkmeter/conkyrc/config-home/* ~/.pkmeter/
 ln -s ~/.pkmeter/conkyrc ~/.conkyrc
 ```
 
@@ -37,12 +38,7 @@ apikey=<APIKEY>
 ignore=Bar Rescue,The Late Show,Last Week Tonight,Cops
 ```
 
-Now you should be able to run conky..
-```bash
-conky
-```
+Now you should be able to run `conky`..
 
 ### Thanks
 * Fisadev for creating the Conky Draw scripts.
-* 
-
