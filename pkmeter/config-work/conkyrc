@@ -100,7 +100,7 @@ ${goto 10}${color2}Mem Free${color}${alignr 55}${memeasyfree}
 \
 \
 ${voffset 17}${goto 10}${font ubuntu:bold:size=9}NVIDIA${font}
-${goto 10}${color1}GeForce GTX 1080 Ti ${execi 60 ~/.pkmeter/pkmeter.py nvidia.nvidiadriverversion}${color}
+${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py nvidia.cardname} ${execi 60 ~/.pkmeter/pkmeter.py nvidia.nvidiadriverversion}${color}
 ${voffset 15}${goto 10}${color2}GPU Usage${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py nvidia.gpuutilizationgraphics}%
 ${goto 10}${color2}GPU Temp${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py nvidia.gpucoretemp}°F
 ${goto 10}${color2}Mem Used${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py nvidia.percentuseddedicatedgpumemory}% of ${execi 60 ~/.pkmeter/pkmeter.py nvidia.freededicatedgpumemory}

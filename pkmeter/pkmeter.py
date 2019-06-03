@@ -34,7 +34,7 @@ def _get_config(section, item):
 
 def _datetime_to_str(dt):
     if (datetime.now() - dt) < timedelta(hours=23):
-        return dt.strftime('%-I:%M %p').lower()
+        return dt.strftime('%-I:%M%p').lower().replace('m','')
     if (datetime.now() - dt) < timedelta(days=6):
         return dt.strftime('%a')
     return dt.strftime('%b %-d')

@@ -7,4 +7,6 @@ syntax: glob
 dist
 build
 pkmeter/config.ini
+pkmeter/config.lua
+pkmeter/conkyrc
 *.egg-info

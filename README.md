@@ -18,9 +18,9 @@ make fetching data easy and results are stored as json files in `~/.cache/pkmete
 ### Installation
 Copy the pkmeter scripts into place..
 ```bash
-git clone https://github.com/mjs7231/pkmeter-conky.git
+cd ~/Projects && git clone https://github.com/mjs7231/pkmeter-conky.git
 ln -s ~/Projects/pkmeter-conky/pkmeter ~/.pkmeter
-ln -s ~/.pkmeter/conkyrc/config-home/* ~/.pkmeter/
+ln -s ~/.pkmeter/config-home/* ~/.pkmeter/
 ln -s ~/.pkmeter/conkyrc ~/.conkyrc
 ```
 
