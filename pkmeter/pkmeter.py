@@ -194,8 +194,8 @@ def get_nvidia(key):
 def get_plexadded(key):
     """ Fetch plex recently added. """
     values = []
-    ignored = _get_config('plex', 'ignore').split(',')
     plex = PlexServer()
+    ignored = _get_config('plex', 'ignore').split(',')
     recent = plex.library.recentlyAdded()
     recent = sorted(recent, key=lambda v:v.addedAt, reverse=True)
     for vdata in recent[:10]:
@@ -203,6 +203,26 @@ def get_plexadded(key):
         video['type'] = vdata.type
         video['added'] = _datetime_to_str(vdata.addedAt)
         video['title'] = _video_title(vdata)
+        if not _ignored(video['title'], ignored):
+            values.append(video)
+    with open(join(CACHE, f'{key}.json'), 'w') as handle:
+        json.dump(values, handle)
+
+
+def get_plexhistory(key):
+    """ Fetch plex recently added. """
+    values = []
+    plex = PlexServer()
+    accounts = {a.accountID:a.name for a in plex.systemAccounts()}
+    ignored = _get_config('plex', 'ignore').split(',')
+    mindate = datetime.now() - timedelta(days=14)
+    history = plex.history(100000, mindate=mindate)
+    for vdata in history:
+        video = {}
+        video['type'] = vdata.type
+        video['viewed'] = _datetime_to_str(vdata.viewedAt)
+        video['title'] = _video_title(vdata)
+        video['account'] = accounts.get(vdata.accountID, 'Unknown')
         if not _ignored(video['title'], ignored):
             values.append(video)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
