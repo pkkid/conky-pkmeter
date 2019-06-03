@@ -55,10 +55,11 @@ conky.config = {
 
 conky.text = [[
 ${texeci 1800 ~/.pkmeter/pkmeter.py darksky}\
-${texeci 1800 ~/.pkmeter/pkmeter.py externalip}\
 ${texeci 5 ~/.pkmeter/pkmeter.py nvidia}\
+${texeci 1800 ~/.pkmeter/pkmeter.py externalip}\
+${texeci 300 ~/.pkmeter/pkmeter.py sickrage}\
 ${texeci 300 ~/.pkmeter/pkmeter.py plexadded}\
-${texeci 5 ~/.pkmeter/pkmeter.py plexsessions}\
+${texeci 30 ~/.pkmeter/pkmeter.py plexsessions}\
 \
 ${voffset 8}${font Ubuntu:medium:size=40}${alignr 105}${time %d}${font}
 ${voffset -41}${goto 105}${time %b %Y}
@@ -136,9 +137,9 @@ ${voffset 17}${goto 10}${font ubuntu:bold:size=9}Plex Server${font}
 ${goto 10}${color1}Now Playing${color}
 ${if_existing /home/mjs7231/.cache/pkmeter/session0.jpg}\
 ${image ~/.cache/pkmeter/session0.jpg -p 12,940 -s 23x34}\
-${voffset 15}${goto 47}${execi 300 ~/.pkmeter/pkmeter.py plexsessions.0.title}
-${goto 47}${color2}${execi 300 ~/.pkmeter/pkmeter.py plexsessions.0.playstate}
-${goto 47}${execi 300 ~/.pkmeter/pkmeter.py plexsessions.0.user}
+${voffset 15}${goto 47}${execi 30 ~/.pkmeter/pkmeter.py plexsessions.0.title}
+${goto 47}${color2}${execi 30 ~/.pkmeter/pkmeter.py plexsessions.0.playstate}
+${goto 47}${execi 30 ~/.pkmeter/pkmeter.py plexsessions.0.user}
 ${else}\
 ${voffset 15}${goto 47}${color5}No Session
 ${goto 47}
@@ -146,9 +147,9 @@ ${goto 47}${color}
 ${endif}\
 ${if_existing /home/mjs7231/.cache/pkmeter/session1.jpg}\
 ${image ~/.cache/pkmeter/session1.jpg -p 12,984 -s 23x34}\
-${voffset 15}${goto 47}${execi 300 ~/.pkmeter/pkmeter.py plexsessions.1.title}
-${goto 47}${color2}${execi 300 ~/.pkmeter/pkmeter.py plexsessions.1.playstate}
-${goto 47}${execi 300 ~/.pkmeter/pkmeter.py plexsessions.1.user}
+${voffset 15}${goto 47}${execi 30 ~/.pkmeter/pkmeter.py plexsessions.1.title}
+${goto 47}${color2}${execi 30 ~/.pkmeter/pkmeter.py plexsessions.1.playstate}
+${goto 47}${execi 30 ~/.pkmeter/pkmeter.py plexsessions.1.user}
 ${else}\
 ${voffset 5}${goto 47}${color5}No Session
 ${goto 47}
