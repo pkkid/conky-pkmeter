@@ -122,6 +122,7 @@ def _video_title(video):
         title = f'{video.grandparentTitle} {video.seasonEpisode}'
     else:
         title = f'{video.title} ({video.year})'
+    title = title.replace('s0','s').replace('e0','e')
     return title[:20]
 
 
@@ -217,7 +218,7 @@ def get_plexhistory(key):
     names = _get_config('plexhistory', 'names').split(',')
     names = {n.split(':')[0]:n.split(':')[1] for n in names}
     mindate = datetime.now() - timedelta(days=30)
-    history = plex.history(10, mindate=mindate)
+    history = plex.history(50, mindate=mindate)
     for vdata in history:
         video = {}
         video['type'] = vdata.type
