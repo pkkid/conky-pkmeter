@@ -121,7 +121,7 @@ def _video_title(video):
     elif video.type == 'episode':
         title = f'{video.grandparentTitle} {video.seasonEpisode}'
     else:
-        title = f'{video.title} ({video.year})'
+        title = f'{video.title} {video.year}'
     title = title.replace('s0','s').replace('e0','e')
     return title[:20]
 
