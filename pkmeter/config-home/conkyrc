@@ -151,7 +151,7 @@ ${voffset 15}${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.0.title}
 ${goto 47}${color2}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.0.playstate}
 ${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.0.user}${color}
 ${image ~/.cache/pkmeter/session1.jpg -p 12,984 -s 23x34}\
-${voffset 15}${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.1.title}
+${voffset 5}${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.1.title}
 ${goto 47}${color2}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.1.playstate}
 ${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.1.user}
 \
