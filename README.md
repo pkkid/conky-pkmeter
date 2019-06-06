@@ -12,7 +12,7 @@ make fetching data easy and results are stored as json files in `~/.cache/pkmete
 * `pkmeter.py sickrage` (Coming Soon)
 
 ### Requirements
-* Packages: conky-all, python3-requests, python-plexapi
+* Packages: conky-all, nethogs, python-plexapi, python3-requests, python3-jinja2
 * Fonts: Ubuntu (already present in Ubuntu)
 
 ### Installation
@@ -20,25 +20,16 @@ Copy the pkmeter scripts into place..
 ```bash
 cd ~/Projects && git clone https://github.com/mjs7231/pkmeter-conky.git
 ln -s ~/Projects/pkmeter-conky/pkmeter ~/.pkmeter
-ln -s ~/.pkmeter/config-home/* ~/.pkmeter/
-ln -s ~/.pkmeter/conkyrc ~/.conkyrc
+cp ~/.pkmeter/config-example.json ~/.pkmeter/config.json
 ```
 
-Create `~/.pkmeter/config.ini` with the following variables..
-```ini
-[darksky]
-apikey=<APIKEY>
-coords=<COORDS>
-
-[sickrage]
-host=<HOST>
-apikey=<APIKEY>
-
-[plex]
-ignore=Bar Rescue,The Late Show,Last Week Tonight,Cops
+Edit `config.json` with your desired configuration then run
+`genconkyrc` to generate the config.lua and conkyrc files.
+```bash
+vim ~/.pkmeter/config.json
+python3 ~/.pkmeter/pkmeter.py genconkyrc
+conky
 ```
-
-Now you should be able to run `conky`..
 
 ### Thanks
 * Fisadev for creating the Conky Draw scripts.
