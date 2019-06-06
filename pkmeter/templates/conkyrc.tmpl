@@ -59,6 +59,7 @@ ${texeci 5 ~/.pkmeter/pkmeter.py nvidia}\
 ${texeci 1800 ~/.pkmeter/pkmeter.py externalip}\
 ${texeci 300 ~/.pkmeter/pkmeter.py sickrage}\
 ${texeci 300 ~/.pkmeter/pkmeter.py plexadded}\
+${texeci 300 ~/.pkmeter/pkmeter.py plexhistory}\
 ${texeci 30 ~/.pkmeter/pkmeter.py plexsessions}\
 \
 \
@@ -69,7 +70,7 @@ ${goto 105}${time %H:%M:%S %P}
 \
 \
 ${image ~/.cache/pkmeter/current.png -p 87,87 -s 35x35}\
-${voffset 30}${goto 10}${font Ubuntu:bold:size=11}Boston${font}
+${voffset 30}${goto 10}${font Ubuntu:bold:size=11}{{darksky_location}}${font}
 ${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py darksky.currently.summary}${color}
 ${voffset -30}${alignr 10}${font Ubuntu:bold:size=12}${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.currently.temperature}°F${font}
 ${alignr 10}Feels: ${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.currently.apparentTemperature}°
@@ -115,22 +116,22 @@ ${goto 10}${color2}${top_mem name 5}${color}${goto 110}${top_mem mem_res 5}${ali
 ${goto 10}${color2}${top_mem name 6}${color}${goto 110}${top_mem mem_res 6}${alignr 10}${top_mem cpu 6}%
 \
 \
-${voffset 17}${goto 100}${color3}${upspeedgraph enp0s31f6 12,90}${color}
-${goto 100}${color4}${downspeedgraph enp0s31f6 -11,90}${color}
+${voffset 17}${goto 100}${color3}${upspeedgraph {{network_device}} 12,90}${color}
+${goto 100}${color4}${downspeedgraph {{network_device}} -11,90}${color}
 ${voffset -29}${goto 10}${font ubuntu:bold:size=9}Network${font}
 ${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py externalip.ip}${color}
-${voffset 15}${goto 10}enp0s31f6${alignr 10}${addr enp0s31f6}
-${goto 10}${color2}Upload${color}${alignr 10}${upspeed enp0s31f6}/s of ${totalup enp0s31f6}
-${goto 10}${color2}Download${color}${alignr 10}${downspeed enp0s31f6}/s of ${totaldown enp0s31f6}
+${voffset 15}${goto 10}{{network_device}}${alignr 10}${addr br0}
+${goto 10}${color2}Upload${color}${alignr 10}${upspeed {{network_device}}}/s of ${totalup {{network_device}}}
+${goto 10}${color2}Download${color}${alignr 10}${downspeed {{network_device}}}/s of ${totaldown {{network_device}}}
 \
 \
-${voffset 17}${goto 100}${color1}${diskiograph /dev/nvme0n1p1 24,90}${color}
+${voffset 17}${goto 100}${color1}${diskiograph {{filesystem_io}} 24,90}${color}
 ${voffset -35}${goto 10}${font ubuntu:bold:size=9}File Systems${font}
 ${goto 10}${color1}IO: ${diskio}/s${color}
-${voffset 15}${goto 10}Root${alignr 55}${fs_free /} free
-${goto 10}${color2}${fs_used_perc /}%${color}${alignr 55}${fs_size /} total
-${voffset 5}${goto 10}Synology${alignr 55}${fs_free /media/Synology} free
-${goto 10}${color2}${fs_used_perc /media/Synology}%${color}${alignr 55}${fs_size /media/Synology} total
+${voffset 15}${goto 10}{{filesystem1_name}}${alignr 55}${fs_free {{filesystem1_path}}} free
+${goto 10}${color2}${fs_used_perc {{filesystem1_path}}}%${color}${alignr 55}${fs_size {{filesystem1_path}}} total
+${voffset 5}${goto 10}{{filesystem2_name}}${alignr 55}${fs_free {{filesystem2_path}}} free
+${goto 10}${color2}${fs_used_perc {{filesystem2_path}}}%${color}${alignr 55}${fs_size {{filesystem2_path}}} total
 \
 \
 ${voffset 17}${goto 10}${font ubuntu:bold:size=9}TV Shows${font}

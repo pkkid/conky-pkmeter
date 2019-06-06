@@ -1,0 +1,17 @@
+{
+  "default": {
+    "darksky_apikey": "<DARKSKY_APIKEY>",
+    "darksky_coords": "42.3601,-71.0589",
+    "darksky_location": "Boston",
+    "filesystem_1": "/",
+    "filesystem_2": "/media/Synology",
+    "filesystem_io": "/dev/nvme0n1p1",
+    "network_device": "enp0s31f6",
+    "plexadded_ignore": ["Bar Rescue", "The Late Show"],
+    "plexhistory_ignore": ["Bert", "Ernie"],
+    "plexhistory_names": {"<USERNAME>": "<SHORTNAME>"},
+    "sickrage_apikey": "<SICKRAGE_APIKEY>",
+    "sickrage_host": "<SICKRAGE_HOST>",
+    "sickrage_ignore": ["Bar Rescue", "The Late Show"]
+  }
+}

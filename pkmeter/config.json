@@ -1,0 +1,31 @@
+{
+  "default": {
+    "darksky_apikey": "0fc92d4d2d45da72bfe782b71113d490",
+    "darksky_coords": "42.3601,-71.0589",
+    "darksky_location": "Boston",
+    "filesystem1_name": "Root",
+    "filesystem1_path": "/",
+    "filesystem2_name": "Synology",
+    "filesystem2_path": "/media/Synology",
+    "filesystem_io": "/dev/nvme0n1p1",
+    "network_device": "enp0s31f6",
+    "plexadded_ignore": ["Bar Rescue", "The Late Show", "Last Week Tonight", "Cops", "Teenage Mutant"],
+    "plexhistory_ignore": ["PKKid"],
+    "plexhistory_names": {
+      "d.william.brown": "Dayrl",
+      "Hollisterny": "Laura",
+      "jayarrsteiner": "Jayarr",
+      "jlacroix78": "John",
+      "TheLizzzinator": "Nate"
+    },
+    "sickrage_apikey": "051151e7c7eef0c042c6c8ba1ce4d535",
+    "sickrage_host": "http://home.pushingkarma.com:58081",
+    "sickrage_ignore": ["Bar Rescue", "The Late Show", "Last Week Tonight", "Cops", "Teenage Mutant"]
+  },
+  "pkkid-work": {
+    "filesystem2_name": "Private",
+    "filesystem2_path": "/home/mjs7231/Private",
+    "filesystem_io": "/dev/sda6",
+    "network_device": "br0"
+  }
+}

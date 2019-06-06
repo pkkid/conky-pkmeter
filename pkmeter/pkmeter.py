@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import json, os
-import argparse, configparser, requests
+import json, os, socket
+import argparse, requests
 import shlex, subprocess
 from datetime import datetime, timedelta
 from os.path import join
+from jinja2 import Template
 from shutil import copyfile
 from plexapi.server import PlexServer
 
@@ -17,19 +18,30 @@ NVIDIA_CMD = '/usr/bin/nvidia-settings'
 NVIDIA_ATTRS = ('nvidiadriverversion', 'gpucoretemp', 'gpucurrentfanspeedrpm',
     'gpuutilization', 'totaldedicatedgpumemory', 'useddedicatedgpumemory')
 NVIDIA_QUERY = '%s --query=%s' % (NVIDIA_CMD, ' --query='.join(NVIDIA_ATTRS))
-_config = None  # cached config object
+config = None  # cached config object
+
+
+class Bunch(dict):
+    def __getattr__(self, item):
+        return self.__getitem__(item)
+
+    def __setattr__(self, item, value):
+        return self.__setitem__(item, value)
 
 
 def _bytes_to_str(value, precision=0):
     return _value_to_str(value, BYTES1024, precision)
 
 
-def _get_config(section, item):
-    global _config
-    if not _config:
-        _config = configparser.ConfigParser()
-        _config.read(join(ROOT, 'config.ini'))
-    return _config.get(section, item)
+def _get_config():
+    global config
+    if not config:
+        hostname = socket.gethostname()
+        with open(join(ROOT, 'config.json'), 'r') as handle:
+            config = json.load(handle)
+        config['default'].update(config.get(hostname, {}))
+        config = Bunch(config['default'])
+    return config
 
 
 def _datetime_to_str(dt):
@@ -126,11 +138,26 @@ def _video_title(video):
     return title[:20]
 
 
+def create_conkyrc():
+    """ Create a new conkyrc from from config.json. """
+    config = _get_config()
+    # create the config.lua file
+    with open(join(ROOT, 'templates/lua.tmpl')) as handle:
+        template = Template(handle.read())
+    with open(join(ROOT, 'config.lua'), 'w') as handle:
+        handle.write(template.render(**config))
+    # create the conkyrc file
+    with open(join(ROOT, 'templates/conkyrc.tmpl')) as handle:
+        template = Template(handle.read())
+    with open(os.path.expanduser('~/.conkyrc'), 'w') as handle:
+        handle.write(template.render(**config))
+
+
 def get_darksky(key):
     """ Fetch weather from DarkSky and copy weather images to cache. """
-    apikey = _get_config('darksky', 'apikey')
-    coords = _get_config('darksky', 'coords')
-    url = DARKSKY_URL.replace('{apikey}', apikey).replace('{coords}', coords)
+    config = _get_config()
+    url = DARKSKY_URL.replace('{apikey}', config.darksky_apikey)
+    url = url.replace('{coords}', config.darksky_coords)
     response = requests.get(url)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         handle.write(response.content.decode())
@@ -195,7 +222,7 @@ def get_plexadded(key):
     """ Fetch plex recently added. """
     values = []
     plex = PlexServer()
-    ignored = _get_config('plexadded', 'ignore').split(',')
+    config = _get_config()
     recent = plex.library.recentlyAdded()
     recent = sorted(recent, key=lambda v:v.addedAt, reverse=True)
     for vdata in recent[:10]:
@@ -203,7 +230,7 @@ def get_plexadded(key):
         video['type'] = vdata.type
         video['added'] = _datetime_to_str(vdata.addedAt)
         video['title'] = _video_title(vdata)
-        if not _ignored(video['title'], ignored):
+        if not _ignored(video['title'], config.plexadded_ignore):
             values.append(video)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         json.dump(values, handle)
@@ -213,10 +240,8 @@ def get_plexhistory(key):
     """ Fetch plex recently added. """
     values = []
     plex = PlexServer()
+    config = _get_config()
     accounts = {a.accountID:a.name for a in plex.systemAccounts()}
-    ignored = _get_config('plexhistory', 'ignore').split(',')
-    names = _get_config('plexhistory', 'names').split(',')
-    names = {n.split(':')[0]:n.split(':')[1] for n in names}
     mindate = datetime.now() - timedelta(days=30)
     history = plex.history(50, mindate=mindate)
     for vdata in history:
@@ -225,8 +250,8 @@ def get_plexhistory(key):
         video['viewed'] = _datetime_to_str(vdata.viewedAt)
         video['title'] = _video_title(vdata)[:15]
         video['account'] = accounts.get(vdata.accountID, 'Unknown')
-        video['account'] = names.get(video['account'], video['account'])[:6]
-        if not _ignored(video['account'], ignored):
+        video['account'] = config.plexhistory_names.get(video['account'], video['account'])[:6]
+        if not _ignored(video['account'], config.plexhistory_ignore):
             values.append(video)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         json.dump(values, handle)
@@ -265,10 +290,9 @@ def get_plexsessions(key):
 def get_sickrage(key):
     """ Fetch upcoming episodes from Sickrage. """
     values = []
-    host = _get_config('sickrage', 'host')
-    apikey = _get_config('sickrage', 'apikey')
-    ignored = _get_config('sickrage', 'ignore').split(',')
-    url = SICKRAGE_URL.replace('{host}', host).replace('{apikey}', apikey)
+    config = _get_config()
+    url = SICKRAGE_URL.replace('{host}', config.sickrage_host)
+    url = url.replace('{apikey}', config.sickrage_apikey)
     response = requests.get(url)
     data = json.loads(response.content.decode('utf8'))
     for stype in ('missed','today','soon','later'):
@@ -276,7 +300,8 @@ def get_sickrage(key):
             show['datestr'] = _sickrage_datestr(stype, show)
             show['show_name'] = show['show_name'][:20]
             show['episode'] = f's{show.get("season","")}e{show.get("episode","")}'
-            if (not values or (show['show_name'] != values[-1]['show_name'])) and not _ignored(show['show_name'], ignored):
+            if ((not values or (show['show_name'] != values[-1]['show_name']))
+              and not _ignored(show['show_name'], config.sickrage_ignore)):
                 values.append(show)
     # save values to cache
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
@@ -314,6 +339,10 @@ if __name__ == '__main__':
     # lookup value in previous json output
     if '.' in opts.key:
         print(lookup_value(opts.key, opts))
+        raise SystemExit()
+    # generate a new conkyrc
+    if opts.key == 'genconkyrc':
+        create_conkyrc()
         raise SystemExit()
     # run all get_ functions
     if opts.key == 'all':
