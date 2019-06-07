@@ -12,7 +12,7 @@ conky.config = {
   no_buffers=true,
   show_graph_range=false,
   show_graph_scale=false,
-  update_interval=1,
+  update_interval=2,
 
   -- Window Settings --
   border_inner_margin=0,
@@ -108,19 +108,19 @@ ${goto 10}${color2}Mem Used${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py n
 \
 ${voffset 17}${goto 10}${font ubuntu:bold:size=9}Processes${font}
 ${goto 10}${color1}${processes} processes${color}
-${voffset 15}${goto 10}${color2}${top_mem name 1}${color}${goto 110}${top_mem mem_res 1}${alignr 10}${top_mem cpu 1}%
-${goto 10}${color2}${top_mem name 2}${color}${goto 110}${top_mem mem_res 2}${alignr 10}${top_mem cpu 2}%
-${goto 10}${color2}${top_mem name 3}${color}${goto 110}${top_mem mem_res 3}${alignr 10}${top_mem cpu 3}%
-${goto 10}${color2}${top_mem name 4}${color}${goto 110}${top_mem mem_res 4}${alignr 10}${top_mem cpu 4}%
-${goto 10}${color2}${top_mem name 5}${color}${goto 110}${top_mem mem_res 5}${alignr 10}${top_mem cpu 5}%
-${goto 10}${color2}${top_mem name 6}${color}${goto 110}${top_mem mem_res 6}${alignr 10}${top_mem cpu 6}%
+${voffset 15}${goto 10}${color2}${top name 1}${color}${goto 110}${top mem_res 1}${alignr 10}${top cpu 1}%
+${goto 10}${color2}${top name 2}${color}${goto 110}${top mem_res 2}${alignr 10}${top cpu 2}%
+${goto 10}${color2}${top name 3}${color}${goto 110}${top mem_res 3}${alignr 10}${top cpu 3}%
+${goto 10}${color2}${top name 4}${color}${goto 110}${top mem_res 4}${alignr 10}${top cpu 4}%
+${goto 10}${color2}${top name 5}${color}${goto 110}${top mem_res 5}${alignr 10}${top cpu 5}%
+${goto 10}${color2}${top name 6}${color}${goto 110}${top mem_res 6}${alignr 10}${top cpu 6}%
 \
 \
 ${voffset 17}${goto 100}${color3}${upspeedgraph {{network_device}} 12,90}${color}
 ${goto 100}${color4}${downspeedgraph {{network_device}} -11,90}${color}
 ${voffset -29}${goto 10}${font ubuntu:bold:size=9}Network${font}
 ${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py externalip.ip}${color}
-${voffset 15}${goto 10}{{network_device}}${alignr 10}${addr br0}
+${voffset 15}${goto 10}{{network_device}}${alignr 10}${addr {{network_device}}}
 ${goto 10}${color2}Upload${color}${alignr 10}${upspeed {{network_device}}}/s of ${totalup {{network_device}}}
 ${goto 10}${color2}Download${color}${alignr 10}${downspeed {{network_device}}}/s of ${totaldown {{network_device}}}
 \
@@ -144,7 +144,7 @@ ${goto 10}${execi 300 ~/.pkmeter/pkmeter.py sickrage.4.show_name}${alignr 10}${c
 \
 \
 ${voffset 17}${goto 10}${font ubuntu:bold:size=9}Plex Server${font}
-${goto 10}${color1}Recently Viewed${color}
+${goto 10}${color1}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.total} streams in 30 days${color}
 \
 ${if_existing /home/mjs7231/.cache/pkmeter/session1.jpg}\
 ${image ~/.cache/pkmeter/session0.jpg -p 12,940 -s 23x34}\
@@ -161,16 +161,16 @@ ${image ~/.cache/pkmeter/session0.jpg -p 12,940 -s 23x34}\
 ${voffset 15}${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.0.title}
 ${goto 47}${color2}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.0.playstate}
 ${goto 47}${execi 10 ~/.pkmeter/pkmeter.py plexsessions.0.user}${color}
-${voffset 5}${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.0.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.0.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.0.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.1.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.1.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.1.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.2.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.2.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.2.viewed}${color}
+${voffset 5}${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.0.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.0.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.0.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.1.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.1.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.1.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.2.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.2.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.2.viewed}${color}
 \
 ${else}\
-${voffset 15}${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.0.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.0.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.0.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.1.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.1.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.1.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.2.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.2.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.2.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.3.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.3.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.3.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.4.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.4.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.4.viewed}${color}
-${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.5.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.5.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.5.viewed}${color}
+${voffset 15}${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.0.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.0.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.0.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.1.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.1.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.1.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.2.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.2.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.2.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.3.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.3.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.3.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.4.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.4.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.4.viewed}${color}
+${goto 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.5.account}${color2} ${goto 50}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.5.title}${alignr 10}${execi 300 ~/.pkmeter/pkmeter.py plexhistory.items.5.viewed}${color}
 ${endif}${endif}
 ]]

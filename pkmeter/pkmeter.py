@@ -10,6 +10,7 @@ from plexapi.server import PlexServer
 
 ROOT = os.path.expanduser('~/.pkmeter')
 CACHE = os.path.expanduser('~/.cache/pkmeter')
+BYTE, KB, MB = 1, 1024, 1048576
 BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
 DARKSKY_URL = 'https://api.darksky.net/forecast/{apikey}/{coords}'
 EXTERNALIP_URL = 'https://api6.ipify.org/?format=json'
@@ -27,10 +28,6 @@ class Bunch(dict):
 
     def __setattr__(self, item, value):
         return self.__setitem__(item, value)
-
-
-def _bytes_to_str(value, precision=0):
-    return _value_to_str(value, BYTES1024, precision)
 
 
 def _get_config():
@@ -69,11 +66,6 @@ def _percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
     return min(maxval, round((numerator / float(denominator)) * 100.0, precision))
 
 
-def _mb_to_str(value, precision=0):
-    value = value or 0
-    return _value_to_str(value * 1048576, BYTES1024, precision)
-
-
 def _rget(obj, attrstr, default=None, delim='.'):
     try:
         parts = attrstr.split(delim, 1)
@@ -110,10 +102,10 @@ def _to_int(value, default=None):
         return default
 
 
-def _value_to_str(value, units, precision=0, separator=''):
+def _value_to_str(value, unit=BYTE, precision=0, separator=''):
     if value is None: return ''
-    if isinstance(precision, str): precision = int(precision)
-    for div, unit in units:
+    value = value * unit
+    for div, unit in BYTES1024:
         if value >= div:
             conversion = round(value / div, int(precision)) if precision else int(value / div)
             return '%s%s%s' % (conversion, separator, unit)
@@ -138,18 +130,22 @@ def _video_title(video):
     return title[:20]
 
 
-def create_conkyrc():
+def get_conkyrc(key):
     """ Create a new conkyrc from from config.json. """
     config = _get_config()
     # create the config.lua file
     with open(join(ROOT, 'templates/lua.tmpl')) as handle:
         template = Template(handle.read())
-    with open(join(ROOT, 'config.lua'), 'w') as handle:
+    dest = join(ROOT, 'config.lua')
+    print(f'Creating config.lua script at {dest}')
+    with open(dest, 'w') as handle:
         handle.write(template.render(**config))
     # create the conkyrc file
     with open(join(ROOT, 'templates/conkyrc.tmpl')) as handle:
         template = Template(handle.read())
-    with open(os.path.expanduser('~/.conkyrc'), 'w') as handle:
+    dest = os.path.expanduser('~/.conkyrc')
+    print(f'Creating conkyrc script at {dest}')
+    with open(dest, 'w') as handle:
         handle.write(template.render(**config))
 
 
@@ -204,9 +200,9 @@ def get_nvidia(key):
     memtotal = _to_int(values.get('totaldedicatedgpumemory'), 0)
     memused = _to_int(values.get('useddedicatedgpumemory'), 0)
     values['gpucoretemp'] = _celsius_to_fahrenheit(_to_int(values.get('gpucoretemp')))
-    values['freededicatedgpumemory'] = _mb_to_str(memtotal - memused)
-    values['totaldedicatedgpumemory'] = _mb_to_str(_to_int(values.get('totaldedicatedgpumemory')))
-    values['useddedicatedgpumemory'] = _mb_to_str(_to_int(values.get('useddedicatedgpumemory')))
+    values['freededicatedgpumemory'] = _value_to_str(memtotal - memused, MB)
+    values['totaldedicatedgpumemory'] = _value_to_str(_to_int(values.get('totaldedicatedgpumemory')), MB)
+    values['useddedicatedgpumemory'] = _value_to_str(_to_int(values.get('useddedicatedgpumemory')), MB)
     values['percentuseddedicatedgpumemory'] = int(_percent(memused, memtotal, 0))
     # fetch nvidia card name
     cmd = shlex.split(f'{NVIDIA_CMD} --glxinfo')
@@ -238,7 +234,7 @@ def get_plexadded(key):
 
 def get_plexhistory(key):
     """ Fetch plex recently added. """
-    values = []
+    values = {'items':[]}
     plex = PlexServer()
     config = _get_config()
     accounts = {a.accountID:a.name for a in plex.systemAccounts()}
@@ -252,7 +248,8 @@ def get_plexhistory(key):
         video['account'] = accounts.get(vdata.accountID, 'Unknown')
         video['account'] = config.plexhistory_names.get(video['account'], video['account'])[:6]
         if not _ignored(video['account'], config.plexhistory_ignore):
-            values.append(video)
+            values['items'].append(video)
+    values['total'] = len(values['items'])
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         json.dump(values, handle)
 
@@ -321,8 +318,7 @@ def lookup_value(key, opts):
         if opts.int: value = int(value)
         if opts.format: value = datetime.fromtimestamp(int(value)).strftime(opts.format)
         return value
-    except Exception as err:
-        print(err)
+    except Exception:
         return opts.default
 
 
@@ -331,7 +327,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Helper tools for pkmeter.')
     parser.add_argument('key', help='Item key to get or update')
     parser.add_argument('args', nargs='*', help='Args to pass key function')
-    parser.add_argument('-d', '--default', default='--', help='Default value if not found')
+    parser.add_argument('-d', '--default', default='', help='Default value if not found')
     parser.add_argument('-r', '--round', type=int, help='Round to nearest decimal')
     parser.add_argument('-i', '--int', action='store_true', default=False, help='Cast value to int')
     parser.add_argument('-f', '--format', help='Format datetime')
@@ -339,10 +335,6 @@ if __name__ == '__main__':
     # lookup value in previous json output
     if '.' in opts.key:
         print(lookup_value(opts.key, opts))
-        raise SystemExit()
-    # generate a new conkyrc
-    if opts.key == 'genconkyrc':
-        create_conkyrc()
         raise SystemExit()
     # run all get_ functions
     if opts.key == 'all':

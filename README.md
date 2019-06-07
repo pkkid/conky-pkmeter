@@ -16,18 +16,19 @@ make fetching data easy and results are stored as json files in `~/.cache/pkmete
 * Fonts: Ubuntu (already present in Ubuntu)
 
 ### Installation
-Copy the pkmeter scripts into place..
 ```bash
+# Install required apt packages and clone the repo
+# and symlink the scripts into place
+sudo apt install conky-all python-plexapi python3-requests python3-jinja2
 cd ~/Projects && git clone https://github.com/mjs7231/pkmeter-conky.git
 ln -s ~/Projects/pkmeter-conky/pkmeter ~/.pkmeter
-cp ~/.pkmeter/config-example.json ~/.pkmeter/config.json
-```
 
-Edit `config.json` with your desired configuration then run
-`genconkyrc` to generate the config.lua and conkyrc files.
-```bash
+# Copy the example-config and edit with your desired configuration
+cp ~/.pkmeter/config-example.json ~/.pkmeter/config.json
 vim ~/.pkmeter/config.json
-python3 ~/.pkmeter/pkmeter.py genconkyrc
+
+# Generate a new conkyrc and then start conky
+python3 ~/.pkmeter/pkmeter.py conkyrc
 conky
 ```
 
