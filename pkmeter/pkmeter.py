@@ -110,7 +110,7 @@ def _value_to_str(value, unit=BYTE, precision=0, separator=''):
             conversion = round(value / div, int(precision)) if precision else int(value / div)
             return '%s%s%s' % (conversion, separator, unit)
     return '0%s%s' % (separator, unit)
-    
+
 
 def _video_length(length):
     hours = int(length / 3600000)
@@ -160,12 +160,12 @@ def get_darksky(key):
         handle.write('\n')
     # copy icons into place
     data = json.loads(response.content.decode())
-    source = join(ROOT, 'img', _rget(data, 'currently.icon'))+'.png'
+    source = join(ROOT, 'img', _rget(data, 'currently.icon')) + '.png'
     dest = join(CACHE, 'current.png')
     copyfile(source, dest)
     # copy daily icons into place
     for i, day in enumerate(_rget(data, 'daily.data')[:4]):
-        source = join(ROOT, 'img', _rget(day, 'icon'))+'.png'
+        source = join(ROOT, 'img', _rget(day, 'icon')) + '.png'
         dest = join(CACHE, f'day{i}.png')
         copyfile(source, dest)
 
@@ -239,7 +239,7 @@ def get_plexhistory(key):
     config = _get_config()
     accounts = {a.accountID:a.name for a in plex.systemAccounts()}
     mindate = datetime.now() - timedelta(days=30)
-    history = plex.history(50, mindate=mindate)
+    history = plex.history(150, mindate=mindate)
     for vdata in history:
         video = {}
         video['type'] = vdata.type
