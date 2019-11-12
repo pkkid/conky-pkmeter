@@ -19,6 +19,7 @@ NVIDIA_CMD = '/usr/bin/nvidia-settings'
 NVIDIA_ATTRS = ('nvidiadriverversion', 'gpucoretemp', 'gpucurrentfanspeedrpm',
     'gpuutilization', 'totaldedicatedgpumemory', 'useddedicatedgpumemory')
 NVIDIA_QUERY = '%s --query=%s' % (NVIDIA_CMD, ' --query='.join(NVIDIA_ATTRS))
+REQUEST_TIMEOUT = 10
 config = None  # cached config object
 
 
@@ -154,7 +155,7 @@ def get_darksky(key):
     config = _get_config()
     url = DARKSKY_URL.replace('{apikey}', config.darksky_apikey)
     url = url.replace('{coords}', config.darksky_coords)
-    response = requests.get(url)
+    response = requests.get(url, timeout=REQUEST_TIMEOUT)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         handle.write(response.content.decode())
         handle.write('\n')
@@ -172,7 +173,7 @@ def get_darksky(key):
 
 def get_externalip(key):
     """ Fetch external IP. """
-    response = requests.get(EXTERNALIP_URL)
+    response = requests.get(EXTERNALIP_URL, timeout=REQUEST_TIMEOUT)
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
         handle.write(response.content.decode())
         handle.write('\n')
@@ -274,7 +275,7 @@ def get_plexsessions(key):
             values.append(video)
         # Download the thumbnail to cache
         url = vdata.show().thumbUrl if vdata.type == 'episode' else vdata.thumbUrl
-        response = requests.get(url)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
         with open(join(CACHE, f'session{i}.jpg'), 'wb') as handle:
             handle.write(response.content)
     if len(values) < 1: _safe_unlink(join(CACHE, 'session0.jpg'))
@@ -290,7 +291,7 @@ def get_sickrage(key):
     config = _get_config()
     url = SICKRAGE_URL.replace('{host}', config.sickrage_host)
     url = url.replace('{apikey}', config.sickrage_apikey)
-    response = requests.get(url)
+    response = requests.get(url, timeout=REQUEST_TIMEOUT)
     data = json.loads(response.content.decode('utf8'))
     for stype in ('missed','today','soon','later'):
         for show in _rget(data, f'data.{stype}', []):
