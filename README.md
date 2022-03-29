@@ -7,12 +7,9 @@ make fetching data easy and results are stored as json files in `~/.cache/pkmete
 * `pkmeter.py darksky` (Weather)
 * `pkmeter.py externalip` (Extenral IP)
 * `pkmeter.py nvidia` (GPU Temp)
-* `pkmeter.py plexadded` (Recently Added)
-* `pkmeter.py plexsessions` (Now Playing)
-* `pkmeter.py sickrage` (Coming Soon)
 
 ### Requirements
-* Packages: conky-all, nethogs, python-plexapi, python3-requests, python3-jinja2
+* Packages: conky-all, nethogs, python3-requests, python3-jinja2
 * Fonts: Ubuntu (already present in Ubuntu)
 
 ### Installation
@@ -30,6 +27,9 @@ vim ~/.pkmeter/config.json
 # Generate a new conkyrc and then start conky
 python3 ~/.pkmeter/pkmeter.py conkyrc
 conky
+
+# To autostart on boot, add the following startup script
+/usr/bin/bash -c "/usr/bin/sleep 5; /usr/bin/conky"
 ```
 
 ### Thanks

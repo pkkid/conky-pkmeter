@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/pkkid/.pyenv/shims/python
 import json, os, socket
 import argparse, requests
 import shlex, subprocess
