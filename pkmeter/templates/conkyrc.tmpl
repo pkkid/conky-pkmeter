@@ -54,7 +54,7 @@ conky.config = {
 }
 
 conky.text = [[
-${texeci 1800 ~/.pkmeter/pkmeter.py darksky}\
+${texeci 1800 ~/.pkmeter/pkmeter.py openweather}\
 ${texeci 5 ~/.pkmeter/pkmeter.py nvidia}\
 ${texeci 1800 ~/.pkmeter/pkmeter.py externalip}\
 \
@@ -66,23 +66,23 @@ ${goto 105}${time %H:%M:%S %P}
 \
 \
 ${image ~/.cache/pkmeter/current.png -p 87,87 -s 35x35}\
-${voffset 30}${goto 10}${font Ubuntu:bold:size=11}{{darksky_location}}${font}
-${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py darksky.currently.summary}${color}
-${voffset -30}${alignr 10}${font Ubuntu:bold:size=12}${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.currently.temperature}°F${font}
-${alignr 10}Feels: ${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.currently.apparentTemperature}°
+${voffset 30}${goto 10}${font Ubuntu:bold:size=11}Holliston${font}
+${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py openweather.current.weather.0.description}${color}
+${voffset -30}${alignr 10}${font Ubuntu:bold:size=12}${execi 60 ~/.pkmeter/pkmeter.py -ir0 openweather.current.temp}°F${font}
+${alignr 10}Feels: ${execi 60 ~/.pkmeter/pkmeter.py -ir0 openweather.current.feels_like}°
 ${image ~/.cache/pkmeter/day0.png -p 15,140 -s 20x20}\
 ${image ~/.cache/pkmeter/day1.png -p 65,140 -s 20x20}\
 ${image ~/.cache/pkmeter/day2.png -p 115,140 -s 20x20}\
 ${image ~/.cache/pkmeter/day3.png -p 165,140 -s 20x20}\
 ${font Ubuntu:bold:size=7}${voffset 42}${color2}\
-${goto 17}${execi 60 ~/.pkmeter/pkmeter.py -f %a darksky.daily.data.0.time}\
-${goto 67}${execi 60 ~/.pkmeter/pkmeter.py -f %a darksky.daily.data.1.time}\
-${goto 117}${execi 60 ~/.pkmeter/pkmeter.py -f %a darksky.daily.data.2.time}\
-${goto 167}${execi 60 ~/.pkmeter/pkmeter.py -f %a darksky.daily.data.3.time}
-${goto 17}${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.daily.data.0.temperatureMax}°\
-${goto 67}${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.daily.data.1.temperatureMax}°\
-${goto 117}${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.daily.data.2.temperatureMax}°\
-${goto 167}${execi 60 ~/.pkmeter/pkmeter.py -ir0 darksky.daily.data.3.temperatureMax}°\
+${goto 17}${execi 60 ~/.pkmeter/pkmeter.py -f %a openweather.daily.0.dt}\
+${goto 67}${execi 60 ~/.pkmeter/pkmeter.py -f %a openweather.daily.1.dt}\
+${goto 117}${execi 60 ~/.pkmeter/pkmeter.py -f %a openweather.daily.2.dt}\
+${goto 167}${execi 60 ~/.pkmeter/pkmeter.py -f %a openweather.daily.3.dt}
+${goto 17}${execi 60 ~/.pkmeter/pkmeter.py -ir0 openweather.daily.0.temp.max}°\
+${goto 67}${execi 60 ~/.pkmeter/pkmeter.py -ir0 openweather.daily.1.temp.max}°\
+${goto 117}${execi 60 ~/.pkmeter/pkmeter.py -ir0 openweather.daily.2.temp.max}°\
+${goto 167}${execi 60 ~/.pkmeter/pkmeter.py -ir0 openweather.daily.3.temp.max}°\
 ${color}${font}
 \
 \
