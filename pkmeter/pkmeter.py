@@ -1,4 +1,4 @@
-#!/home/pkkid/.pyenv/shims/python
+#!/home/pkkid/.asdf/installs/python/3.10.4/bin/python3
 import json, os, socket
 import argparse, requests
 import shlex, subprocess
