@@ -5,15 +5,17 @@
 
 elements = {
   -- Background Images
-  {kind='line', from={x=100,y=0}, to={x=100,y=800}, color='0x000000', alpha=0.4, thickness=200}, -- Main Background
-  {kind='line', from={x=0,y=106}, to={x=200,y=106}, color='0xFFEEEE', alpha=0.09, thickness=50}, -- Weather
-  {kind='line', from={x=0,y=221}, to={x=200,y=221}, color='0xFFEEEE', alpha=0.09, thickness=40}, -- System
+  {kind='line', from={x=100,y=0}, to={x=100,y=735}, color='{{bgcolor}}', alpha={{bgalpha}}, thickness=200}, -- Main Background
+
+  -- Headers
+  {kind='line', from={x=0,y=106}, to={x=200,y=106}, color='0xFFEEEE', alpha=0.15, thickness=50}, -- Weather
+  {kind='line', from={x=0,y=221}, to={x=200,y=221}, color='0xFFEEEE', alpha=0.15, thickness=40}, -- System
   {kind='line', from={x=100,y=222}, to={x=190,y=222}, color='0x000000', alpha=0.2, thickness=24}, -- System Chart
-  {kind='line', from={x=0,y=333}, to={x=200,y=333}, color='0xFFEEEE', alpha=0.09, thickness=40}, -- NVIDIA
-  {kind='line', from={x=0,y=432}, to={x=200,y=432}, color='0xFFEEEE', alpha=0.09, thickness=40}, -- Processes
-  {kind='line', from={x=0,y=567}, to={x=200,y=567}, color='0xFFEEEE', alpha=0.09, thickness=40}, -- Network
+  {kind='line', from={x=0,y=333}, to={x=200,y=333}, color='0xFFEEEE', alpha=0.15, thickness=40}, -- NVIDIA
+  {kind='line', from={x=0,y=432}, to={x=200,y=432}, color='0xFFEEEE', alpha=0.15, thickness=40}, -- Processes
+  {kind='line', from={x=0,y=567}, to={x=200,y=567}, color='0xFFEEEE', alpha=0.15, thickness=40}, -- Network
   {kind='line', from={x=100,y=568}, to={x=190,y=568}, color='0x000000', alpha=0.2, thickness=24}, -- Network Chart
-  {kind='line', from={x=0,y=668}, to={x=200,y=668}, color='0xFFEEEE', alpha=0.09, thickness=40}, -- FileSystems
+  {kind='line', from={x=0,y=668}, to={x=200,y=668}, color='0xFFEEEE', alpha=0.15, thickness=40}, -- FileSystems
 
   -- Veritcal CPU Bars
   {kind='bar_graph',from={x=160,y=271},to={x=160,y=253},conky_value='cpu cpu1',background_color=0xFFFFFF,background_alpha=0.1,background_thickness=3,bar_color=0xD79921,bar_thickness=3},
@@ -31,5 +33,4 @@ elements = {
 
   -- Disk Usage
   {kind='ring_graph', conky_value='fs_used_perc {{filesystem1_path}}', center={x=175, y=710}, radius=7, background_color=0xFFFFFF, background_alpha=0.1, background_thickness=5, bar_color=0xD79921, bar_thickness=4},
-  {kind='ring_graph', conky_value='fs_used_perc {{filesystem2_path}}', center={x=175, y=741}, radius=7, background_color=0xFFFFFF, background_alpha=0.1, background_thickness=5, bar_color=0xD79921, bar_thickness=4},
 }

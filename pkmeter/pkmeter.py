@@ -25,17 +25,49 @@ NVIDIA_ATTRS = [
     'useddedicatedgpumemory',
 ]
 NVIDIA_QUERY = '%s --query=%s' % (NVIDIA_CMD, ' --query='.join(NVIDIA_ATTRS))
-OPENWEATHER_URL = 'https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={apikey}&exclude=minutely,hourly&units=imperial'  # noqa
-OPENWEATHER_ICONS = {
-    '01': 'clear-{dn}',             # clear sky
-    '02': 'partly-cloudy-{dn}',     # few clouds
-    '03': 'cloudy',                 # scattered clouds
-    '04': 'cloudy',                 # broken clouds
-    '09': 'rain',                   # shower rain
-    '10': 'rain',                   # rain (partly)
-    '11': 'rain',                   # thunderstorm
-    '13': 'snow',                   # snow
-    '50': 'fog',                    # mist
+OPENMETEO_URL = ('https://api.open-meteo.com/v1/forecast?latitude=42.20&longitude=-71.42'
+    '&current_weather=1&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FNew_York'
+    '&daily=weathercode,apparent_temperature_max,sunrise,sunset')
+OPENMETEO_WEATHERCODES = {
+    0: {'text':'Clear', 'icon':'clear-day'},
+    1: {'text':'Mostly Clear', 'icon':'partly-cloudy-day'},
+    2: {'text':'Partly Cloudy', 'icon':'partly-cloudy-day'},
+    3: {'text':'Overcast', 'icon':'cloudy'},
+    45: {'text':'Fog', 'icon':'fog'},
+    48: {'text':'Rime Fog', 'icon':'fog'},
+    51: {'text':'Light Drizzle', 'icon':'rain'},
+    53: {'text':'Drizzle', 'icon':'rain'},
+    55: {'text':'Heavy Drizzle', 'icon':'rain'},
+    56: {'text':'Light Freezing Drizzle', 'icon':'sleet'},
+    57: {'text':'Heavy Freezing Drizzle', 'icon':'sleet'},
+    61: {'text':'Light Rain', 'icon':'rain'},
+    63: {'text':'Rain', 'icon':'rain'},
+    65: {'text':'Heavy Rain', 'icon':'rain'},
+    66: {'text':'Light Freezing Rain', 'icon':'rain'},
+    67: {'text':'Heavy Freezing Rain', 'icon':'rain'},
+    71: {'text':'Light Snow', 'icon':'snow'},
+    73: {'text':'Snow', 'icon':'snow'},
+    75: {'text':'Heavy Snow', 'icon':'snow'},
+    77: {'text':'Hail', 'icon':'rain'},
+    80: {'text':'Light Rain Showers', 'icon':'rain'},
+    81: {'text':'Rain Showers', 'icon':'rain'},
+    82: {'text':'Heavy Rain Showers', 'icon':'rain'},
+    85: {'text':'Light Snow Showers', 'icon':'sleet'},
+    86: {'text':'Heavy Snow Showers', 'icon':'sleet'},
+    95: {'text':'Thunderstorm', 'icon':'rain'},
+    96: {'text':'Thunderstorm w/ Hail', 'icon':'rain'},
+    99: {'text':'Thunderstorm w/ Heavy Hail', 'icon':'rain'},
+}
+HEIGHT = {
+    'clock': 81,
+    'weather': 123,
+    'system': 123,
+    'nvidia': 123,
+    'processes': 123,
+    'network': 123,
+    'filesystem': 123,
+    'line': 123,
+    'padding': 123,
 }
 
 
@@ -117,31 +149,33 @@ def get_conkyrc(key):
         handle.write(template.render(**config))
 
 
-def get_openweather(key):
+def get_weather(key):
     """ Fetch weather from OpenWeather and copy weather images to cache. """
-    config = _get_config()
-    coords = config.openweather_coords.split(',')
-    url = OPENWEATHER_URL.replace('{apikey}', config.openweather_apikey)
-    url = url.replace('{lat}', coords[0]).replace('{lon}', coords[1])
-    response = requests.get(url, timeout=REQUEST_TIMEOUT)
+    url = OPENMETEO_URL
+    data = requests.get(url, timeout=REQUEST_TIMEOUT).json()
+    # get current weather
+    weathercode = data['current_weather']['weathercode']
+    data['current_text'] = OPENMETEO_WEATHERCODES[weathercode]['text']
+    iconname = OPENMETEO_WEATHERCODES[weathercode]['icon']
+    copy_openweather_icon(iconname, 'current')
+    # get future weather
+    data['daily']['text'], data['daily']['day'] = [], []
+    for i in range(4):
+        weathercode = data['daily']['weathercode'][i]
+        text = OPENMETEO_WEATHERCODES[weathercode]['text']
+        day = datetime.strptime(data['daily']['time'][i], '%Y-%m-%d').strftime('%a')
+        data['daily']['text'].append(text)
+        data['daily']['day'].append(day)
+        iconname = OPENMETEO_WEATHERCODES[weathercode]['icon']
+        copy_openweather_icon(iconname, f'day{i}')
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
-        handle.write(response.content.decode())
+        handle.write(json.dumps(data))
         handle.write('\n')
-    # copy icons into place
-    data = json.loads(response.content.decode())
-    iconcode = _rget(data, 'current.weather.0.icon')
-    copy_openweather_icon(iconcode, 'current')
-    # copy daily icons into place
-    for i, day in enumerate(_rget(data, 'daily')[:4]):
-        iconcode = _rget(day, 'weather.0.icon')
-        copy_openweather_icon(iconcode, f'day{i}')
 
 
-def copy_openweather_icon(code, day='current'):
+def copy_openweather_icon(iconname, day='current'):
     """ Return the icon filepath from its code 03d, 02n etc.. """
-    code = code or '01d'  # TODO: Make default icon a questionmark
-    num,dn = code[:2], 'day' if code[2] == 'd' else 'night'
-    source = join(ROOT, 'img', OPENWEATHER_ICONS[num].replace('{dn}',dn) + '.png')
+    source = join(ROOT, 'img', iconname + '.png')
     dest = join(CACHE, f'{day}.png')
     copyfile(source, dest)
 

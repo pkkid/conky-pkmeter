@@ -4,19 +4,19 @@ A collection of scripts and a Conky configuration for my setup. The scripts help
 make fetching data easy and results are stored as json files in `~/.cache/pkmeter`.
 
 ### Available Scripts
-* `pkmeter.py darksky` (Weather)
+* `pkmeter.py openweather` (Weather)
 * `pkmeter.py externalip` (Extenral IP)
 * `pkmeter.py nvidia` (GPU Temp)
 
 ### Requirements
-* Packages: conky-all, nethogs, python3-requests, python3-jinja2
+* Packages: conky-all nethogs python3-requests python3-jinja2
 * Fonts: Ubuntu (already present in Ubuntu)
 
 ### Installation
 ```bash
 # Install required apt packages and clone the repo
 # and symlink the scripts into place
-sudo apt install conky-all python-plexapi python3-requests python3-jinja2
+sudo apt install conky-all nethogs python3-requests python3-jinja2
 cd ~/Projects && git clone https://github.com/mjs7231/pkmeter-conky.git
 ln -s ~/Projects/pkmeter-conky/pkmeter ~/.pkmeter
 
