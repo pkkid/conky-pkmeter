@@ -4,7 +4,7 @@ import argparse, requests
 import shlex, subprocess
 import importlib
 from datetime import datetime
-from os.path import abspath, dirname, join
+from os.path import abspath, dirname, expanduser, join
 from jinja2 import Template
 from shutil import copyfile
 
@@ -72,27 +72,41 @@ HEIGHT = {
 }
 
 
-def get_conkyrc(key):
+def create_conkyrc():
     """ Create a new conkyrc from from config.json. """
     luaentries = []
     pconfig = utils.get_config(ROOT)
     # Generate the conky.config
     conkyrc = 'conky.config = {\n'
     for key, value in pconfig['conky'].items():
-        value = 'true' if value is True else value
-        value = 'false' if value is False else value
-        value = value.replace('{ROOT}', ROOT)
+        value = value.replace('{ROOT}', ROOT) if isinstance(value, str) else value
+        value = value.lstrip('#') if 'color' in key else value
+        value = f'"{value}"' if isinstance(value, str) else value
+        value = str(value).lower() if isinstance(value, bool) else value
         conkyrc += f'  {key}={value},\n'
     conkyrc += '}\n\n'
     # Iterate through the widgets
-    conkyrc += 'conky.text = [['
+    conkyrc += 'conky.text = [[\n'
     for wconfig in pconfig['widgets']:
-        modpath, clsname = wconfig['path'].rsplit('.', 1)
+        modpath, clsname = wconfig['class'].rsplit('.', 1)
         module = importlib.import_module(modpath)
         widget = getattr(module, clsname)(pconfig, wconfig)
         conkyrc += widget.get_conkyrc()
         luaentries += widget.get_lua_entries()
     conkyrc += ']]\n'
+    # Save the conkyrc file
+    filepath = expanduser('~/.conkyrc')
+    print(f'Creating conkyrc script at {filepath}')
+    with open(filepath, 'w') as handle:
+        handle.write(conkyrc)
+    # Save the conflig.lua file
+    filepath = f'{ROOT}/pkmeter/config.lua'
+    print(f'Creating config.lua script at {filepath}')
+    with open(filepath, 'w') as handle:
+        handle.write('elements = [\n')
+        handle.write('\n'.join(f'  {item}\n' for item in luaentries))
+        handle.write(']\n')
+    print(conkyrc)
 
 
     # # create the config.lua file
@@ -207,26 +221,38 @@ def lookup_value(key, opts):
 
 
 if __name__ == '__main__':
+    # Command line parser. Available commands are:
+    #  * conkyrc: generate new conkyrc & config.lua files from config.json
+    #  * get <widget> <key>: get the specified widget value
     os.makedirs(CACHE, exist_ok=True)
     parser = argparse.ArgumentParser(description='Helper tools for pkmeter.')
-    parser.add_argument('key', help='Item key to get or update')
-    parser.add_argument('args', nargs='*', help='Args to pass key function')
-    parser.add_argument('-d', '--default', default='', help='Default value if not found')
-    parser.add_argument('-r', '--round', type=int, help='Round to nearest decimal')
-    parser.add_argument('-i', '--int', action='store_true', default=False, help='Cast value to int')
-    parser.add_argument('-f', '--format', help='Format datetime')
+    subparsers = parser.add_subparsers(title='available commands', dest='command')
+    conkyrc_parser = subparsers.add_parser('conkyrc', help='generate new conkyrc & config.lua files from config.json')
+    get_parser = subparsers.add_parser('get', help='get the specified widget value')
+    get_parser.add_argument('widget', help='widget class name to get value from')
+    get_parser.add_argument('key', help='value to lookup from the specified widget dataset')
+    get_parser.add_argument('-d', dest='default', default='', help='default value if not found')
+    get_parser.add_argument('-r', dest='round', type=int, help='round to nearest decimal')
+    get_parser.add_argument('-i', dest='int', action='store_true', default=False, help='cast value to integer')
+    get_parser.add_argument('-f', dest='format', help='format value to datetime')
+    # Run the specified command
     opts = parser.parse_args()
-    # lookup value in previous json output
-    if '.' in opts.key:
-        print(lookup_value(opts.key, opts))
-        raise SystemExit()
-    # run all get_ functions
-    if opts.key == 'all':
-        for name in list(globals().keys()):
-            if name.startswith('get_'):
-                func = globals()[name]
-                func(name.replace('get_', ''))
-        raise SystemExit()
-    # run the specified get_ function
-    func = globals().get(f'get_{opts.key}', None)
-    func(opts.key, *opts.args)
+    if opts.command == 'conkyrc':
+        create_conkyrc()
+    if opts.command == 'get':
+        print(opts)
+
+    # # lookup value in previous json output
+    # if '.' in opts.key:
+    #     print(lookup_value(opts.key, opts))
+    #     raise SystemExit()
+    # # run all get_ functions
+    # if opts.key == 'all':
+    #     for name in list(globals().keys()):
+    #         if name.startswith('get_'):
+    #             func = globals()[name]
+    #             func(name.replace('get_', ''))
+    #     raise SystemExit()
+    # # run the specified get_ function
+    # func = globals().get(f'get_{opts.key}', None)
+    # func(opts.key, *opts.args)

@@ -4,6 +4,20 @@ BYTE, KB, MB = 1, 1024, 1048576
 BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
 
 
+def celsius_to_fahrenheit(value):
+    """ Converts a temperature from Celsius to Fahrenheit.
+        * value: Temperature in Celsius.
+    """
+    return int(value * 9 / 5 + 32)
+
+
+def clean_spaces(value):
+    """ Clean leading spaces from each line.
+        * value: The string to clean.
+    """
+    return '\n'.join([line.lstrip() for line in value.splitlines()]).strip()
+
+
 def get_config(root):
     """ Loads the configuration from a JSON file and updates it with
         hostname-specific settings.
@@ -15,13 +29,6 @@ def get_config(root):
     config.update(config.get(f'[{hostname}]', {}))
     config['ROOT'] = root
     return config
-
-
-def celsius_to_fahrenheit(value):
-    """ Converts a temperature from Celsius to Fahrenheit.
-        * value: Temperature in Celsius.
-    """
-    return int(value * 9 / 5 + 32)
 
 
 def percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
