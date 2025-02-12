@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-import json, os, socket
+import json5, os, sys
 import argparse, requests
 import shlex, subprocess
+import importlib
 from datetime import datetime
-from os.path import join
+from os.path import abspath, dirname, join
 from jinja2 import Template
 from shutil import copyfile
 
-config = None  # cached config object
-ROOT = os.path.expanduser('~/.pkmeter')
-CACHE = os.path.expanduser('~/.cache/pkmeter')
-BYTE, KB, MB = 1, 1024, 1048576
-BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
+sys.path.append(dirname(abspath(__file__)))
+from pkmeter import utils  # noqa
+
+ROOT = f'{dirname(abspath(__file__))}'
+CACHE = f'{dirname(abspath(__file__))}/pkmeter/cache'
 REQUEST_TIMEOUT = 10
 
 EXTERNALIP_URL = 'https://api.ipify.org/?format=json'
@@ -71,82 +72,43 @@ HEIGHT = {
 }
 
 
-class Bunch(dict):
-    def __getattr__(self, item):
-        return self.__getitem__(item)
-
-    def __setattr__(self, item, value):
-        return self.__setitem__(item, value)
-
-
-def _get_config():
-    global config
-    if not config:
-        hostname = socket.gethostname()
-        with open(join(ROOT, 'config.json'), 'r') as handle:
-            config = json.load(handle)
-        config['default'].update(config.get(hostname, {}))
-        config = Bunch(config['default'])
-    return config
-
-
-def _celsius_to_fahrenheit(value):
-    return int(value * 9 / 5 + 32)
-
-
-def _percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
-    if not denominator:
-        return default
-    return min(maxval, round((numerator / float(denominator)) * 100.0, precision))
-
-
-def _rget(obj, attrstr, default=None, delim='.'):
-    try:
-        parts = attrstr.split(delim, 1)
-        attr = parts[0]
-        attrstr = parts[1] if len(parts) == 2 else None
-        if isinstance(obj, dict): value = obj[attr]
-        elif isinstance(obj, list): value = obj[int(attr)]
-        if attrstr: return _rget(value, attrstr, default, delim)
-        return value
-    except Exception:
-        return default
-
-
-def _to_int(value, default=None):
-    try:
-        return int(value)
-    except Exception:
-        return default
-
-
-def _value_to_str(value, unit=BYTE, precision=0, separator=''):
-    if value is None: return ''
-    value = value * unit
-    for div, unit in BYTES1024:
-        if value >= div:
-            conversion = round(value / div, int(precision)) if precision else int(value / div)
-            return '%s%s%s' % (conversion, separator, unit)
-    return '0%s%s' % (separator, unit)
-
-
 def get_conkyrc(key):
     """ Create a new conkyrc from from config.json. """
-    config = _get_config()
-    # create the config.lua file
-    with open(join(ROOT, 'templates/lua.tmpl')) as handle:
-        template = Template(handle.read())
-    dest = join(ROOT, 'config.lua')
-    print(f'Creating config.lua script at {dest}')
-    with open(dest, 'w') as handle:
-        handle.write(template.render(**config))
-    # create the conkyrc file
-    with open(join(ROOT, 'templates/conkyrc.tmpl')) as handle:
-        template = Template(handle.read())
-    dest = os.path.expanduser('~/.conkyrc')
-    print(f'Creating conkyrc script at {dest}')
-    with open(dest, 'w') as handle:
-        handle.write(template.render(**config))
+    luaentries = []
+    pconfig = utils.get_config(ROOT)
+    # Generate the conky.config
+    conkyrc = 'conky.config = {\n'
+    for key, value in pconfig['conky'].items():
+        value = 'true' if value is True else value
+        value = 'false' if value is False else value
+        value = value.replace('{ROOT}', ROOT)
+        conkyrc += f'  {key}={value},\n'
+    conkyrc += '}\n\n'
+    # Iterate through the widgets
+    conkyrc += 'conky.text = [['
+    for wconfig in pconfig['widgets']:
+        modpath, clsname = wconfig['path'].rsplit('.', 1)
+        module = importlib.import_module(modpath)
+        widget = getattr(module, clsname)(pconfig, wconfig)
+        conkyrc += widget.get_conkyrc()
+        luaentries += widget.get_lua_entries()
+    conkyrc += ']]\n'
+
+
+    # # create the config.lua file
+    # with open(join(ROOT, 'pkmeter/templates/lua.tmpl')) as handle:
+    #     template = Template(handle.read())
+    # dest = f'{ROOT}/pkmeter/config.lua'
+    # print(f'Creating config.lua script at {dest}')
+    # with open(dest, 'w') as handle:
+    #     handle.write(template.render(**config))
+    # # create the conkyrc file
+    # with open(join(ROOT, 'pkmeter/templates/conkyrc.tmpl')) as handle:
+    #     template = Template(handle.read())
+    # dest = os.path.expanduser('~/.conkyrc')
+    # print(f'Creating conkyrc script at {dest}')
+    # with open(dest, 'w') as handle:
+    #     handle.write(template.render(**config))
 
 
 def get_weather(key):
@@ -169,14 +131,14 @@ def get_weather(key):
         iconname = OPENMETEO_WEATHERCODES[weathercode]['icon']
         copy_openweather_icon(iconname, f'day{i}')
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
-        handle.write(json.dumps(data))
+        handle.write(json5.dumps(data))
         handle.write('\n')
 
 
 def copy_openweather_icon(iconname, day='current'):
     """ Return the icon filepath from its code 03d, 02n etc.. """
-    source = join(ROOT, 'img', iconname + '.png')
-    dest = join(CACHE, f'{day}.png')
+    source = f'{ROOT}/pkmeter/img/{iconname}.png'
+    dest = f'{CACHE}/{day}.png'
     copyfile(source, dest)
 
 
@@ -207,13 +169,13 @@ def get_nvidia(key):
         subkey, subvalue = subpart.split('=')
         values[f'gpuutilization{subkey.strip()}'] = subvalue
     # convert and make values human readable
-    memtotal = _to_int(values.get('totaldedicatedgpumemory'), 0)
-    memused = _to_int(values.get('useddedicatedgpumemory'), 0)
-    values['gpucoretemp'] = _celsius_to_fahrenheit(_to_int(values.get('gpucoretemp')))
-    values['freededicatedgpumemory'] = _value_to_str(memtotal - memused, MB)
-    values['totaldedicatedgpumemory'] = _value_to_str(_to_int(values.get('totaldedicatedgpumemory')), MB)
-    values['useddedicatedgpumemory'] = _value_to_str(_to_int(values.get('useddedicatedgpumemory')), MB)
-    values['percentuseddedicatedgpumemory'] = int(_percent(memused, memtotal, 0))
+    memtotal = utils.to_int(values.get('totaldedicatedgpumemory'), 0)
+    memused = utils.to_int(values.get('useddedicatedgpumemory'), 0)
+    values['gpucoretemp'] = utils.celsius_to_fahrenheit(utils.to_int(values.get('gpucoretemp')))
+    values['freededicatedgpumemory'] = utils.value_to_str(memtotal - memused, utils.MB)
+    values['totaldedicatedgpumemory'] = utils.value_to_str(utils.to_int(values.get('totaldedicatedgpumemory')), utils.MB)
+    values['useddedicatedgpumemory'] = utils.value_to_str(utils.to_int(values.get('useddedicatedgpumemory')), utils.MB)
+    values['percentuseddedicatedgpumemory'] = int(utils.percent(memused, memtotal, 0))
     # fetch nvidia card name
     cmd = shlex.split(f'{NVIDIA_CMD} --glxinfo')
     for line in subprocess.check_output(cmd).decode('utf8').split('\n'):
@@ -224,7 +186,7 @@ def get_nvidia(key):
             values['cardname'] = cardname.strip()
     # save values to cache
     with open(join(CACHE, f'{key}.json'), 'w') as handle:
-        json.dump(values, handle)
+        json5.dump(values, handle)
 
 
 def lookup_value(key, opts):
@@ -233,8 +195,8 @@ def lookup_value(key, opts):
         key, path = key.split('.', 1)
         filepath = join(CACHE, f'{key}.json')
         with open(filepath, 'r') as handle:
-            data = json.load(handle)
-        value = _rget(data, path, None)
+            data = json5.load(handle)
+        value = utils.rget(data, path, None)
         if value is None: return opts.default
         if opts.round: value = round(float(value), opts.round)
         if opts.int: value = int(value)

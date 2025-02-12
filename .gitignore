@@ -4,9 +4,7 @@ syntax: glob
 *.pyc
 *.sublime-*
 *__pycache__*
-dist
-build
-pkmeter/conkyrc
+pkmeter/cache
 pkmeter/config.json
 pkmeter/config.lua
 *.egg-info

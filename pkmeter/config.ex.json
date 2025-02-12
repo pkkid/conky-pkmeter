@@ -1,0 +1,24 @@
+{
+  "bgalpha": "0.6",
+  "bgcolor": "0x000000",
+  "conky_gap_x": 2352,
+  "conky_gap_y": 302,
+  "font": "Ubuntu:medium:size=8",
+  "lineheight": 10,
+  "filesystem_io": "/dev/nvme0n1p1",
+  "filesystem1_name": "Root",
+  "filesystem1_path": "/",
+  "filesystem2_name": "",
+  "filesystem2_path": "",
+  "network_device": "enp0s31f6",
+  "clock": {
+    "enabled": true,
+    "bignum": "%d",
+    "line1": "%b %Y",
+    "line2": "%A",
+    "line3": "%H:%M:%S %P"
+  },
+  "nvidia": {
+    "enabled": true
+  }
+}

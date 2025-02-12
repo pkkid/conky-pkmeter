@@ -49,40 +49,40 @@ conky.config = {
   color5="444444",
 
   -- Lua Scripts --
-  lua_load = '~/.pkmeter/draw.lua',
+  lua_load = '{{ROOT}}/pkmeter/draw.lua',
   lua_draw_hook_pre = 'main',
 }
 
 conky.text = [[
-${texeci 1800 ~/.pkmeter/pkmeter.py weather}\
-${texeci 5 ~/.pkmeter/pkmeter.py nvidia}\
-${texeci 1800 ~/.pkmeter/pkmeter.py externalip}\
+${texeci 1800 {{ROOT}}/pkmeter.py weather}\
+${texeci 5 {{ROOT}}/pkmeter.py nvidia}\
+${texeci 1800 {{ROOT}}/pkmeter.py externalip}\
 \
-{% if clock.display|default(true,true) %}\
+{% if clock.enabled|default(true,true) %}\
   ${voffset 8}${font Ubuntu:bold:size=40}${alignr 105}${time {{clock.bignum|default("%d")}}}${font}
   ${voffset -41}${goto 105}${time {{clock.line1|default("%b %Y")}}}
   ${goto 105}${time {{clock.line2|default("%A")}}}
   ${goto 105}${time {{clock.line3|default("%H:%M:%S %P")}}}
-{% endif %}\
+\{% endif %}
 \
 ${image ~/.cache/pkmeter/current.png -p 87,87 -s 35x35}\
 ${voffset 30}${goto 10}${font Ubuntu:bold:size=11}Holliston${font}
-${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py weather.current_text}${color}
-${voffset -30}${alignr 10}${font Ubuntu:bold:size=12}${execi 60 ~/.pkmeter/pkmeter.py -ir0 weather.current_weather.temperature}°F${font}
-${alignr 10}${execi 60 ~/.pkmeter/pkmeter.py -ir0 weather.current_weather.windspeed} mph
+${goto 10}${color1}${execi 60 {{ROOT}}/pkmeter.py weather.current_text}${color}
+${voffset -30}${alignr 10}${font Ubuntu:bold:size=12}${execi 60 {{ROOT}}/pkmeter.py -ir0 weather.current_weather.temperature}°F${font}
+${alignr 10}${execi 60 {{ROOT}}/pkmeter.py -ir0 weather.current_weather.windspeed} mph
 ${image ~/.cache/pkmeter/day0.png -p 15,140 -s 20x20}\
 ${image ~/.cache/pkmeter/day1.png -p 65,140 -s 20x20}\
 ${image ~/.cache/pkmeter/day2.png -p 115,140 -s 20x20}\
 ${image ~/.cache/pkmeter/day3.png -p 165,140 -s 20x20}\
 ${font Ubuntu:bold:size=7}${voffset 42}${color2}\
-${goto 17}${execi 60 ~/.pkmeter/pkmeter.py weather.daily.day.0}\
-${goto 67}${execi 60 ~/.pkmeter/pkmeter.py weather.daily.day.1}\
-${goto 117}${execi 60 ~/.pkmeter/pkmeter.py weather.daily.day.2}\
-${goto 167}${execi 60 ~/.pkmeter/pkmeter.py weather.daily.day.3}
-${goto 17}${execi 60 ~/.pkmeter/pkmeter.py -ir0 weather.daily.apparent_temperature_max.0}°\
-${goto 67}${execi 60 ~/.pkmeter/pkmeter.py -ir0 weather.daily.apparent_temperature_max.1}°\
-${goto 117}${execi 60 ~/.pkmeter/pkmeter.py -ir0 weather.daily.apparent_temperature_max.2}°\
-${goto 167}${execi 60 ~/.pkmeter/pkmeter.py -ir0 weather.daily.apparent_temperature_max.3}°\
+${goto 17}${execi 60 {{ROOT}}/pkmeter.py weather.daily.day.0}\
+${goto 67}${execi 60 {{ROOT}}/pkmeter.py weather.daily.day.1}\
+${goto 117}${execi 60 {{ROOT}}/pkmeter.py weather.daily.day.2}\
+${goto 167}${execi 60 {{ROOT}}/pkmeter.py weather.daily.day.3}
+${goto 17}${execi 60 {{ROOT}}/pkmeter.py -ir0 weather.daily.apparent_temperature_max.0}°\
+${goto 67}${execi 60 {{ROOT}}/pkmeter.py -ir0 weather.daily.apparent_temperature_max.1}°\
+${goto 117}${execi 60 {{ROOT}}/pkmeter.py -ir0 weather.daily.apparent_temperature_max.2}°\
+${goto 167}${execi 60 {{ROOT}}/pkmeter.py -ir0 weather.daily.apparent_temperature_max.3}°\
 ${color}${font}
 \
 \
@@ -96,10 +96,10 @@ ${goto 10}${color2}Mem Free${color}${alignr 55}${memeasyfree}
 \
 \
 ${voffset 17}${goto 10}${font ubuntu:bold:size=9}NVIDIA${font}
-${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py nvidia.cardname} ${execi 60 ~/.pkmeter/pkmeter.py nvidia.nvidiadriverversion}${color}
-${voffset 15}${goto 10}${color2}GPU Usage${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py nvidia.gpuutilizationgraphics}%
-${goto 10}${color2}GPU Temp${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py nvidia.gpucoretemp}°F
-${goto 10}${color2}Mem Used${color}${alignr 55}${execi 5 ~/.pkmeter/pkmeter.py nvidia.percentuseddedicatedgpumemory}% of ${execi 60 ~/.pkmeter/pkmeter.py nvidia.freededicatedgpumemory}
+${goto 10}${color1}${execi 60 {{ROOT}}/pkmeter.py nvidia.cardname} ${execi 60 {{ROOT}}/pkmeter.py nvidia.nvidiadriverversion}${color}
+${voffset 15}${goto 10}${color2}GPU Usage${color}${alignr 55}${execi 5 {{ROOT}}/pkmeter.py nvidia.gpuutilizationgraphics}%
+${goto 10}${color2}GPU Temp${color}${alignr 55}${execi 5 {{ROOT}}/pkmeter.py nvidia.gpucoretemp}°F
+${goto 10}${color2}Mem Used${color}${alignr 55}${execi 5 {{ROOT}}/pkmeter.py nvidia.percentuseddedicatedgpumemory}% of ${execi 60 {{ROOT}}/pkmeter.py nvidia.freededicatedgpumemory}
 \
 \
 ${voffset 17}${goto 10}${font ubuntu:bold:size=9}Processes${font}
@@ -115,7 +115,7 @@ ${goto 10}${color2}${top name 6}${color}${goto 110}${top mem_res 6}${alignr 10}$
 ${voffset 17}${goto 100}${color3}${upspeedgraph {{network_device}} 12,90}${color}
 ${goto 100}${color4}${downspeedgraph {{network_device}} -11,90}${color}
 ${voffset -29}${goto 10}${font ubuntu:bold:size=9}Network${font}
-${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py externalip.ip}${color}
+${goto 10}${color1}${execi 60 {{ROOT}}/pkmeter.py externalip.ip}${color}
 ${voffset 15}${goto 10}{{network_device}}${alignr 10}${addr {{network_device}}}
 ${goto 10}${color2}Upload${color}${alignr 10}${upspeed {{network_device}}}/s of ${totalup {{network_device}}}
 ${goto 10}${color2}Download${color}${alignr 10}${downspeed {{network_device}}}/s of ${totaldown {{network_device}}}

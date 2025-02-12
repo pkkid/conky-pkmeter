@@ -3,16 +3,25 @@
 --   static_text, variable_text, background
 -- Github: https://github.com/fisadev/conky-draw
 require 'cairo'
-package.path = package.path .. ';' .. os.getenv("HOME") .. '/.pkmeter/?.lua'
+local current_path = debug.getinfo(1).source:match("@?(.*/)")
+package.path = package.path .. ';' .. current_path .. '?.lua'
 require 'config'
 
 
+--- Converts a hexadecimal color to RGB with alpha.
+-- @param color The hexadecimal color value.
+-- @param alpha The alpha value.
+-- @return The red, green, blue, and alpha values.
 function hexa_to_rgb(color, alpha)
     -- ugh, whish this wans't an oneliner
     return ((color / 0x10000) % 0x100) / 255., ((color / 0x100) % 0x100) / 255., (color % 0x100) / 255., alpha
 end
 
 
+--- Retrieves the current value of a Conky template.
+-- @param conky_value The Conky template string.
+-- @param is_number Boolean indicating if the value should be a number.
+-- @return The current value of the Conky template.
 function get_conky_value(conky_value, is_number)
     -- evaluate a conky template to get its current value
     -- example: "cpu cpu0" --> 20
@@ -26,6 +35,13 @@ function get_conky_value(conky_value, is_number)
     return value
 end
 
+--- Determines if a value is critical and returns the appropriate suffixes.
+-- @param value The current value.
+-- @param threshold The critical threshold.
+-- @param change_color_on_critical Boolean indicating if color should change on critical.
+-- @param change_alpha_on_critical Boolean indicating if alpha should change on critical.
+-- @param change_thickness_on_critical Boolean indicating if thickness should change on critical.
+-- @return A table with suffixes for color, alpha, and thickness.
 function get_critical_or_not_suffix(value, threshold, change_color_on_critical, change_alpha_on_critical, change_thickness_on_critical)
   local result = {
     color = '',
@@ -46,6 +62,9 @@ function get_critical_or_not_suffix(value, threshold, change_color_on_critical, 
   return result
 end
 
+--- Draws a window background.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_background(display, element)
     -- draw a window background
     local width = conky_window.width
@@ -72,6 +91,9 @@ function draw_background(display, element)
     end
 end
 
+--- Draws a line.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_line(display, element)
     -- draw a line
     -- deltas for x and y (cairo expects a point and deltas for both axis)
@@ -108,6 +130,9 @@ function draw_line(display, element)
     cairo_stroke(display)
 end
 
+--- Draws a bar graph.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_bar_graph(display, element)
     -- draw a bar graph
     if element.max_value == 0 then
@@ -174,7 +199,9 @@ function draw_bar_graph(display, element)
   end
 end
 
-
+--- Draws a ring.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_ring(display, element)
     -- draw a ring
     -- the user types degrees, but we need radians
@@ -211,7 +238,9 @@ function draw_ring(display, element)
     end
 end
 
-
+--- Draws a ring graph.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_ring_graph(display, element)
     -- draw a ring graph
     if element.max_value == 0 then
@@ -284,7 +313,9 @@ function draw_ring_graph(display, element)
     end
 end
 
-
+--- Draws an ellipse graph.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_ellipse_graph(display, element)
     -- draw a ellipse graph
     if element.max_value == 0 then
@@ -370,7 +401,9 @@ function draw_ellipse_graph(display, element)
     end
 end
 
-
+--- Draws an ellipse.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_ellipse(display, element)
     -- draw an ellipse
     -- the user types degrees, but we need radians
@@ -415,7 +448,9 @@ function draw_ellipse(display, element)
     end
 end
 
-
+--- Draws variable text.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_variable_text(display, element)
   cairo_save(display)
   cairo_move_to (display,element.from.x,element.from.y)
@@ -437,7 +472,9 @@ function draw_variable_text(display, element)
   cairo_stroke (display)
 end
 
-
+--- Draws static text.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_static_text(display, element)
       cairo_save(display)
       cairo_move_to (display,element.from.x,element.from.y)
@@ -458,14 +495,16 @@ function draw_static_text(display, element)
       cairo_stroke (display)
 end
 
-
+--- Placeholder function for drawing a clock.
+-- @param display The Cairo display context.
+-- @param element The element properties.
 function draw_clock(display, element)
     error('clock element kind not implemented')
 end
 
 
--- properties that the user *must* define, because they don't have default
--- values
+-- properties that the user *must* define, because they don't
+-- have default values
 requirements = {
     line = {'from', 'to'},
     background = {},
@@ -622,7 +661,8 @@ defaults = {
     },
 }
 
-
+--- Checks if all elements have the required properties.
+-- @param elements The table of elements to check.
 function check_requirements(elements)
     -- check every element has the required properties
     for i, element in pairs(elements) do
@@ -646,7 +686,8 @@ function check_requirements(elements)
     end
 end
 
-
+--- Fills each element with default values for missing properties.
+-- @param elements The table of elements to fill.
 function fill_defaults(elements)
     -- fill each each element with the missing values, using the defaults
     for i, element in pairs(elements) do
@@ -664,7 +705,7 @@ function fill_defaults(elements)
     end
 end
 
-
+--- Main function for Conky.
 function conky_main()
     if conky_window == nil then
         return
