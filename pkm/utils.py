@@ -70,16 +70,6 @@ def rget(obj, attrstr, default=None, delim='.'):
         return default
 
 
-def save_file(filepath, content):
-    """ Save content to a file.
-        filepath: The file to save the content to.
-        content: The content to save.
-    """
-    print(f'Saving {filepath}')
-    with open(filepath, 'w') as handle:
-        handle.write(content)
-
-
 def to_int(value, default=None):
     """ Converts a value to an integer.
         value: The value to convert.

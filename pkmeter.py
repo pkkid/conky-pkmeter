@@ -22,7 +22,8 @@ def create_conky_config():
 
 
 def create_conky_text():
-    """ Create the conky.text and lua draw entries from the config.json file. """
+    """ Create conky.text and config.lua from the config.json file. """
+    origin = 0
     luaentries = []
     conkytext = 'conky.text = [[\n'
     for wconfig in CONFIG['widgets']:
@@ -30,10 +31,12 @@ def create_conky_text():
         modpath, clsname = wconfig['path'].rsplit('.', 1)
         module = importlib.import_module(modpath)
         widget = getattr(module, clsname)(wconfig)
+        widget.origin = origin
         conkytext += f'{widget.get_conkyrc()}\n\\\n'
         luaentries += widget.get_lua_entries()
+        origin += widget.height
     conkytext += ']]\n'
-    luaentries = '\n'.join(f'  {item},' for item in luaentries)
+    luaentries = ',\n'.join(f'  {item}' for item in luaentries)
     luaentries = f'elements = {{\n{luaentries}\n}}\n'
     return conkytext, luaentries
 
@@ -42,8 +45,16 @@ def create_conkyrc():
     """ Create a new conkyrc from from config.json. """
     conkyconfig = create_conky_config()
     conkytext, luaentries = create_conky_text()
-    utils.save_file(expanduser('~/.conkyrc'), conkyconfig + conkytext)
-    utils.save_file(f'{ROOT}/pkm/config.lua', luaentries)
+    # Save the new conkyrc file
+    filepath = expanduser('~/.conkyrc')
+    print(f'Saving {filepath}')
+    with open(filepath, 'w') as handle:
+        handle.write(conkyconfig + conkytext)
+    # Save the new config.lua file
+    filepath = f'{ROOT}/pkm/config.lua'
+    print(f'Saving {filepath}')
+    with open(filepath, 'w') as handle:
+        handle.write(luaentries)
 
 
 def get_value(key, opts):
@@ -75,7 +86,6 @@ def update_widget(widget):
             widget = getattr(module, clsname)(wconfig)
             widget.update_cache()
             break
-    raise Exception(f'Unknown widget {widget}')
 
 
 if __name__ == '__main__':
@@ -99,4 +109,4 @@ if __name__ == '__main__':
     opts = parser.parse_args()
     if opts.command == 'conkyrc': create_conkyrc()
     if opts.command == 'get': print(get_value(opts.key, opts))
-    if opts.command == 'update': print(opts)
+    if opts.command == 'update': update_widget(opts.widget)

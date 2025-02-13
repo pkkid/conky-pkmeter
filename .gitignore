@@ -4,5 +4,6 @@ syntax: glob
 *.pyc
 *.sublime-*
 *__pycache__*
+pkm/cache
 pkm/config.lua
 *.egg-info

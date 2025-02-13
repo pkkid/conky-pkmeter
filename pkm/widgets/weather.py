@@ -45,7 +45,7 @@ class WeatherWidget(BaseWidget):
 
     @property
     def height(self):
-        return 81
+        return 125
 
     @property
     def yend(self):
@@ -53,19 +53,22 @@ class WeatherWidget(BaseWidget):
 
     def get_conkyrc(self):
         """ Create the conkyrc template for the clock widget. """
-        _ = namedtuple('wconfig', self.wconfig.keys())(*self.wconfig.values())
+        wc = namedtuple('wconfig', self.wconfig.keys())(*self.wconfig.values())
+        tempunit = '°F' if wc.temperature_unit == 'fahrenheit' else '°C'
         return utils.clean_spaces(f"""
             ${{texeci 1800 {PKMETER} update weather}}\\
-            ${{image {CACHE}/current.png -p 87,87 -s 35x35}}\\
-            ${{voffset 30}}${{goto 10}}${{font Ubuntu:bold:size=11}}Holliston${{font}}
-            ${{goto 10}}${{color1}}${{execi 60 {PKMETER} get weather.current_text}}${{color}}
-            ${{voffset -30}}${{alignr 10}}${{font Ubuntu:bold:size=12}}${{execi 60 {PKMETER} get -ir0 weather.current_weather.temperature}}°F${{font}}
-            ${{alignr 10}}${{execi 60 {PKMETER} get -ir0 weather.current_weather.windspeed}} mph
-            ${{image {CACHE}/day0.png -p 15,140 -s 20x20}}\\
-            ${{image {CACHE}/day1.png -p 65,140 -s 20x20}}\\
-            ${{image {CACHE}/day2.png -p 115,140 -s 20x20}}\\
-            ${{image {CACHE}/day3.png -p 165,140 -s 20x20}}\\
-            ${{font Ubuntu:bold:size=7}}${{voffset 42}}${{color2}}\\
+            ${{image {CACHE}/current.png -p 87,90 -s 35x35}}\\
+            ${{voffset 28}}${{font Ubuntu:bold:size=11}}\\
+            ${{goto 10}}{wc.city_name}\\
+            ${{alignr 10}}${{execi 60 {PKMETER} get -ir0 weather.current_weather.temperature}}{tempunit}
+            ${{voffset -2}}${{font Ubuntu:bold:size=8}}\\
+            ${{goto 10}}${{color1}}${{execi 60 {PKMETER} get weather.current_text}}\\
+            ${{alignr 10}}${{color}}${{execi 60 {PKMETER} get -ir0 weather.current_weather.windspeed}} {wc.windspeed_unit}
+            ${{image {CACHE}/day0.png -p 15,145 -s 20x20}}\\
+            ${{image {CACHE}/day1.png -p 65,145 -s 20x20}}\\
+            ${{image {CACHE}/day2.png -p 115,145 -s 20x20}}\\
+            ${{image {CACHE}/day3.png -p 165,145 -s 20x20}}\\
+            ${{voffset 46}}${{font Ubuntu:bold:size=7}}${{color2}}\\
             ${{goto 17}}${{execi 60 {PKMETER} get weather.daily.day.0}}\\
             ${{goto 67}}${{execi 60 {PKMETER} get weather.daily.day.1}}\\
             ${{goto 117}}${{execi 60 {PKMETER} get weather.daily.day.2}}\\
@@ -78,18 +81,28 @@ class WeatherWidget(BaseWidget):
         """)
 
     def get_lua_entries(self):
-        return []
+        return [self.line(
+            start=(100, self.origin),  # top
+            end=(100, self.origin + 50),  # header bottom
+            color=utils.rget(CONFIG, 'headerbg', '0x000000'),
+            alpha=utils.rget(CONFIG, 'headerbg_alpha', 0.6),
+            thickness=utils.rget(CONFIG, 'conky.maximum_width', 200),
+        ), self.line(
+            start=(100, self.origin + 50),  # forcast top
+            end=(100, self.origin + self.height),  # forcast bottom
+            color=utils.rget(CONFIG, 'mainbg', '0x000000'),
+            alpha=utils.rget(CONFIG, 'mainbg_alpha', 0.6),
+            thickness=utils.rget(CONFIG, 'conky.maximum_width', 200),
+        )]
 
-    @classmethod
     def update_cache(self):
         """ Fetch weather from OpenMeteo and copy weather images to cache. """
-        # Fetch weather from OpenMeteo
         url = OPENMETEO_URL
-        url = url.replace('{latitude}', CONFIG['latitude'])
-        url = url.replace('{longitude}', CONFIG['longitude'])
-        url = url.replace('{temperature_unit}', CONFIG['temperature_unit'])
-        url = url.replace('{timezone}', CONFIG['timezone'])
-        url = url.replace('{windspeed_unit}', CONFIG['windspeed_unit'])
+        url = url.replace('{latitude}', str(self.wconfig['latitude']))
+        url = url.replace('{longitude}', str(self.wconfig['longitude']))
+        url = url.replace('{temperature_unit}', self.wconfig['temperature_unit'])
+        url = url.replace('{timezone}', self.wconfig['timezone'])
+        url = url.replace('{windspeed_unit}', self.wconfig['windspeed_unit'])
         data = requests.get(url, timeout=10).json()
         # get current weather
         weathercode = data['current_weather']['weathercode']
@@ -108,10 +121,11 @@ class WeatherWidget(BaseWidget):
             self._copy_weather_icon(iconname, f'day{i}')
         # save the cached response
         key = utils.get_shortname(self.__class__.__name__)
-        utils.save_file(f'{CACHE}/{key}.json', json5.dumps(data))
+        with open(f'{CACHE}/{key}.json', 'w') as handle:
+            json5.dump(data, handle)
 
     def _copy_weather_icon(self, iconname, day='current'):
         """ Copy the icon to cache for for the specified day. """
-        source = f'{ROOT}/img/{iconname}.png'
+        source = f'{ROOT}/pkm/img/{iconname}.png'
         dest = f'{CACHE}/{day}.png'
         copyfile(source, dest)
