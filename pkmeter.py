@@ -26,12 +26,11 @@ def create_conky_text():
     origin = 0
     luaentries = []
     conkytext = 'conky.text = [[\n'
-    for wconfig in CONFIG['widgets']:
-        if not wconfig.get('enabled', True): continue
-        modpath, clsname = wconfig['path'].rsplit('.', 1)
+    for wname in CONFIG['widgets']:
+        wsettings = CONFIG[wname]
+        modpath, clsname = wsettings['clspath'].rsplit('.', 1)
         module = importlib.import_module(modpath)
-        widget = getattr(module, clsname)(wconfig)
-        widget.origin = origin
+        widget = getattr(module, clsname)(wsettings, origin)
         conkytext += f'{widget.get_conkyrc()}\n\\\n'
         luaentries += widget.get_lua_entries()
         origin += widget.height

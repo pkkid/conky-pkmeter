@@ -1,28 +1,23 @@
-import json5, socket
-from pkm import ROOT
+import json5, os, socket, time
+from pkm import ROOT, CONFIG
 
 BYTE, KB, MB = 1, 1024, 1048576
 BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
 
 
 def celsius_to_fahrenheit(value):
-    """ Converts a temperature from Celsius to Fahrenheit.
-        value: Temperature in Celsius.
-    """
+    """ Converts a temperature from Celsius to Fahrenheit. """
     return int(value * 9 / 5 + 32)
 
 
 def clean_spaces(value):
-    """ Clean leading spaces from each line.
-        value: The string to clean.
-    """
+    """ Clean leading spaces from each line. """
     return '\n'.join([line.lstrip() for line in value.splitlines()]).strip()
 
 
 def get_config():
     """ Loads the configuration from a JSON file and updates it with
         hostname-specific settings.
-        root directory where the configuration file is located.
     """
     with open(f'{ROOT}/config.json', 'r') as handle:
         config = json5.load(handle)
@@ -31,11 +26,24 @@ def get_config():
     return config
 
 
-def get_shortname(clsname):
+def get_modtime_ago(filepath):
+    """ Return the number of seconds since the file was last modified. """
+    return time.time() - os.path.getmtime(filepath)
+
+
+def get_widget_name(clsname):
     """ Given a widget name or path string, return it's short name.
-        * clsname: The widget name or path string.
+        clsname: The widget name or path string.
     """
     return clsname.split('.')[-1].replace('Widget','').lower()
+
+
+def iter_widget_settings():
+    """ Iterate over widgets defined and enabled in the configuration. """
+    for widget_name in CONFIG['widgets']:
+        for wsettings in CONFIG['widget_settings']:
+            if widget_name == get_widget_name(wsettings['clspath']):
+                yield wsettings
 
 
 def percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
@@ -71,10 +79,7 @@ def rget(obj, attrstr, default=None, delim='.'):
 
 
 def to_int(value, default=None):
-    """ Converts a value to an integer.
-        value: The value to convert.
-        default: The default value to return if conversion fails.
-    """
+    """ Converts a value to an integer. """
     try:
         return int(value)
     except Exception:

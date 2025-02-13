@@ -91,6 +91,42 @@ function draw_background(display, element)
     end
 end
 
+
+--- Draws an image from disk.
+-- @param display The Cairo display context.
+-- @param element The element properties.
+function draw_image(display, element)
+  -- load the image from disk
+  local image_surface = cairo_image_surface_create_from_png(element.filepath)
+  local image_width = cairo_image_surface_get_width(image_surface)
+  local image_height = cairo_image_surface_get_height(image_surface)
+  -- calculate the scale to maintain aspect ratio
+  local scale_x, scale_y
+  if element.width and element.height then
+      scale_x = element.width / image_width
+      scale_y = element.height / image_height
+  elseif element.width then
+      scale_x = element.width / image_width
+      scale_y = scale_x
+  elseif element.height then
+      scale_y = element.height / image_height
+      scale_x = scale_y
+  else
+      scale_x = 1
+      scale_y = 1
+  end
+  -- position the image at the specified location
+  cairo_save(display)
+  cairo_translate(display, element.from.x, element.from.y)
+  cairo_scale(display, scale_x, scale_y)
+  cairo_set_source_surface(display, image_surface, 0, 0)
+  cairo_paint(display)
+  cairo_restore(display)
+  -- clean up
+  cairo_surface_destroy(image_surface)
+end
+
+
 --- Draws a line.
 -- @param display The Cairo display context.
 -- @param element The element properties.
@@ -506,13 +542,14 @@ end
 -- properties that the user *must* define, because they don't
 -- have default values
 requirements = {
-    line = {'from', 'to'},
     background = {},
-    bar_graph = {'from', 'to', 'conky_value'},
-    ring = {'center', 'radius'},
-    ring_graph = {'center', 'radius', 'conky_value'},
-    ellipse ={'center', 'width','height'},
-    ellipse_graph ={'center', 'width','height','conky_value'},
+    image = {'filepath','from'},
+    line = {'from','to'},
+    bar_graph = {'from','to','conky_value'},
+    ring = {'center','radius'},
+    ring_graph = {'center','radius','conky_value'},
+    ellipse ={'center','width','height'},
+    ellipse_graph ={'center','width','height','conky_value'},
     variable_text = {'from','conky_value'},
     static_text = {'from','text'},
     clock = {},
@@ -529,6 +566,18 @@ defaults = {
         outline_alpha = 0.5,
         outline_thickness = 2,
         draw_function = draw_background,
+    },
+    image = {
+      draw_function = draw_image,
+    },
+    line = {
+      color = 0x00FF6E,
+      alpha = 0.2,
+      thickness = 5,
+      graduated = false,
+      number_graduation=0,
+      space_between_graduation=1,
+      draw_function = draw_line,
     },
     bar_graph = {
         max_value = 100.,
@@ -577,15 +626,6 @@ defaults = {
         number_graduation=0,
         angle_between_graduation=1,
         draw_function = draw_ring_graph,
-    },
-    line = {
-        color = 0x00FF6E,
-        alpha = 0.2,
-        thickness = 5,
-        graduated = false,
-        number_graduation=0,
-        space_between_graduation=1,
-        draw_function = draw_line,
     },
     ring = {
         color = 0x00FF6E,

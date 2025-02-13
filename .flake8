@@ -18,7 +18,7 @@
 # W503: line break before binary operator
 [flake8]
 #ignore=E128,E226,E231,E251,E401,E701,E731,W293,W503
-ignore=E128,E231,E401,E701,W503
+ignore=E128,E226,E231,E401,E701,W503
 exclude=migrations,node_modules
 max-complexity = -1
 max-line-length = 200

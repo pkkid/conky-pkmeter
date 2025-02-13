@@ -1,0 +1,89 @@
+{
+  // PK Meter Settings
+  // Global settings used when generating a new conkyrc
+  mainbg: {color:0x000000, alpha:0.6},          // Main background color and alpha
+  headerbg: {color:0x333333, alpha:0.6},        // Header background color and alpha
+  widgets: ['clock'],                             // List of widgets to display
+  
+  // Widget Settings
+  // These settings are specific for each widget
+  clock: {
+    bignum: '%d',
+    line1: '%b %Y',
+    line2: '%A',
+    line3: '%H:%M:%S %P',
+    clspath: 'pkm.widgets.clock.ClockWidget',
+  },
+  weather: {
+    city_name: 'Holliston',
+    latitude: 42.20,
+    longitude: -71.42,
+    temperature_unit: 'fahrenheit',
+    timezone: 'America/New_York',
+    windspeed_unit: 'mph',
+    clspath: 'pkm.widgets.weather.WeatherWidget',
+  },
+  system: {
+    clspath: 'pkm.widgets.system.SystemWidget',
+  },
+  nvidia: {
+    clspath: 'pkm.widgets.nvidia.NvidiaWidget',
+  },
+  
+  // Conky Configuration
+  // These options are passed through to conky.config.
+  // Own Window type {normal, desktop, dock, panel, override} (default=normal)
+  // * Desktop: No window decorations, always visible on desktop, not in taskbar, sticky across workspaces.
+  // * Panel: Reserves space along desktop edge, prevents maximized windows overlapping.
+  // * Override: Not under control of window manager. Hints are ignored.
+  // https://conky.sourceforge.net/config_settings.html
+  conky: {
+    // Theme
+    default_color: '#cccccc',         // Default text color
+    color1: '#d79921',                // Accent and header text color
+    color2: '#aaaaaa',                // Secondary text color (labels)
+    color3: '#cc2414',
+    color4: '#98971a',
+    color5: '#444444',
+    font: 'Ubuntu:bold:size=9',         // Font name in X, xfontsel can be used to get a nice font 
+    // General
+    background: false,                  // If true, Conky will be forked to background when started. 
+    default_graph_height: 26,           // Default height for graphs
+    default_graph_width: 80,            // Default width for graphs 
+    double_buffer: true,                // Use the Xdbe extension (eliminates flicker). Highly recommended to also use own window
+    draw_borders: false,                // Draw borders around text
+    draw_graph_borders: false,          // Draw borders around graphs
+    draw_outline: false,                // Draw outlines
+    draw_shades: false,                 // Draw shades
+    imlib_cache_size: 10,               // Imlib2 image cache size, in bytes. Defaults to 4MiB
+    lua_draw_hook_pre: 'main',          // Called by Conky through each iteration before drawing window
+    lua_load: '{ROOT}/pkm/draw.lua',    // Loads the Lua scripts separated by spaces. 
+    no_buffers: true,                   // Subtract (file system) buffers from used memory?
+    show_graph_range: false,            // Shows the time range covered by a graph
+    show_graph_scale: false,            // Shows the maximum value in scaled graphs
+    update_interval: 2,                 // Update interval in seconds
+    // Window
+    own_window_type: 'desktop',         // Window type (normal, desktop, panel, overridde; see above)
+    own_window_argb_value: 0,           // Alpha value used (when ARGB enabled)
+    own_window_argb_visual: true,       // ARGB can be used for real transparency
+    own_window_hints: 'undecorated,below,sticky,skip_taskbar,skip_pager',  // Window manager hints to affect Conky display
+    own_window_transparent: true,       // Sets background opacity to 0% (when ARGB enabled)
+    own_window: true,                   // create own window to draw
+    alignment: 'top_right',             // Aligned position on screen {e: top_left, middle_middle, bottom_right}
+    border_inner_margin: 0,             // Inner border margin px between border and text 
+    border_outer_margin: 0,             // Outer border margin px between border and window edge 
+    gap_x: -1,                          // Gap px between right or left border of screen
+    gap_y: 35,                          // Gap px between top or bottom border of screen
+    maximum_width: 200,                 // Maximum width of window
+    // minimum_height: 1100,               // Minimum height of window
+    minimum_width: 200,                 // Minimum width of window
+    // Text
+    override_utf8_locale: true,         // Force UTF8, requires XFT 
+    pad_percents: 2,                    // Pad percentages to this many decimals (0 = no padding) 
+    short_units: true,                  // Shortens units to a single character (kiB->k, GiB->G, etc.). Default is off.
+    text_buffer_size: 256,              // Size of the standard text buffer (default is 256 bytes)
+    top_name_width: 7,                  // Width for $top name value (defaults to 15 characters). 
+    use_xft: true,                      // Use Xft (anti-aliased font and stuff)
+    xftalpha: 1,                        // Alpha of Xft font. Must be a value at or between 1 and 0.
+  },
+}

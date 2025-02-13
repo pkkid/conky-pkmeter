@@ -5,7 +5,23 @@ ROOT = f'{dirname(dirname(abspath(__file__)))}'
 PKMETER = f'{ROOT}/pkmeter.py'
 CACHE = f'{ROOT}/pkm/cache'
 
-with open(f'{ROOT}/config.json', 'r') as handle:
-    CONFIG = json5.load(handle)
-    hostname = socket.gethostname()
-    CONFIG.update(CONFIG.get(f'[{hostname}]', {}))
+
+def merge(dict1, dict2):
+    """ Recursively merge two dictionaries. """
+    for key, value in dict2.items():
+        if key in dict1 and isinstance(dict1[key], dict) and isinstance(value, dict):
+            merge(dict1[key], value)
+            continue
+        dict1[key] = value
+    return dict1
+
+
+# Load DEFAULT configuration
+with open(f'{ROOT}/defaults.json5', 'r') as handle:
+    DEFAULTS = json5.load(handle)
+
+# Load user CONFIG
+hostname = socket.gethostname()
+with open(f'{ROOT}/config.json5', 'r') as handle:
+    CONFIG = merge(DEFAULTS, json5.load(handle))
+    CONFIG = merge(CONFIG, CONFIG.get(f'[{hostname}]', {}))

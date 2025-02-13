@@ -1,0 +1,18 @@
+{
+  widgets: ['clock'],
+  weather: {
+    city_name: 'Holliston',
+    latitude: 42.20,
+    longitude: -71.42,
+    temperature_unit: 'fahrenheit',
+    timezone: 'America/New_York',
+    windspeed_unit: 'mph',
+  },
+  conky: {
+    alignment: 'top_left',
+    gap_x: 450,
+    gap_y: 350,
+    own_window_type: 'normal',
+    own_window_hints: '',
+  }
+}
