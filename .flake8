@@ -21,5 +21,5 @@
 ignore=E128,E231,E401,E701,W503
 exclude=migrations,node_modules
 max-complexity = -1
-max-line-length = 125
+max-line-length = 200
 show-source = True

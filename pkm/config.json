@@ -1,0 +1,28 @@
+{
+  "default": {
+    "bgalpha": "0.6",
+    "bgcolor": "0x000000",
+    "conky_gap_x": 3236,
+    "conky_gap_y": 302,
+    "font": "Ubuntu:medium:size=8",
+    "lineheight": 10,
+
+    "filesystem_io": "/dev/nvme0n1p1",
+    "filesystem1_name": "Root",
+    "filesystem1_path": "/",
+    "filesystem2_name": "Root",
+    "filesystem2_path": "/",
+    "network_device": "enp4s0",
+    "openweather_apikey": "5fb46be90dd122acc49c966bb38366cd",
+    "openweather_coords": "42.3601,-71.0589",
+    "openweather_location": "Boston",
+
+    "clock": {
+      "display": true,
+      "bignum": "%d",
+      "line1": "%b %Y",
+      "line2": "%A",
+      "line3": "%H:%M:%S %P"
+    }
+  }
+}

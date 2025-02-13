@@ -1,41 +1,40 @@
 {
-  "bgcolor": "0x000000",
-  "bgalpha": "0.6",
-  "headbgcolor": "0x666666",
-  "headbgalpha": "0.6",
-
-  "conky_gap_x": 2352,
-  "conky_gap_y": 302,
-  "font": "Ubuntu:medium:size=8",
-  "lineheight": 10,
-  "filesystem_io": "/dev/nvme0n1p1",
-  "filesystem1_name": "Root",
-  "filesystem1_path": "/",
-  "filesystem2_name": "",
-  "filesystem2_path": "",
-  "network_device": "enp0s31f6",
-
+  "mainbg": "0x000000",             // Background color of the main window
+  "mainbg_alpha": 0.6,                // Background alpha of the main window
+  "headbg": "0x666666",             // Background color of the header
+  "headbg_alpha": 0.6,                // Background alpha of the header
+  
   "widgets": [{
-      "class": "pkmeter.widgets.clock.ClockWidget",
+      "path": "pkm.widgets.clock.ClockWidget",
       "enabled": true,
       "bignum": "%d",
       "line1": "%b %Y",
       "line2": "%A",
-      "line3": "%H:%M:%S %P"
+      "line3": "%H:%M:%S %P",
+    },{
+      "path": "pkm.widgets.weather.WeatherWidget",
+      "enabled": false,
+      "city_name": "Holliston",
+      "latitude": 42.20,
+      "longitude": -71.42,
+      "temperature_unit": "fahrenheit",
+      "timezone": "America/New_York",
+      "windspeed_unit": "mph",
     }
   ],
   
   "conky": {
     // General Settings
     "background": false,              // If true, Conky will be forked to background when started. 
-    "default_graph_size": "80 26",    // Default width and height for graphs. Ex: 'default_graph_size 0 25'
+    "default_graph_height": 26,       // Default height for graphs
+    "default_graph_width": 80,        // Default width for graphs 
     "double_buffer": true,            // Use the Xdbe extension (eliminates flicker). Highly recommended to also use own window
     "draw_borders": false,            // Draw borders around text
     "draw_graph_borders": false,      // Draw borders around graphs
     "draw_outline": false,            // Draw outlines
     "draw_shades": false,             // Draw shades
     "imlib_cache_size": 10,           // Imlib2 image cache size, in bytes. Defaults to 4MiB
-    "lua_load": "'{ROOT}/pkmeter/draw.lua'",  // Loads the Lua scripts separated by spaces. 
+    "lua_load": "{ROOT}/pkmeter/draw.lua",  // Loads the Lua scripts separated by spaces. 
     "lua_draw_hook_pre": "main",      // Called by Conky through each iteration before drawing window
     "no_buffers": true,               // Subtract (file system) buffers from used memory?
     "show_graph_range": false,        // Shows the time range covered by a graph
@@ -53,12 +52,14 @@
     "own_window_hints": "undecorated,below,sticky,skip_taskbar,skip_pager",  // Window manager hints to affect Conky display
     "own_window_transparent": true,   // Sets background opacity to 0% (when ARGB enabled)
     "own_window": true,               // create own window to draw
+    "alignment": "top_left",          // Aligned position on screen {ex: top_left, middle_middle, bottom_right}
     "border_inner_margin": 0,         // Inner border margin px between border and text 
     "border_outer_margin": 0,         // Outer border margin px between border and window edge 
-    "gap_x": 2352,                    // Gap px between right or left border of screen
-    "gap_y": 302,                     // Gap px between top or bottom border of screen
+    "gap_x": 200,                     // Gap px between right or left border of screen
+    "gap_y": 250,                     // Gap px between top or bottom border of screen
     "maximum_width": 200,             // Maximum width of window
-    "minimum_size": "200 1100", 	    // Minimum size of window
+    "minimum_width": 200,             // Minimum width of window
+    "minimum_height": 1100,           // Minimum height of window
     
     // Text Settings
     "use_xft": true,                  // Use Xft (anti-aliased font and stuff)
@@ -71,11 +72,26 @@
     "top_name_width": 7,              // Width for $top name value (defaults to 15 characters). 
 
     // Color Scheme
-    "default_color": "#CCCCCC",
-    "color1": "#D79921",
-    "color2": "#AAAAAA",
-    "color3": "#CC2414",
+    "default_color": "#cccccc",     // Default text color
+    "color1": "#d79921",            // Accent and header text color
+    "color2": "#aaaaaa",
+    "color3": "#cc2414",
     "color4": "#98971a",
     "color5": "#444444",
   },
+
+  // -- OLD STYLES --
+  // "bgcolor": "0x000000",
+  // "bgalpha": "0.6",
+  // "headbgcolor": "0x666666",
+  // "headbgalpha": "0.6",
+
+  // "font": "Ubuntu:medium:size=8",
+  // "lineheight": 10,
+  // "filesystem_io": "/dev/nvme0n1p1",
+  // "filesystem1_name": "Root",
+  // "filesystem1_path": "/",
+  // "filesystem2_name": "",
+  // "filesystem2_path": "",
+  // "network_device": "enp0s31f6",
 }
