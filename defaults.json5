@@ -63,8 +63,9 @@
   },
 
   // Misc PKMeter Settings
-  debug: false,                         // Displays horizonal rule under each widget
+  debugui: false,                       // Displays horizonal rule under each widget
   logfile: '',                          // Log file, {ROOT} & {CACHE} will be replaced, leave empty to disable
+  loglevel: 'INFO',                     // Log level {DEBUG, INFO, WARNING, ERROR, CRITICAL}
   
   // Conky Configuration
   // These options are passed through to conky.config.

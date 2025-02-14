@@ -1,4 +1,4 @@
-import json5, shlex, subprocess
+import shlex, subprocess
 from pkm.widgets.base import BaseWidget
 from pkm import PKMETER, utils
 
@@ -68,6 +68,4 @@ class NvidiaWidget(BaseWidget):
         if self.temperature_unit == 'fahrenheit':
             data['temperature_gpu'] = utils.celsius_to_fahrenheit(int(data['temperature_gpu']))
             data['temperature_gpu'] = str(data['temperature_gpu']) + f'°{self.temperature_unit[0].upper()}'
-        # Save the cached response
-        with open(self.cachepath, 'w') as handle:
-            json5.dump(data, handle, indent=2, ensure_ascii=False)
+        return data

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import argparse, importlib, json5, os, sys
+import argparse, importlib
+import json5, os, sys, time
 from datetime import datetime
 from os.path import abspath, dirname, expanduser
 
@@ -27,7 +28,7 @@ def create_conky_text():
     luaentries = []
     conkytheme = themes.ConkyTheme()
     luatheme = themes.LuaTheme()
-    debug = conkytheme.debug if CONFIG['debug'] else ''
+    debug = conkytheme.debug if CONFIG['debugui'] else ''
     conkytext = 'conky.text = [[\n'
     for wname in CONFIG['widgets']:
         wsettings = CONFIG[wname]
@@ -44,7 +45,7 @@ def create_conky_text():
     return conkytext, luaentries
 
 
-def create_conkyrc():
+def create_conkyrc(opts):
     """ Create a new conkyrc from from config.json. """
     log.info('Creating new conkyrc file')
     conkyconfig = create_conky_config()
@@ -76,17 +77,23 @@ def get_value(key, opts):
         if opts.round: value = round(float(value), opts.round)
         if opts.int: value = int(value)
         if opts.format: value = datetime.fromtimestamp(int(value)).strftime(opts.format)
-        return value
+        log.debug(f'Get {key} = {value}')
+        print(value)
     except Exception:
         return opts.default
 
 
-def update_widget(wname):
+def update_widget(name, opts):
     """ Update the specified widget cache. """
-    modpath, clsname = CONFIG[wname]['clspath'].rsplit('.', 1)
+    starttime = time.time()
+    modpath, clsname = CONFIG[name]['clspath'].rsplit('.', 1)
     module = importlib.import_module(modpath)
-    widget = getattr(module, clsname)(CONFIG[wname])
-    widget.update_cache()
+    widget = getattr(module, clsname)(CONFIG[name])
+    if data := widget.update_cache():
+        with open(widget.cachepath, 'w') as handle:
+            json5.dump(data, handle, indent=2, ensure_ascii=False)
+        loglvl = log.info if getattr(widget, 'update_interval', 0) >= 300 else log.debug
+        loglvl(f'Update {name} cache took {time.time()-starttime:.2f} seconds')
 
 
 if __name__ == '__main__':
@@ -109,9 +116,9 @@ if __name__ == '__main__':
     opts = parser.parse_args()
     # Run the specified command
     try:
-        if opts.command == 'conkyrc': create_conkyrc()
-        if opts.command == 'get': print(get_value(opts.key, opts))
-        if opts.command == 'update': update_widget(opts.widget)
+        if opts.command == 'conkyrc': create_conkyrc(opts)
+        if opts.command == 'get': get_value(opts.key, opts)
+        if opts.command == 'update': update_widget(opts.widget, opts)
     except KeyboardInterrupt:
         raise SystemExit(0)
     except Exception as err:

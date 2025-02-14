@@ -1,4 +1,4 @@
-import json5, requests
+import requests
 from pkm.widgets.base import BaseWidget
 from pkm import PKMETER
 from pkm import utils
@@ -48,6 +48,4 @@ class NetworkWidget(BaseWidget):
     def update_cache(self):
         """ Fetches the external IP address. """
         if self.check_skip_update(): return None
-        data = requests.get(EXTERNALIP_URL, timeout=10).json()
-        with open(self.cachepath, 'w') as handle:
-            json5.dump(data, handle, indent=2, ensure_ascii=False)
+        return requests.get(EXTERNALIP_URL, timeout=10).json()

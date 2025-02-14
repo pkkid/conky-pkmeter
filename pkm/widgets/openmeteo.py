@@ -1,4 +1,4 @@
-import json5, re, requests
+import re, requests
 from datetime import datetime
 from shutil import copyfile
 from pkm.widgets.base import BaseWidget
@@ -108,9 +108,7 @@ class OpenMeteoWidget(BaseWidget):
             datestr = data['daily']['time'][i]
             weekday = datetime.strptime(datestr, '%Y-%m-%d').strftime('%a')
             data['daily']['weekday'].append(weekday)
-        # Save the cached response
-        with open(self.cachepath, 'w') as handle:
-            json5.dump(data, handle, indent=2, ensure_ascii=False)
+        return data
 
     def _get_icon_num(self, weathercode, isday=True):
         """ Get the icon code & text for the specified weather code. """

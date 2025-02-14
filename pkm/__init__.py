@@ -30,11 +30,13 @@ with open(f'{ROOT}/config.json5', 'r') as handle:
 # Logging Configuration
 log = logging.getLogger('pkmeter')
 logformat = '%(asctime)s %(module)12s:%(lineno)-4s %(levelname)-9s %(message)s'
-loghandler = logging.NullHandler()
+streamhandler = logging.StreamHandler()
+streamhandler.setFormatter(logging.Formatter(logformat))
+log.addHandler(streamhandler)
 logfile = CONFIG.get('logfile')
 if logfile:
     logfile = expanduser(logfile.replace('{ROOT}',ROOT).replace('{CACHE}',CACHE))
     loghandler = RotatingFileHandler(logfile, 'a', 5242880, 3)
-loghandler.setFormatter(logging.Formatter(logformat))
-log.addHandler(loghandler)
-log.setLevel(logging.INFO)
+    loghandler.setFormatter(logging.Formatter(logformat))
+    log.addHandler(loghandler)
+log.setLevel(CONFIG.get('loglevel', logging.INFO))
