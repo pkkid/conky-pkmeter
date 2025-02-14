@@ -4,36 +4,8 @@ from datetime import datetime
 from os.path import abspath, dirname, expanduser
 
 sys.path.append(dirname(abspath(__file__)))
-from pkm import ROOT, CACHE, CONFIG  # noqa
-from pkm import utils  # noqa
-
-
-class ConkyTheme:
-    """ A bunch of useful and reusable variables to use when createing the conky templates.
-        This helps keep everythign same same by pre-defining font and color strings. These
-        variables are purley for convenience and shorter widget definitions.
-    """
-    accent = f"${{color {CONFIG['accent']}}}"
-    accent2 = f"${{color {CONFIG['accent2']}}}"
-    header_color = f"${{color {CONFIG['header_color']}}}"
-    subheader_color = f"${{color {CONFIG['subheader_color']}}}"
-    label_color = f"${{color {CONFIG['label_color']}}}"
-    value_color = f"${{color {CONFIG['value_color']}}}"
-    header_font = f"${{font {CONFIG['header_font']}}}"
-    subheader_font = f"${{font {CONFIG['subheader_font']}}}"
-    label_font = f"${{font {CONFIG['label_font']}}}"
-    value_font = f"${{font {CONFIG['value_font']}}}"
-    header = f"{header_font}{header_color}"
-    subheader = f"{subheader_font}{subheader_color}"
-    label = f"{label_font}{label_color}"
-    value = f"{value_font}{value_color}"
-    # Draw.lua Colors
-    bg = CONFIG['bg']
-    graph_bg = CONFIG['graph_bg']
-    header_bg = CONFIG['header_bg']
-    header_graph_bg = CONFIG['header_graph_bg']
-    reset = '${font}${color}'
-    test = 'XXX\nXXX'
+from pkm import ROOT, CACHE, CONFIG, utils  # noqa
+from pkm.theme import ConkyTheme  # noqa
 
 
 def create_conky_config():

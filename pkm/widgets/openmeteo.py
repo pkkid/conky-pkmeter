@@ -79,7 +79,7 @@ class OpenMeteoWidget(BaseWidget):
         return [
             self.line(start=(100,origin), end=(100, origin+50), thickness=width, **CONFIG['headerbg']),  # header
             self.line(start=(100,origin+50), end=(100, origin+self.height), thickness=width, **CONFIG['mainbg']),  # background
-            self.image(filepath=f'{CACHE}/current.png', start=(95,origin+3), width=45),  # current day
+            self.image(filepath=f'{CACHE}/current.png', start=(90,origin+3), width=45),  # current day
             self.image(filepath=f'{CACHE}/day0.png', start=(15,origin+59), width=25),  # today
             self.image(filepath=f'{CACHE}/day1.png', start=(63,origin+59), width=25),  # tomorrow
             self.image(filepath=f'{CACHE}/day2.png', start=(111,origin+59), width=25),  # 2 days out

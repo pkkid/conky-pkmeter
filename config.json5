@@ -8,8 +8,9 @@
     windspeed_unit: 'mph',
   },
   conky: {
+    // own_window_type: 'panel',
     alignment: 'top_left',
-    gap_x: 400,
+    gap_x: 350,
     gap_y: 350,
     own_window_type: 'normal',
     own_window_hints: '',

@@ -2,6 +2,7 @@ from pkm import utils
 
 
 class BaseWidget:
+    """ Base class for all widgets. """
 
     def __init__(self, wsettings, origin):
         self.wsettings = wsettings              # Widget configuration object
@@ -16,7 +17,9 @@ class BaseWidget:
         return utils.get_widget_name(self.__class__.__name__)
 
     def get_conkyrc(self, theme):
-        """ Create the conkyrc template for the this widget. """
+        """ Create the conkyrc template for the this widget.
+            https://conky.sourceforge.net/variables.html
+        """
         return ''
 
     def get_lua_entries(self):

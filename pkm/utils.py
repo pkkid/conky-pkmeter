@@ -76,7 +76,8 @@ def percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
     """
     if not denominator:
         return default
-    return min(maxval, round((numerator / float(denominator)) * 100.0, precision))
+    result = min(maxval, round((numerator / float(denominator)) * 100.0, precision))
+    return int(result) if precision == 0 else result
 
 
 def rget(obj, attrstr, default=None, delim='.'):
