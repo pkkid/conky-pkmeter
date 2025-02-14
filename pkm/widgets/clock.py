@@ -1,5 +1,5 @@
 from pkm.widgets.base import BaseWidget
-from pkm import CONFIG, utils
+from pkm import utils
 
 
 class ClockWidget(BaseWidget):
@@ -19,10 +19,9 @@ class ClockWidget(BaseWidget):
             ${{voffset 4}}{theme.reset}\\
         """)  # noqa
 
-    def get_lua_entries(self):
+    def get_lua_entries(self, theme):
         """ Create the draw.lua entries for this widget. """
-        origin = self.origin
-        width = CONFIG['conky']['maximum_width']
+        origin, width, height = self.origin, self.width, self.height
         return [
-            self.line(start=(100, origin), end=(100, origin+self.height), thickness=width, **CONFIG['mainbg']),
+            self.draw('line', frm=(100,origin), to=(100,origin+height), thickness=width, color=theme.bg),  # main bg
         ]

@@ -2,31 +2,24 @@
   // PK Meter Settings
   // List of widgets to display
   widgets: ['clock', 'openmeteo', 'system', 'nvidia'],
-  
-  // Global settings used when generating a new conkyrc
-  mainbg: {color:'#000000', alpha:0.6},               // Main background color and alpha
-  graphbg: {bgcolor:'#ffffff', bgalpha:0.1},          // Graph background color and alpha
-  headerbg: {color:'#333333', alpha:0.6},             // Header background color and alpha
-  headergraphbg: {color:'#000000', alpha:0.3},        // Graph background color and alpha
 
-  // Theme Settings
-  accent: '#d79921',
+  // Theme Colors
+  accent1: '#d79921',
   accent2: '#98971a',
-  graph_bg: '#ffffff09',
-  header_font: 'ubuntu:bold:size=9',
+  accent3: '#cc2414',
   header_color: '#cccccc',
-  header_graph_bg: '#00000055',
-  subheader_font: 'ubuntu:bold:size=8',
   subheader_color: '#d79921',
-  label_font: 'ubuntu:bold:size=8',
   label_color: '#999999',
-  value_font: 'ubuntu:bold:size=8',
   value_color: '#cccccc',
-  // Lua Colors
-  bg: {color:'#000000', alpha:0.6},
-  graph_bg: {color:'#ffffff', alpha:0.1},
-  header_bg: {color:'#333333', alpha:0.6},
-  header_graph_bg: {color:'#000000', alpha:0.3},
+  bg: '#000000bb',
+  graph_bg: '#cccccc11',
+  header_bg: '#222222bb',
+
+  // Theme Fonts
+  header_font: 'ubuntu:bold:size=9',
+  subheader_font: 'ubuntu:bold:size=8',
+  label_font: 'ubuntu:bold:size=8',
+  value_font: 'ubuntu:bold:size=8',
 
   // Widget Settings
   // These settings are specific for each widget
@@ -62,17 +55,9 @@
   // * Override: Not under control of window manager. Hints are ignored.
   // https://conky.sourceforge.net/config_settings.html
   conky: {
-    // Theme
-    default_color: '#cccccc',         // Default text color
-    font: 'Ubuntu:bold:size=9',         // Default font
-    color1: '#d79921',                // Accent and header text color
-    color2: '#aaaaaa',                // Secondary text color (labels)
-    color3: '#cc2414',
-    color4: '#98971a',
-    color5: '#444444',
-    
     // General
     background: false,                  // If true, Conky will be forked to background when started. 
+    default_color: '#cccccc',         // Default text color
     default_graph_height: 26,           // Default height for graphs
     default_graph_width: 80,            // Default width for graphs 
     double_buffer: true,                // Use the Xdbe extension (eliminates flicker). Highly recommended to also use own window
@@ -80,6 +65,7 @@
     draw_graph_borders: false,          // Draw borders around graphs
     draw_outline: false,                // Draw outlines
     draw_shades: false,                 // Draw shades
+    font: 'Ubuntu:bold:size=9',         // Default font
     imlib_cache_size: 10,               // Imlib2 image cache size, in bytes. Defaults to 4MiB
     lua_draw_hook_pre: 'main',          // Called by Conky through each iteration before drawing window
     lua_load: '{ROOT}/pkm/draw.lua',    // Loads the Lua scripts separated by spaces. 
@@ -100,7 +86,6 @@
     gap_x: -1,                          // Gap px between right or left border of screen
     gap_y: 35,                          // Gap px between top or bottom border of screen
     maximum_width: 200,                 // Maximum width of window
-    // minimum_height: 1100,               // Minimum height of window
     minimum_width: 200,                 // Minimum width of window
     // Text
     override_utf8_locale: true,         // Force UTF8, requires XFT 

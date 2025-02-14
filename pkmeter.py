@@ -4,8 +4,7 @@ from datetime import datetime
 from os.path import abspath, dirname, expanduser
 
 sys.path.append(dirname(abspath(__file__)))
-from pkm import ROOT, CACHE, CONFIG, utils  # noqa
-from pkm.theme import ConkyTheme  # noqa
+from pkm import ROOT, CACHE, CONFIG, themes, utils  # noqa
 
 
 def create_conky_config():
@@ -25,15 +24,16 @@ def create_conky_text():
     """ Create conky.text and config.lua from the config.json file. """
     origin = 0
     luaentries = []
-    theme = ConkyTheme()
+    conkytheme = themes.ConkyTheme()
+    luatheme = themes.LuaTheme()
     conkytext = 'conky.text = [[\n'
     for wname in CONFIG['widgets']:
         wsettings = CONFIG[wname]
         modpath, clsname = wsettings['clspath'].rsplit('.', 1)
         module = importlib.import_module(modpath)
         widget = getattr(module, clsname)(wsettings, origin)
-        conkytext += f'{widget.get_conkyrc(theme)}\n\\\n'
-        luaentries += widget.get_lua_entries()
+        conkytext += f'{widget.get_conkyrc(conkytheme)}\n\\\n'
+        luaentries += widget.get_lua_entries(luatheme)
         origin += widget.height
     conkytext += ']]\n'
     luaentries = ',\n'.join(f'  {item}' for item in luaentries)

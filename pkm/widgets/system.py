@@ -1,6 +1,6 @@
 import os
 from pkm.widgets.base import BaseWidget
-from pkm import CONFIG, utils
+from pkm import utils
 
 
 class SystemWidget(BaseWidget):
@@ -13,7 +13,7 @@ class SystemWidget(BaseWidget):
     def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget. """
         return utils.clean_spaces(f"""
-            ${{voffset 17}}${{goto 100}}{theme.accent}${{cpugraph cpu0 24,90 -l}}${{color}}
+            ${{voffset 17}}${{goto 100}}{theme.accent1}${{cpugraph cpu0 24,90 -l}}${{color}}
             ${{voffset -36}}${{goto 10}}{theme.header}System
             ${{goto 10}}{theme.subheader}${{nodename}}
             ${{voffset 17}}${{goto 10}}{theme.label}CPU Usage${{alignr 55}}{theme.value}${{cpu cpu0}}%
@@ -24,31 +24,28 @@ class SystemWidget(BaseWidget):
             {theme.reset}\\
         """)  # noqa
 
-    def get_lua_entries(self):
+    def get_lua_entries(self, theme):
         """ Create the draw.lua entries for this widget. """
-        origin = self.origin
-        width = CONFIG['conky']['maximum_width']
-        accent = CONFIG['conky']['color1']
+        origin, width, height = self.origin, self.width, self.height
         return [
-            self.line(start=(100, origin), end=(100, origin+40), thickness=width, **CONFIG['headerbg']),  # header
-            self.line(start=(100, origin+40), end=(100, origin+self.height), thickness=width, **CONFIG['mainbg']),  # background
-            self.line(start=(100, origin+20), end=(190, origin+20), thickness=24, **CONFIG['headergraphbg']),  # cpu graph
-            self.ringgraph(value='memperc', center=(173,origin+104), radius=8, color=accent, thickness=4, **CONFIG['graphbg']),  # memory ring
-        ] + self.get_lua_cpu_bars()
+            self.draw('line', frm=(100,origin), to=(100,origin+40), thickness=width, color=theme.header_bg),  # header bg
+            self.draw('line', frm=(100,origin+40), to=(100,origin+height), thickness=width, color=theme.bg),  # main bg
+            self.draw('line', frm=(100,origin+20), to=(190, origin+20), thickness=24, color=theme.graph_bg),  # cpu graph
+            self.draw('ring_graph', conky_value='memperc', center=(172,origin+104), radius=8, bar_color=theme.accent1, bar_thickness=4, background_color=theme.graph_bg)  # mem ring
+        ] + list(self._cpu_entries(theme, origin))
 
-    def get_lua_cpu_bars(self):
+    def _cpu_entries(self, theme, origin):
         """ Create the draw.lua CPU bars. """
-        entries = []
-        cpucount = os.cpu_count()
-        barwidth = int(40 / (cpucount/2)) - 1
-        barheight = 15
-        fullwidth = (barwidth+1) * (cpucount/2)
-        for cpu in range(1, cpucount+1):
-            x = (190-fullwidth) + (cpu * (barwidth+1))
-            y = self.origin + 53
-            if cpu - 1 >= cpucount / 2:
-                x = (190-fullwidth) + (cpu - (cpucount/2)) * (barwidth+1)
-                y = self.origin + 53 + barheight + 5
-            entries.append(self.bargraph(value=f'cpu cpu{cpu}', start=(x,y+barheight), end=(x,y),
-                bgcolor='0xffffff', bgalpha=0.1, color=0xD79921, thickness=barwidth))
-        return entries
+        cpucount = os.cpu_count()                       # Number of cpus on this system
+        barwidth = (40 // (cpucount // 2)) - 1          # Width of each bar for trhe given space
+        barheight = 15                                  # Height of the bars
+        fullwidth = ((barwidth+1) * cpucount) // 2      # Horizontal space needed
+        for cpu in range(1, cpucount + 1):
+            x = (190-fullwidth) + (cpu*(barwidth+1))
+            y = origin + 53
+            if cpu-1 >= cpucount // 2:
+                x = (190-fullwidth) + (cpu-(cpucount/2)) * (barwidth+1)
+                y = origin + 53 + barheight + 5
+            yield self.draw('bar_graph', conky_value=f'cpu cpu{cpu}',
+                frm=(x,y+barheight), to=(x,y), background_color=theme.graph_bg,
+                bar_color=theme.accent1, bar_thickness=barwidth)
