@@ -5,13 +5,11 @@
 
   // Theme Colors
   accent1: '#d79921',
-  accent2: '#98971a',
-  accent3: '#cc2414',
   header_color: '#cccccc',
   subheader_color: '#d79921',
   label_color: '#999999',
   value_color: '#cccccc',
-  bg: '#000000bb',
+  bg: '#000000cc',
   graph_bg: '#cccccc11',
   header_bg: '#333333dd',
 
@@ -26,20 +24,20 @@
   // Widget Settings
   // These settings are specific for each widget
   clock: {
-    bignum: '%d',
-    line1: '%b %Y',
-    line2: '%A',
-    line3: '%H:%M:%S %P',
+    bignum: '%d',                     // Large number on clock
+    line1: '%b %Y',                   // Top line on clock
+    line2: '%A',                      // Middle line on clock
+    line3: '%H:%M:%S %P',             // Bottom line on clock
     clspath: 'pkm.widgets.clock.ClockWidget',
   },
   openmeteo: {
-    city_name: 'Holliston',
-    latitude: 42.20,
-    longitude: -71.42,
-    temperature_unit: 'fahrenheit',
-    timezone: 'America/New_York',
-    windspeed_unit: 'mph',
-    update_interval: 1800,
+    city_name: 'Holliston',           // Display Name (only used for display)
+    latitude: 42.20,                  // Latitude of location
+    longitude: -71.42,                // Longitude of location
+    temperature_unit: 'fahrenheit',   // Temperature unit {celsius, fahrenheit}
+    timezone: 'America/New_York',     // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    wind_speed_unit: 'mph',           // OpenMeteo windspeed unit {kmh, ms, mph, kn}
+    update_interval: 1800,            // Update interval to call weather api
     clspath: 'pkm.widgets.openmeteo.OpenMeteoWidget',
   },
   system: {
@@ -47,22 +45,26 @@
   },
   nvidia: {
     clspath: 'pkm.widgets.nvidia.NvidiaWidget',
-    temperature_unit: 'fahrenheit',
-    update_interval: 5,
+    temperature_unit: 'fahrenheit',   // Temperature unit {celsius, fahrenheit}
+    update_interval: 5,               // Update interval to run nvidia-smi
   },
   processes: {
     clspath: 'pkm.widgets.processes.ProcessesWidget',
-    count: 6,           // Number of processes to display
-    sortby: 'top',      // Conky obj to get data {top, top_mem, top_io, top_time}
+    count: 6,                         // Number of processes to display
+    sortby: 'top',                    // Conky obj to get data {top, top_mem, top_io, top_time}
   },
   network: {
     clspath: 'pkm.widgets.network.NetworkWidget',
-    devices: ['enp4s0', 'vpn0'],          // List of devices to display
-    graph_device: '',             // Device to display graph (defaults to first device)
-    upload_color: '#cc2414',    // Upload color for graph
-    download_color: '#98971a',  // Download color for graph
-    update_interval: 1800,
+    devices: ['enp4s0', 'vpn0'],        // List of devices to display (run ifconfig to get list)
+    graph_device: '',                   // Device to display graph (defaults to first one)
+    upload_color: '#cc2414',          // Upload color for graph
+    download_color: '#98971a',        // Download color for graph
+    update_interval: 1800,              // Update interval to grab external ip
   },
+
+  // Misc PKMeter Settings
+  debug: false,                         // Displays horizonal rule under each widget
+  logfile: '',                          // Log file, {ROOT} & {CACHE} will be replaced, leave empty to disable
   
   // Conky Configuration
   // These options are passed through to conky.config.

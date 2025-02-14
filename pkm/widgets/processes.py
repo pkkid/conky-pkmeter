@@ -26,7 +26,6 @@ class ProcessesWidget(BaseWidget):
             ${{voffset 20}}${{goto 10}}{theme.header}Processes${{font}}
             ${{goto 10}}{theme.subheader}${{processes}} processes
             ${{voffset 17}}{NEWLINE.join(rows)}
-            {theme.reset}\\
         """)  # noqa
 
     def get_lua_entries(self, theme):

@@ -1,5 +1,6 @@
 {
   widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network'],
+  logfile: '{CACHE}/pkmeter.log',
   openmeteo: {
     city_name: 'Holliston',
     latitude: 42.20,

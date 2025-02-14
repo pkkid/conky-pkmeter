@@ -21,7 +21,6 @@ class SystemWidget(BaseWidget):
             ${{goto 10}}{theme.label}CPU Uptime${{alignr 55}}{theme.value}${{uptime_short}}
             ${{goto 10}}{theme.label}Mem Used${{alignr 55}}{theme.value}${{mem}}
             ${{goto 10}}{theme.label}Mem Free${{alignr 55}}{theme.value}${{memeasyfree}}
-            {theme.reset}\\
         """)  # noqa
 
     def get_lua_entries(self, theme):

@@ -4,7 +4,8 @@ from datetime import datetime
 from os.path import abspath, dirname, expanduser
 
 sys.path.append(dirname(abspath(__file__)))
-from pkm import ROOT, CACHE, CONFIG, themes, utils  # noqa
+from pkm import ROOT, CACHE, CONFIG  # noqa
+from pkm import log, themes, utils  # noqa
 
 
 def create_conky_config():
@@ -26,13 +27,15 @@ def create_conky_text():
     luaentries = []
     conkytheme = themes.ConkyTheme()
     luatheme = themes.LuaTheme()
+    debug = conkytheme.debug if CONFIG['debug'] else ''
     conkytext = 'conky.text = [[\n'
     for wname in CONFIG['widgets']:
         wsettings = CONFIG[wname]
         modpath, clsname = wsettings['clspath'].rsplit('.', 1)
         module = importlib.import_module(modpath)
         widget = getattr(module, clsname)(wsettings, origin)
-        conkytext += f'{widget.get_conkyrc(conkytheme)}\n\\\n'
+        widgettext = widget.get_conkyrc(conkytheme)
+        conkytext += f'{widgettext}\n{conkytheme.reset}{debug}\\\n\\\n'
         luaentries += widget.get_lua_entries(luatheme)
         origin += widget.height
     conkytext += ']]\n'
@@ -43,16 +46,17 @@ def create_conky_text():
 
 def create_conkyrc():
     """ Create a new conkyrc from from config.json. """
+    log.info('Creating new conkyrc file')
     conkyconfig = create_conky_config()
     conkytext, luaentries = create_conky_text()
     # Save the new conkyrc file
     filepath = expanduser('~/.conkyrc')
-    print(f'Saving {filepath}')
+    log.info(f'Saving {filepath}')
     with open(filepath, 'w') as handle:
         handle.write(conkyconfig + conkytext)
     # Save the new config.lua file
     filepath = f'{ROOT}/pkm/config.lua'
-    print(f'Saving {filepath}')
+    log.info(f'Saving {filepath}')
     with open(filepath, 'w') as handle:
         handle.write(luaentries)
 
@@ -102,8 +106,14 @@ if __name__ == '__main__':
     get_parser.add_argument('-f', dest='format', help='format value to datetime')
     update_parser = subparsers.add_parser('update', help='Update cache for the specified widget')
     update_parser.add_argument('widget', help='widget class name to get value from')
-    # Run the specified command
     opts = parser.parse_args()
-    if opts.command == 'conkyrc': create_conkyrc()
-    if opts.command == 'get': print(get_value(opts.key, opts))
-    if opts.command == 'update': update_widget(opts.widget)
+    # Run the specified command
+    try:
+        if opts.command == 'conkyrc': create_conkyrc()
+        if opts.command == 'get': print(get_value(opts.key, opts))
+        if opts.command == 'update': update_widget(opts.widget)
+    except KeyboardInterrupt:
+        raise SystemExit(0)
+    except Exception as err:
+        log.exception(err)
+        raise SystemExit(1)

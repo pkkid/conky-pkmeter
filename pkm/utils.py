@@ -39,7 +39,7 @@ def get_config():
 def get_modtime_ago(filepath):
     """ Return the number of seconds since the file was last modified. """
     try:
-        return time.time() - os.path.getmtime(filepath)
+        return int(time.time() - os.path.getmtime(filepath))
     except Exception:
         return 999999
 

@@ -1,5 +1,6 @@
-import json5, socket
-from os.path import abspath, dirname
+import json5, logging, socket
+from logging.handlers import RotatingFileHandler
+from os.path import abspath, dirname, expanduser
 
 ROOT = f'{dirname(dirname(abspath(__file__)))}'
 PKMETER = f'{ROOT}/pkmeter.py'
@@ -25,3 +26,15 @@ hostname = socket.gethostname()
 with open(f'{ROOT}/config.json5', 'r') as handle:
     CONFIG = merge(DEFAULTS, json5.load(handle))
     CONFIG = merge(CONFIG, CONFIG.get(f'[{hostname}]', {}))
+
+# Logging Configuration
+log = logging.getLogger('pkmeter')
+logformat = '%(asctime)s %(module)12s:%(lineno)-4s %(levelname)-9s %(message)s'
+loghandler = logging.NullHandler()
+logfile = CONFIG.get('logfile')
+if logfile:
+    logfile = expanduser(logfile.replace('{ROOT}',ROOT).replace('{CACHE}',CACHE))
+    loghandler = RotatingFileHandler(logfile, 'a', 5242880, 3)
+loghandler.setFormatter(logging.Formatter(logformat))
+log.addHandler(loghandler)
+log.setLevel(logging.INFO)

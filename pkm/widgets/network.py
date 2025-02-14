@@ -1,6 +1,7 @@
 import json5, requests
 from pkm.widgets.base import BaseWidget
-from pkm import CACHE, PKMETER, utils
+from pkm import CACHE, PKMETER
+from pkm import log, utils
 
 EXTERNALIP_URL = 'https://api.ipify.org/?format=json'
 NEWLINE = '${voffset 10}\n'
@@ -33,7 +34,6 @@ class NetworkWidget(BaseWidget):
             ${{voffset -30}}${{goto 10}}{theme.header}Network
             ${{goto 10}}{theme.subheader}${{execi 60 {PKMETER} get {self.name}.ip}}
             ${{voffset 17}}{NEWLINE.join(rows)}
-            {theme.reset}\\
         """)  # noqa
 
     def get_lua_entries(self, theme):
@@ -47,17 +47,8 @@ class NetworkWidget(BaseWidget):
 
     def update_cache(self):
         """ Fetches the external IP address. """
+        log.info(f'Updating {self.name} cache')
         data = requests.get(EXTERNALIP_URL, timeout=10).json()
         filepath = f'{CACHE}/{self.name}.json5'
         with open(filepath, 'w') as handle:
             json5.dump(data, handle, indent=2, ensure_ascii=False)
-
-
-# ${voffset 17}${goto 100}${color3}${upspeedgraph {{network_device}} 12,90}${color}
-# ${goto 100}${color4}${downspeedgraph {{network_device}} -11,90}${color}
-# ${voffset -29}${goto 10}${font ubuntu:bold:size=9}Network${font}
-# ${goto 10}${color1}${execi 60 ~/.pkmeter/pkmeter.py externalip.ip}${color}
-
-# ${voffset 15}${goto 10}{{network_device}}${alignr 10}${addr {{network_device}}}
-# ${goto 10}${color2}Upload${color}${alignr 10}${upspeed {{network_device}}}/s of ${totalup {{network_device}}}
-# ${goto 10}${color2}Download${color}${alignr 10}${downspeed {{network_device}}}/s of ${totaldown {{network_device}}}

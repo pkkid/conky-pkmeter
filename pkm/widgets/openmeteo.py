@@ -2,10 +2,11 @@ import json5, re, requests
 from datetime import datetime
 from shutil import copyfile
 from pkm.widgets.base import BaseWidget
-from pkm import ROOT, CACHE, PKMETER, utils
+from pkm import ROOT, CACHE, PKMETER
+from pkm import log, utils
 
 OPENMETEO_URL = ('https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}'
-    '&current_weather=1&temperature_unit={temperature_unit}&windspeed_unit={windspeed_unit}'
+    '&current_weather=1&temperature_unit={temperature_unit}&wind_speed_unit={wind_speed_unit}'
     '&timezone={timezone}&daily=weathercode,apparent_temperature_max,sunrise,sunset')
 ICONCODES = [
     # Clear, Cloudy
@@ -69,8 +70,7 @@ class OpenMeteoWidget(BaseWidget):
             ${{goto 18}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.0}}°\\
             ${{goto 66}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.1}}°\\
             ${{goto 114}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.2}}°\\
-            ${{goto 163}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.3}}°\\
-            ${{voffset 11}}{theme.reset}\\
+            ${{goto 163}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.3}}°
         """)  # noqa
 
     def get_lua_entries(self, theme):
@@ -89,8 +89,11 @@ class OpenMeteoWidget(BaseWidget):
         """ Fetch weather from OpenMeteo and copy weather images to cache. """
         # Check the modtime of the cahce file before making another request
         filepath = f'{CACHE}/{self.name}.json5'
-        if utils.get_modtime_ago(filepath) < 1700:
+        lastupdate = utils.get_modtime_ago(filepath)
+        if lastupdate < 1700:
+            log.info(f'Skipping {self.name} update, cache was updated {lastupdate}s ago')
             return None
+        log.info(f'Updating {self.name} cache')
         # Make the API request to OpenMeteo
         url = OPENMETEO_URL
         for key in re.findall(r'({.*?})', OPENMETEO_URL):

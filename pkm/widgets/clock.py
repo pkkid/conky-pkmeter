@@ -7,7 +7,7 @@ class ClockWidget(BaseWidget):
 
     def __init__(self, wsettings, origin=0):
         super().__init__(wsettings, origin)
-        self.height = 85
+        self.height = 87
 
     def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget. """
@@ -16,7 +16,7 @@ class ClockWidget(BaseWidget):
             ${{voffset -95}}${{goto 105}}{theme.header}${{time {self.line1}}}
             ${{goto 105}}${{time {self.line2}}}
             ${{goto 105}}${{time {self.line3}}}
-            ${{voffset 4}}{theme.reset}\\
+            ${{voffset -9}}
         """)  # noqa
 
     def get_lua_entries(self, theme):

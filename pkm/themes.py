@@ -14,8 +14,6 @@ class ConkyTheme:
     def __init__(self):
         # Colors
         self.accent1 = f"${{color {CONFIG['accent1'][:7]}}}"
-        self.accent2 = f"${{color {CONFIG['accent2'][:7]}}}"
-        self.accent3 = f"${{color {CONFIG['accent3'][:7]}}}"
         self.bg = f"${{color {CONFIG['bg'][:7]}}}"
         self.graph_bg = f"${{color {CONFIG['graph_bg'][:7]}}}"
         self.header_bg = f"${{color {CONFIG['header_bg'][:7]}}}"
@@ -35,7 +33,7 @@ class ConkyTheme:
         self.value = self.value_font + self.value_color
         # Reset
         self.reset = '${font}${color}'
-        self.test = '${voffset 5}${goto 10}${color #442222}${hr}${voffset -5}'
+        self.debug = '${voffset 6}${goto 10}${color #442222}${hr 2}${voffset -6}'
 
 
 class LuaTheme:
@@ -46,8 +44,6 @@ class LuaTheme:
     def __init__(self):
         # Colors
         self.accent1 = CONFIG['accent1']
-        self.accent2 = CONFIG['accent2']
-        self.accent3 = CONFIG['accent3']
         self.bg = CONFIG['bg']
         self.graph_bg = CONFIG['graph_bg']
         self.header_bg = CONFIG['header_bg']

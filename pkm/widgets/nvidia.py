@@ -29,7 +29,6 @@ class NvidiaWidget(BaseWidget):
             ${{goto 10}}{theme.label}Mem Used${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.utilization_memory}}% of \\
               ${{execi 60 {PKMETER} get {self.name}.memory_total_gb}}
             ${{goto 10}}{theme.label}Mem Rate${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.memory_transfer_rate}}
-            {theme.reset}\\
         """)  # noqa
 
     def get_lua_entries(self, theme):
