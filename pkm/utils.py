@@ -1,18 +1,7 @@
-import json5, os, socket, time
-from pkm import ROOT, CONFIG
+import os, time
 
 BYTE, KB, MB = 1, 1024, 1048576
 BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
-
-
-def cast_num(value):
-    """ Cast the value to a float or int if possible. """
-    try:
-        if '.' in str(value):
-            return float(value)
-        return int(value)
-    except Exception:
-        return value
 
 
 def celsius_to_fahrenheit(value):
@@ -23,17 +12,6 @@ def celsius_to_fahrenheit(value):
 def clean_spaces(value):
     """ Clean leading spaces from each line. """
     return '\n'.join([line.lstrip() for line in value.splitlines()]).strip()
-
-
-def get_config():
-    """ Loads the configuration from a JSON file and updates it with
-        hostname-specific settings.
-    """
-    with open(f'{ROOT}/config.json', 'r') as handle:
-        config = json5.load(handle)
-    hostname = socket.gethostname()
-    config.update(config.get(f'[{hostname}]', {}))
-    return config
 
 
 def get_modtime_ago(filepath):
@@ -49,21 +27,6 @@ def get_widget_name(clsname):
         clsname: The widget name or path string.
     """
     return clsname.split('.')[-1].replace('Widget','').lower()
-
-
-def hex_color(color):
-    """ Converts a color string to a hex value. """
-    if '#' in str(color):
-        return int(color.lstrip('#'), 16)
-    return color
-
-
-def iter_widget_settings():
-    """ Iterate over widgets defined and enabled in the configuration. """
-    for widget_name in CONFIG['widgets']:
-        for wsettings in CONFIG['widget_settings']:
-            if widget_name == get_widget_name(wsettings['clspath']):
-                yield wsettings
 
 
 def percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
@@ -97,27 +60,3 @@ def rget(obj, attrstr, default=None, delim='.'):
         return value
     except Exception:
         return default
-
-
-def to_int(value, default=None):
-    """ Converts a value to an integer. """
-    try:
-        return int(value)
-    except Exception:
-        return default
-
-
-def value_to_str(value, unit=BYTE, precision=0, separator=''):
-    """ Converts a value to a human-readable string with units.
-        value: The value to convert.
-        unit: The unit of the value (default is BYTE).
-        precision: The number of decimal places to round to.
-        separator: The separator between the value and the unit.
-    """
-    if value is None: return ''
-    value = value * unit
-    for div, unit in BYTES1024:
-        if value >= div:
-            conversion = round(value/div, precision) if precision else int(round(value/div, 0))
-            return '%s%s%s' % (conversion, separator, unit)
-    return '0%s%s' % (separator, unit)

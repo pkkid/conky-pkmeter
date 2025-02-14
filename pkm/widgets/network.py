@@ -1,7 +1,7 @@
 import json5, requests
 from pkm.widgets.base import BaseWidget
-from pkm import CACHE, PKMETER
-from pkm import log, utils
+from pkm import PKMETER
+from pkm import utils
 
 EXTERNALIP_URL = 'https://api.ipify.org/?format=json'
 NEWLINE = '${voffset 10}\n'
@@ -47,8 +47,7 @@ class NetworkWidget(BaseWidget):
 
     def update_cache(self):
         """ Fetches the external IP address. """
-        log.info(f'Updating {self.name} cache')
+        if self.check_skip_update(): return None
         data = requests.get(EXTERNALIP_URL, timeout=10).json()
-        filepath = f'{CACHE}/{self.name}.json5'
-        with open(filepath, 'w') as handle:
+        with open(self.cachepath, 'w') as handle:
             json5.dump(data, handle, indent=2, ensure_ascii=False)

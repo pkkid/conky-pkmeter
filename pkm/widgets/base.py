@@ -1,21 +1,29 @@
-from pkm import CONFIG, utils
+from pkm import CACHE, CONFIG
+from pkm import log, utils
 
 
 class BaseWidget:
     """ Base class for all widgets. """
 
     def __init__(self, wsettings, origin):
-        self.wsettings = wsettings                      # Widget configuration object
-        for key, value in wsettings.items():            # Copy settings to class variables
+        self.name = utils.get_widget_name(self.__class__.__name__)  # Widget name
+        self.cachepath = f'{CACHE}/{self.name}.json5'               # Filepath to save cache
+        self.wsettings = wsettings                                  # Widget configuration object
+        for key, value in wsettings.items():                        # Copy settings to class variables
             setattr(self, key, value)
-        self.origin = origin                            # Starting ypos of the widget
-        self.width = CONFIG['conky']['maximum_width']   # Width of the widget
-        self.height = 0                                 # Height of the widget
+        self.origin = origin                                        # Starting ypos of the widget
+        self.width = CONFIG['conky']['maximum_width']               # Width of this widget
+        self.height = 0                                             # Height of this widget
 
-    @property
-    def name(self):
-        """ This widgets name. """
-        return utils.get_widget_name(self.__class__.__name__)
+    def check_skip_update(self):
+        """ Check if the widget should skip updating. """
+        lastupdate = utils.get_modtime_ago(self.cachepath)
+        update_interval = getattr(self, 'update_interval', 60)
+        if lastupdate < update_interval * 0.9:
+            log.info(f'Skipping {self.name} update, cache was updated {lastupdate}s ago')
+            return True
+        log.info(f'Updating {self.name} cache to {self.cachepath}')
+        return False
 
     def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget.

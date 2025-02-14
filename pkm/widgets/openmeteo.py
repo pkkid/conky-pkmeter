@@ -3,7 +3,7 @@ from datetime import datetime
 from shutil import copyfile
 from pkm.widgets.base import BaseWidget
 from pkm import ROOT, CACHE, PKMETER
-from pkm import log, utils
+from pkm import utils
 
 OPENMETEO_URL = ('https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}'
     '&current_weather=1&temperature_unit={temperature_unit}&wind_speed_unit={wind_speed_unit}'
@@ -87,13 +87,7 @@ class OpenMeteoWidget(BaseWidget):
 
     def update_cache(self):
         """ Fetch weather from OpenMeteo and copy weather images to cache. """
-        # Check the modtime of the cahce file before making another request
-        filepath = f'{CACHE}/{self.name}.json5'
-        lastupdate = utils.get_modtime_ago(filepath)
-        if lastupdate < 1700:
-            log.info(f'Skipping {self.name} update, cache was updated {lastupdate}s ago')
-            return None
-        log.info(f'Updating {self.name} cache')
+        if self.check_skip_update(): return None
         # Make the API request to OpenMeteo
         url = OPENMETEO_URL
         for key in re.findall(r'({.*?})', OPENMETEO_URL):
@@ -115,7 +109,7 @@ class OpenMeteoWidget(BaseWidget):
             weekday = datetime.strptime(datestr, '%Y-%m-%d').strftime('%a')
             data['daily']['weekday'].append(weekday)
         # Save the cached response
-        with open(filepath, 'w') as handle:
+        with open(self.cachepath, 'w') as handle:
             json5.dump(data, handle, indent=2, ensure_ascii=False)
 
     def _get_icon_num(self, weathercode, isday=True):

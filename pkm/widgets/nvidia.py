@@ -1,6 +1,6 @@
 import json5, shlex, subprocess
 from pkm.widgets.base import BaseWidget
-from pkm import CACHE, PKMETER, utils
+from pkm import PKMETER, utils
 
 NVIDIA_SMI = '/usr/bin/nvidia-smi --format=csv'
 QUERY_GPU = ['name', 'driver_version', 'clocks.current.graphics', 'clocks.current.memory',
@@ -69,5 +69,5 @@ class NvidiaWidget(BaseWidget):
             data['temperature_gpu'] = utils.celsius_to_fahrenheit(int(data['temperature_gpu']))
             data['temperature_gpu'] = str(data['temperature_gpu']) + f'°{self.temperature_unit[0].upper()}'
         # Save the cached response
-        with open(f'{CACHE}/{self.name}.json5', 'w') as handle:
+        with open(self.cachepath, 'w') as handle:
             json5.dump(data, handle, indent=2, ensure_ascii=False)
