@@ -1,7 +1,7 @@
 {
   // PK Meter Settings
   // List of widgets to display
-  widgets: ['clock', 'openmeteo', 'system', 'nvidia'],
+  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network'],
 
   // Theme Colors
   accent1: '#d79921',
@@ -13,9 +13,11 @@
   value_color: '#cccccc',
   bg: '#000000bb',
   graph_bg: '#cccccc11',
-  header_bg: '#222222bb',
+  header_bg: '#333333dd',
 
   // Theme Fonts
+  // Ubuntu font size 8 adds 13px height
+  // Ubuntu font size 9 adds 16px height
   header_font: 'ubuntu:bold:size=9',
   subheader_font: 'ubuntu:bold:size=8',
   label_font: 'ubuntu:bold:size=8',
@@ -37,6 +39,7 @@
     temperature_unit: 'fahrenheit',
     timezone: 'America/New_York',
     windspeed_unit: 'mph',
+    update_interval: 1800,
     clspath: 'pkm.widgets.openmeteo.OpenMeteoWidget',
   },
   system: {
@@ -45,6 +48,20 @@
   nvidia: {
     clspath: 'pkm.widgets.nvidia.NvidiaWidget',
     temperature_unit: 'fahrenheit',
+    update_interval: 5,
+  },
+  processes: {
+    clspath: 'pkm.widgets.processes.ProcessesWidget',
+    count: 6,           // Number of processes to display
+    sortby: 'top',      // Conky obj to get data {top, top_mem, top_io, top_time}
+  },
+  network: {
+    clspath: 'pkm.widgets.network.NetworkWidget',
+    devices: ['enp4s0', 'vpn0'],          // List of devices to display
+    graph_device: '',             // Device to display graph (defaults to first device)
+    upload_color: '#cc2414',    // Upload color for graph
+    download_color: '#98971a',  // Download color for graph
+    update_interval: 1800,
   },
   
   // Conky Configuration

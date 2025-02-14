@@ -1,5 +1,5 @@
 {
-  widgets: ['clock', 'openmeteo', 'system', 'nvidia'],
+  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network'],
   openmeteo: {
     city_name: 'Holliston',
     latitude: 42.20,

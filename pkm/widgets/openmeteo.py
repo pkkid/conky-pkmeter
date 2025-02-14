@@ -56,7 +56,7 @@ class OpenMeteoWidget(BaseWidget):
         """ Create the conkyrc template for the clock widget. """
         tempunit = '°F' if self.temperature_unit == 'fahrenheit' else '°C'
         return utils.clean_spaces(f"""
-            ${{texeci 1800 {PKMETER} update {self.name}}}\\
+            ${{texeci {self.update_interval} {PKMETER} update {self.name}}}\\
             ${{voffset 24}}${{goto 10}}${{font Ubuntu:bold:size=11}}{theme.header_color}{self.city_name}\\
             ${{alignr 10}}${{execi 60 {PKMETER} get -ir0 {self.name}.current_weather.temperature}}{tempunit}
             ${{voffset -2}}${{goto 10}}{theme.subheader}${{execi 60 {PKMETER} get {self.name}.current_weather.desc}}\\

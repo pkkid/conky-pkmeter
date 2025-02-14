@@ -19,7 +19,7 @@ class NvidiaWidget(BaseWidget):
     def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget. """
         return utils.clean_spaces(f"""
-            ${{texeci 2 {PKMETER} update {self.name}}}\\
+            ${{texeci {self.update_interval} {PKMETER} update {self.name}}}\\
             ${{voffset 20}}${{goto 10}}{theme.header}NVIDIA${{font}}
             ${{goto 10}}{theme.subheader}${{execi 60 {PKMETER} get {self.name}.name}} - \\
             ${{execi 60 {PKMETER} get {self.name}.driver_version}}${{color}}

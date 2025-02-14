@@ -15,6 +15,7 @@ class ConkyTheme:
         # Colors
         self.accent1 = f"${{color {CONFIG['accent1'][:7]}}}"
         self.accent2 = f"${{color {CONFIG['accent2'][:7]}}}"
+        self.accent3 = f"${{color {CONFIG['accent3'][:7]}}}"
         self.bg = f"${{color {CONFIG['bg'][:7]}}}"
         self.graph_bg = f"${{color {CONFIG['graph_bg'][:7]}}}"
         self.header_bg = f"${{color {CONFIG['header_bg'][:7]}}}"
@@ -46,6 +47,7 @@ class LuaTheme:
         # Colors
         self.accent1 = CONFIG['accent1']
         self.accent2 = CONFIG['accent2']
+        self.accent3 = CONFIG['accent3']
         self.bg = CONFIG['bg']
         self.graph_bg = CONFIG['graph_bg']
         self.header_bg = CONFIG['header_bg']
