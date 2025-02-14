@@ -8,6 +8,34 @@ from pkm import ROOT, CACHE, CONFIG  # noqa
 from pkm import utils  # noqa
 
 
+class ConkyTheme:
+    """ A bunch of useful and reusable variables to use when createing the conky templates.
+        This helps keep everythign same same by pre-defining font and color strings. These
+        variables are purley for convenience and shorter widget definitions.
+    """
+    accent = f"${{color {CONFIG['accent']}}}"
+    accent2 = f"${{color {CONFIG['accent2']}}}"
+    header_color = f"${{color {CONFIG['header_color']}}}"
+    subheader_color = f"${{color {CONFIG['subheader_color']}}}"
+    label_color = f"${{color {CONFIG['label_color']}}}"
+    value_color = f"${{color {CONFIG['value_color']}}}"
+    header_font = f"${{font {CONFIG['header_font']}}}"
+    subheader_font = f"${{font {CONFIG['subheader_font']}}}"
+    label_font = f"${{font {CONFIG['label_font']}}}"
+    value_font = f"${{font {CONFIG['value_font']}}}"
+    header = f"{header_font}{header_color}"
+    subheader = f"{subheader_font}{subheader_color}"
+    label = f"{label_font}{label_color}"
+    value = f"{value_font}{value_color}"
+    # Draw.lua Colors
+    bg = CONFIG['bg']
+    graph_bg = CONFIG['graph_bg']
+    header_bg = CONFIG['header_bg']
+    header_graph_bg = CONFIG['header_graph_bg']
+    reset = '${font}${color}'
+    test = 'XXX\nXXX'
+
+
 def create_conky_config():
     """ Create the conky.config section from the config.json file. """
     conkyconfig = 'conky.config = {\n'
@@ -25,13 +53,14 @@ def create_conky_text():
     """ Create conky.text and config.lua from the config.json file. """
     origin = 0
     luaentries = []
+    theme = ConkyTheme()
     conkytext = 'conky.text = [[\n'
     for wname in CONFIG['widgets']:
         wsettings = CONFIG[wname]
         modpath, clsname = wsettings['clspath'].rsplit('.', 1)
         module = importlib.import_module(modpath)
         widget = getattr(module, clsname)(wsettings, origin)
-        conkytext += f'{widget.get_conkyrc()}\n\\\n'
+        conkytext += f'{widget.get_conkyrc(theme)}\n\\\n'
         luaentries += widget.get_lua_entries()
         origin += widget.height
     conkytext += ']]\n'
@@ -63,7 +92,7 @@ def get_value(key, opts):
     """
     try:
         widget, key = key.split('.', 1)
-        filepath = f'{CACHE}/{widget}.json'
+        filepath = f'{CACHE}/{widget}.json5'
         with open(filepath, 'r') as handle:
             data = json5.load(handle)
         value = utils.rget(data, key, None)
@@ -76,15 +105,12 @@ def get_value(key, opts):
         return opts.default
 
 
-def update_widget(widget):
+def update_widget(wname):
     """ Update the specified widget cache. """
-    for wconfig in CONFIG['widgets']:
-        if widget == utils.get_shortname(wconfig['path']):
-            modpath, clsname = wconfig['path'].rsplit('.', 1)
-            module = importlib.import_module(modpath)
-            widget = getattr(module, clsname)(wconfig)
-            widget.update_cache()
-            break
+    modpath, clsname = CONFIG[wname]['clspath'].rsplit('.', 1)
+    module = importlib.import_module(modpath)
+    widget = getattr(module, clsname)(CONFIG[wname])
+    widget.update_cache()
 
 
 if __name__ == '__main__':

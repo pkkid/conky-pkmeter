@@ -5,6 +5,16 @@ BYTE, KB, MB = 1, 1024, 1048576
 BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
 
 
+def cast_num(value):
+    """ Cast the value to a float or int if possible. """
+    try:
+        if '.' in str(value):
+            return float(value)
+        return int(value)
+    except Exception:
+        return value
+
+
 def celsius_to_fahrenheit(value):
     """ Converts a temperature from Celsius to Fahrenheit. """
     return int(value * 9 / 5 + 32)
@@ -28,7 +38,10 @@ def get_config():
 
 def get_modtime_ago(filepath):
     """ Return the number of seconds since the file was last modified. """
-    return time.time() - os.path.getmtime(filepath)
+    try:
+        return time.time() - os.path.getmtime(filepath)
+    except Exception:
+        return 999999
 
 
 def get_widget_name(clsname):
@@ -36,6 +49,13 @@ def get_widget_name(clsname):
         clsname: The widget name or path string.
     """
     return clsname.split('.')[-1].replace('Widget','').lower()
+
+
+def hex_color(color):
+    """ Converts a color string to a hex value. """
+    if '#' in str(color):
+        return int(color.lstrip('#'), 16)
+    return color
 
 
 def iter_widget_settings():
@@ -97,6 +117,6 @@ def value_to_str(value, unit=BYTE, precision=0, separator=''):
     value = value * unit
     for div, unit in BYTES1024:
         if value >= div:
-            conversion = round(value / div, int(precision)) if precision else int(value / div)
+            conversion = round(value/div, precision) if precision else int(round(value/div, 0))
             return '%s%s%s' % (conversion, separator, unit)
     return '0%s%s' % (separator, unit)

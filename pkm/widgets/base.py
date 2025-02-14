@@ -1,18 +1,22 @@
+from pkm import utils
 
 
 class BaseWidget:
 
-    def __init__(self, wconfig, origin=0):
-        self.wconfig = wconfig      # Widget configuration object
-        self.origin = 0             # Starting ypos of the widget
-        self.height = origin        # Height of the widget
+    def __init__(self, wsettings, origin):
+        self.wsettings = wsettings              # Widget configuration object
+        for key, value in wsettings.items():    # Copy settings to class variables
+            setattr(self, key, value)
+        self.origin = origin                    # Starting ypos of the widget
+        self.height = 0                         # Height of the widget
 
-    def get_conkyrc(self):
+    @property
+    def name(self):
+        """ This widgets name. """
+        return utils.get_widget_name(self.__class__.__name__)
+
+    def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget. """
-        # NOTE: To make sure the height lines up with the conkyrc text, I have been
-        # putting the following at the end of the conkyrc templates and adjusting the
-        # voffset to make sure any new backgrounds are half way between the two lines
-        # of XXX's. ${{font}}${{color}}${{voffset 4}}XXX\nXXX\\
         return ''
 
     def get_lua_entries(self):
@@ -25,6 +29,7 @@ class BaseWidget:
 
     def line(self, start, end, color, alpha, thickness):
         """ Syntax for a line in draw.lua. """
+        color = utils.hex_color(color)
         return (f"{{kind='line', from={self.point(start)}, to={self.point(end)}, "
             f"color='{color}', alpha={alpha}, thickness={thickness}}}")
 
@@ -37,6 +42,8 @@ class BaseWidget:
 
     def bargraph(self, value, start, end, bgcolor, bgalpha, color, thickness, bgthickness=None):
         """ Syntax for a bar_graph in draw.lua. """
+        bgcolor = utils.hex_color(color)
+        color = utils.hex_color(color)
         bgthickness = bgthickness if bgthickness else thickness
         return (f"{{kind='bar_graph', conky_value='{value}', from={self.point(start)}, to={self.point(end)}, "
             f"background_color={bgcolor}, background_alpha={bgalpha}, background_thickness={bgthickness}, "
@@ -44,6 +51,8 @@ class BaseWidget:
 
     def ringgraph(self, value, center, radius, bgcolor, bgalpha, color, thickness, bgthickness=None):
         """ Syntax for a ring_graph in draw.lua. """
+        bgcolor = utils.hex_color(color)
+        color = utils.hex_color(color)
         bgthickness = bgthickness if bgthickness else thickness
         return (f"{{kind='ring_graph', conky_value='{value}', center={self.point(center)}, "
             f"radius='{radius}', background_color={bgcolor}, background_alpha={bgalpha}, "

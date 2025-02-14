@@ -1,10 +1,34 @@
 {
   // PK Meter Settings
-  // Global settings used when generating a new conkyrc
-  mainbg: {color:0x000000, alpha:0.6},          // Main background color and alpha
-  headerbg: {color:0x333333, alpha:0.6},        // Header background color and alpha
-  widgets: ['clock'],                             // List of widgets to display
+  // List of widgets to display
+  widgets: ['clock', 'openmeteo', 'system', 'nvidia'],
   
+  // Global settings used when generating a new conkyrc
+  mainbg: {color:'#000000', alpha:0.6},               // Main background color and alpha
+  graphbg: {bgcolor:'#ffffff', bgalpha:0.1},          // Graph background color and alpha
+  headerbg: {color:'#333333', alpha:0.6},             // Header background color and alpha
+  headergraphbg: {color:'#000000', alpha:0.3},        // Graph background color and alpha
+
+  // Theme Settings
+  accent: '#d79921',
+  accent2: '#98971a',
+  alert: '#cc2414',
+  graph_bg: '#ffffff09',
+  header_font: 'ubuntu:bold:size=9',
+  header_color: '#cccccc',
+  header_graph_bg: '#00000055',
+  subheader_font: 'ubuntu:bold:size=8',
+  subheader_color: '#d79921',
+  label_font: 'ubuntu:bold:size=8',
+  label_color: '#999999',
+  value_font: 'ubuntu:bold:size=8',
+  value_color: '#cccccc',
+  // Lua Colors
+  bg: {color:'#000000', alpha:0.6},
+  graph_bg: {color:'#ffffff', alpha:0.1},
+  header_bg: {color:'#333333', alpha:0.6},
+  header_graph_bg: {color:'#000000', alpha:0.3},
+
   // Widget Settings
   // These settings are specific for each widget
   clock: {
@@ -14,20 +38,21 @@
     line3: '%H:%M:%S %P',
     clspath: 'pkm.widgets.clock.ClockWidget',
   },
-  weather: {
+  openmeteo: {
     city_name: 'Holliston',
     latitude: 42.20,
     longitude: -71.42,
     temperature_unit: 'fahrenheit',
     timezone: 'America/New_York',
     windspeed_unit: 'mph',
-    clspath: 'pkm.widgets.weather.WeatherWidget',
+    clspath: 'pkm.widgets.openmeteo.OpenMeteoWidget',
   },
   system: {
     clspath: 'pkm.widgets.system.SystemWidget',
   },
   nvidia: {
     clspath: 'pkm.widgets.nvidia.NvidiaWidget',
+    temperature_unit: 'fahrenheit',
   },
   
   // Conky Configuration
@@ -40,12 +65,13 @@
   conky: {
     // Theme
     default_color: '#cccccc',         // Default text color
+    font: 'Ubuntu:bold:size=9',         // Default font
     color1: '#d79921',                // Accent and header text color
     color2: '#aaaaaa',                // Secondary text color (labels)
     color3: '#cc2414',
     color4: '#98971a',
     color5: '#444444',
-    font: 'Ubuntu:bold:size=9',         // Font name in X, xfontsel can be used to get a nice font 
+    
     // General
     background: false,                  // If true, Conky will be forked to background when started. 
     default_graph_height: 26,           // Default height for graphs
