@@ -5,14 +5,14 @@ from datetime import datetime
 from os.path import abspath, dirname, expanduser
 
 sys.path.append(dirname(abspath(__file__)))
-from pkm import ROOT, CACHE, CONFIG  # noqa
-from pkm import log, themes, utils  # noqa
+from pkm import ROOT, CACHE   # noqa
+from pkm import config, log, themes, utils  # noqa
 
 
 def create_conky_config():
     """ Create the conky.config section from the config.json file. """
     conkyconfig = 'conky.config = {\n'
-    for key, value in CONFIG['conky'].items():
+    for key, value in config['conky'].items():
         value = value.replace('{ROOT}', ROOT) if isinstance(value, str) else value
         value = value.lstrip('#') if 'color' in key else value
         value = f'"{value}"' if isinstance(value, str) else value
@@ -26,12 +26,12 @@ def create_conky_text():
     """ Create conky.text and config.lua from the config.json file. """
     origin = 0
     luaentries = []
-    conkytheme = themes.ConkyTheme()
-    luatheme = themes.LuaTheme()
-    debug = conkytheme.debug if CONFIG['debugui'] else ''
+    conkytheme = themes.ConkyTheme(config)
+    luatheme = themes.LuaTheme(config)
+    debug = conkytheme.debug if config['debugui'] else ''
     conkytext = 'conky.text = [[\n'
-    for wname in CONFIG['widgets']:
-        wsettings = CONFIG[wname]
+    for wname in config['widgets']:
+        wsettings = config[wname]
         modpath, clsname = wsettings['clspath'].rsplit('.', 1)
         module = importlib.import_module(modpath)
         widget = getattr(module, clsname)(wsettings, origin)
@@ -86,9 +86,9 @@ def get_value(key, opts):
 def update_widget(name, opts):
     """ Update the specified widget cache. """
     starttime = time.time()
-    modpath, clsname = CONFIG[name]['clspath'].rsplit('.', 1)
+    modpath, clsname = config[name]['clspath'].rsplit('.', 1)
     module = importlib.import_module(modpath)
-    widget = getattr(module, clsname)(CONFIG[name])
+    widget = getattr(module, clsname)(config[name])
     if data := widget.update_cache():
         with open(widget.cachepath, 'w') as handle:
             json5.dump(data, handle, indent=2, ensure_ascii=False)

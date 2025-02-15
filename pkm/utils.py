@@ -1,4 +1,4 @@
-import os, time
+import json5, os, socket, time
 
 BYTE, KB, MB = 1, 1024, 1048576
 BYTES1024 = ((2**50,'P'), (2**40,'T'), (2**30,'G'), (2**20,'M'), (2**10,'K'), (1,'B'))
@@ -14,6 +14,21 @@ def clean_spaces(value):
     return '\n'.join([line.lstrip() for line in value.splitlines()]).strip()
 
 
+def get_config(root):
+    """ Return the pkmeter configuration. The process is as follows:
+        1. Start with the defaults.json5 configuration.
+        2. Recursivley merge the user config.json5.
+        3. Recursivley merge the user [hostname]-specific config if applicable.
+    """
+    hostname = socket.gethostname()
+    with open(f'{root}/defaults.json5', 'r') as handle:
+        defaults = json5.load(handle)
+    with open(f'{root}/config.json5', 'r') as handle:
+        config = merge_dicts(defaults, json5.load(handle))
+        config = merge_dicts(config, config.get(f'[{hostname}]', {}))
+    return config
+
+
 def get_modtime_ago(filepath):
     """ Return the number of seconds since the file was last modified. """
     try:
@@ -27,6 +42,16 @@ def get_widget_name(clsname):
         clsname: The widget name or path string.
     """
     return clsname.split('.')[-1].replace('Widget','').lower()
+
+
+def merge_dicts(dict1, dict2):
+    """ Recursively merge two dictionaries. """
+    for key, value in dict2.items():
+        if key in dict1 and isinstance(dict1[key], dict) and isinstance(value, dict):
+            merge_dicts(dict1[key], value)
+            continue
+        dict1[key] = value
+    return dict1
 
 
 def percent(numerator, denominator, precision=2, maxval=999.9, default=0.0):
