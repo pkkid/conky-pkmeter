@@ -21,7 +21,7 @@
     temperature_unit: 'fahrenheit',
   },
   networks: {
-    devices: ['enp4s0'],
+    devices: ['enp4s0', 'vpn0'],
   },
   filesystems: {
     graph_fs: '/dev/nvme0n1p5',
