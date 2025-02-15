@@ -23,7 +23,7 @@ class ProcessesWidget(BaseWidget):
                 ${{alignr 10}}${{{self.sortby} cpu {i}}}%
             """))
         return utils.clean_spaces(f"""
-            ${{voffset 20}}${{goto 10}}{theme.header}Processes${{font}}
+            ${{voffset 20}}${{goto 10}}{theme.header}Processes
             ${{goto 10}}{theme.subheader}${{processes}} processes
             ${{voffset 17}}{NEWLINE.join(rows)}
         """)  # noqa

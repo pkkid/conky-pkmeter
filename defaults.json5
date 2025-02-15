@@ -1,7 +1,7 @@
 {
   // PK Meter Settings
   // List of widgets to display
-  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network', 'filesystems'],
+  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'networks', 'filesystems'],
 
   // Theme Colors
   accent1: '#d79921',
@@ -22,7 +22,6 @@
   value_font: 'ubuntu:bold:size=8',
 
   // Widget Settings
-  // These settings are specific for each widget
   clock: {
     bignum: '%d',                       // Large number on clock
     line1: '%b %Y',                     // Top line on clock
@@ -34,9 +33,9 @@
     city_name: 'Holliston',             // Display Name (only used for display)
     latitude: 42.20,                    // Latitude of location
     longitude: -71.42,                  // Longitude of location
-    temperature_unit: 'fahrenheit',     // Temperature unit {celsius, fahrenheit}
+    temperature_unit: 'celsius',        // Temperature unit {celsius, fahrenheit}
     timezone: 'America/New_York',       // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    wind_speed_unit: 'mph',             // OpenMeteo windspeed unit {kmh, ms, mph, kn}
+    wind_speed_unit: 'kmh',             // OpenMeteo windspeed unit {kmh, ms, mph, kn}
     update_interval: 1800,              // Update interval to call weather api
     clspath: 'pkm.widgets.openmeteo.OpenMeteoWidget',
   },
@@ -44,22 +43,22 @@
     clspath: 'pkm.widgets.system.SystemWidget',
   },
   nvidia: {
-    temperature_unit: 'fahrenheit',     // Temperature unit {celsius, fahrenheit}
+    temperature_unit: 'celsius',        // Temperature unit {celsius, fahrenheit}
     update_interval: 5,                 // Update interval to run nvidia-smi
     clspath: 'pkm.widgets.nvidia.NvidiaWidget',
   },
   processes: {
     count: 6,                           // Number of processes to display
-    sortby: 'top',                      // Conky obj to get data {top, top_mem, top_io, top_time}
+    sortby: 'top',                      // Sort method {top, top_mem, top_io, top_time}
     clspath: 'pkm.widgets.processes.ProcessesWidget',
   },
-  network: {
-    devices: ['enp4s0', 'vpn0'],        // List of devices to display (run ifconfig to list)
+  networks: {
+    devices: ['enp4s0'],                // List of devices to display (run ifconfig to list)
     graph_device: '',                   // Device to display graph (defaults to first one)
     upload_color: '#cc2414',          // Upload color for graph
     download_color: '#98971a',        // Download color for graph
     update_interval: 1800,              // Update interval to grab external ip
-    clspath: 'pkm.widgets.network.NetworkWidget',
+    clspath: 'pkm.widgets.networks.NetworksWidget',
   },
   filesystems: {
     filesystems: [                      // List of filesystems to display {name, path} (run df -h to list)
@@ -67,6 +66,10 @@
     ],                 
     graph_fs: '',                       // Filesystem to display graph (defaults to first one)
     clspath: 'pkm.widgets.filesystems.FileSystemsWidget',
+  },
+  nowplaying: {
+    update_interval: 2,                 // Update interval to grap playing info
+    clspath: 'pkm.widgets.nowplaying.NowPlayingWidget',
   },
 
   // Misc PKMeter Settings

@@ -3,6 +3,7 @@
 --   static_text, variable_text, background
 -- Github: https://github.com/fisadev/conky-draw
 require 'cairo'
+require 'imlib2'
 local current_path = debug.getinfo(1).source:match("@?(.*/)")
 package.path = package.path .. ';' .. current_path .. '?.lua'
 require 'config'
@@ -93,15 +94,30 @@ end
 
 
 --- Draws an image from disk.
+-- This is a work around for the following bug
+-- https://github.com/brndnmtthws/conky/issues/1637
 -- @param display The Cairo display context.
 -- @param element The element properties.
 function draw_image(display, element)
-  -- load the image from disk
-  local image_surface = cairo_image_surface_create_from_png(element.filepath)
-  local image_width = cairo_image_surface_get_width(image_surface)
-  local image_height = cairo_image_surface_get_height(image_surface)
+  -- determine the file extension
+  local extension = element.filepath:match("^.+(%..+)$")
+  local image, image_width, image_height
+  if extension == ".png" then
+    -- load the PNG image using Cairo
+    image = cairo_image_surface_create_from_png(element.filepath)
+    image_width = cairo_image_surface_get_width(image)
+    image_height = cairo_image_surface_get_height(image)
+  else
+    -- load the image using Imlib2
+    image = imlib_load_image(element.filepath)
+    if not image then error("Failed to load image: " .. element.filepath) end
+    imlib_context_set_image(image)
+    image_width = imlib_image_get_width()
+    image_height = imlib_image_get_height()
+  end
   -- calculate the scale to maintain aspect ratio
-  local scale_x, scale_y
+  local scale_x = 1
+  local scale_y = 1
   if element.width and element.height then
       scale_x = element.width / image_width
       scale_y = element.height / image_height
@@ -111,19 +127,29 @@ function draw_image(display, element)
   elseif element.height then
       scale_y = element.height / image_height
       scale_x = scale_y
-  else
-      scale_x = 1
-      scale_y = 1
   end
   -- position the image at the specified location
   cairo_save(display)
   cairo_translate(display, element.from.x, element.from.y)
   cairo_scale(display, scale_x, scale_y)
-  cairo_set_source_surface(display, image_surface, 0, 0)
-  cairo_paint(display)
+  if extension == ".png" then
+    -- draw the PNG image
+    cairo_set_source_surface(display, image, 0, 0)
+    cairo_paint(display)
+    cairo_surface_destroy(image)
+  else
+    -- create a Cairo image surface from the Imlib2 image
+    local image_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, image_width, image_height)
+    local cr = cairo_create(image_surface)
+    imlib_render_image_part_on_drawable_at_size(0, 0, image_width, image_height,
+      element.from.x, element.from.y, image_width * scale_x, image_height * scale_y)
+    cairo_set_source_surface(display, image_surface, 0, 0)
+    cairo_paint(display)
+    cairo_destroy(cr)
+    cairo_surface_destroy(image_surface)
+    imlib_free_image()
+  end
   cairo_restore(display)
-  -- clean up
-  cairo_surface_destroy(image_surface)
 end
 
 

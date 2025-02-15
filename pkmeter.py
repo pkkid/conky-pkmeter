@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 import argparse, importlib
 import json5, os, sys, time
 from datetime import datetime
@@ -30,15 +30,18 @@ def create_conky_text():
     luatheme = themes.LuaTheme(config)
     debug = conkytheme.debug if config['debugui'] else ''
     conkytext = 'conky.text = [[\n'
-    for wname in config['widgets']:
-        wsettings = config[wname]
-        modpath, clsname = wsettings['clspath'].rsplit('.', 1)
-        module = importlib.import_module(modpath)
-        widget = getattr(module, clsname)(wsettings, origin)
-        widgettext = widget.get_conkyrc(conkytheme)
-        conkytext += f'{widgettext}\n{conkytheme.reset}{debug}\\\n\\\n'
-        luaentries += widget.get_lua_entries(luatheme)
-        origin += widget.height
+    for name in config['widgets']:
+        try:
+            wsettings = config[name]
+            modpath, clsname = wsettings['clspath'].rsplit('.', 1)
+            module = importlib.import_module(modpath)
+            widget = getattr(module, clsname)(wsettings, origin)
+            widgettext = widget.get_conkyrc(conkytheme)
+            conkytext += f'{widgettext}\n{conkytheme.reset}{debug}\\\n\\\n'
+            luaentries += widget.get_lua_entries(luatheme)
+            origin += widget.height
+        except Exception:
+            log.exception(f'Error creating widget {name}')
     conkytext += ']]\n'
     luaentries = ',\n'.join(f'  {item}' for item in luaentries)
     luaentries = f'elements = {{\n{luaentries}\n}}\n'
@@ -70,8 +73,7 @@ def get_value(key, opts):
     try:
         widget, key = key.split('.', 1)
         filepath = f'{CACHE}/{widget}.json5'
-        with open(filepath, 'r') as handle:
-            data = json5.load(handle)
+        data = utils.load_cached_data(filepath)
         value = utils.rget(data, key, None)
         if value is None: return opts.default
         if opts.round: value = round(float(value), opts.round)

@@ -7,7 +7,7 @@ EXTERNALIP_URL = 'https://api.ipify.org/?format=json'
 NEWLINE = '${voffset 10}\n'
 
 
-class NetworkWidget(BaseWidget):
+class NetworksWidget(BaseWidget):
     """ Displays the NVIDIA gpu metrics. """
 
     def __init__(self, wsettings, origin=0):

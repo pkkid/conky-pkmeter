@@ -59,18 +59,18 @@ class OpenMeteoWidget(BaseWidget):
         return utils.clean_spaces(f"""
             ${{texeci {self.update_interval} {PKMETER} update {self.name}}}\\
             ${{voffset 24}}${{goto 10}}${{font Ubuntu:bold:size=11}}{theme.header_color}{self.city_name}\\
-            ${{alignr 10}}${{execi 60 {PKMETER} get -ir0 {self.name}.current_weather.temperature}}{tempunit}
-            ${{voffset -2}}${{goto 10}}{theme.subheader}${{execi 60 {PKMETER} get {self.name}.current_weather.desc}}\\
-            ${{alignr 10}}{theme.header_color}${{execi 60 {PKMETER} get -ir0 {self.name}.current_weather.windspeed}} {self.windspeed_unit}
+            ${{alignr 10}}${{execi 30 {PKMETER} get -ir0 {self.name}.current_weather.temperature}}{tempunit}
+            ${{voffset -2}}${{goto 10}}{theme.subheader}${{execi 30 {PKMETER} get {self.name}.current_weather.desc}}\\
+            ${{alignr 10}}{theme.header_color}${{execi 30 {PKMETER} get -ir0 {self.name}.current_weather.windspeed}} {self.wind_speed_unit}
             ${{voffset 46}}${{font Ubuntu:bold:size=7}}{theme.value_color}\\
-            ${{goto 18}}${{execi 60 {PKMETER} get {self.name}.daily.weekday.0}}\\
-            ${{goto 66}}${{execi 60 {PKMETER} get {self.name}.daily.weekday.1}}\\
-            ${{goto 114}}${{execi 60 {PKMETER} get {self.name}.daily.weekday.2}}\\
-            ${{goto 163}}${{execi 60 {PKMETER} get {self.name}.daily.weekday.3}}
-            ${{goto 18}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.0}}°\\
-            ${{goto 66}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.1}}°\\
-            ${{goto 114}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.2}}°\\
-            ${{goto 163}}${{execi 60 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.3}}°
+            ${{goto 18}}${{execi 30 {PKMETER} get {self.name}.daily.weekday.0}}\\
+            ${{goto 66}}${{execi 30 {PKMETER} get {self.name}.daily.weekday.1}}\\
+            ${{goto 114}}${{execi 30 {PKMETER} get {self.name}.daily.weekday.2}}\\
+            ${{goto 163}}${{execi 30 {PKMETER} get {self.name}.daily.weekday.3}}
+            ${{goto 18}}${{execi 30 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.0}}°\\
+            ${{goto 66}}${{execi 30 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.1}}°\\
+            ${{goto 114}}${{execi 30 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.2}}°\\
+            ${{goto 163}}${{execi 30 {PKMETER} get -ir0 {self.name}.daily.apparent_temperature_max.3}}°
         """)  # noqa
 
     def get_lua_entries(self, theme):

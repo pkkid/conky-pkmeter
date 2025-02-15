@@ -44,6 +44,15 @@ def get_widget_name(clsname):
     return clsname.split('.')[-1].replace('Widget','').lower()
 
 
+def load_cached_data(filepath):
+    """ Load cached data from a file. """
+    try:
+        with open(filepath, 'r') as handle:
+            return json5.load(handle)
+    except Exception:
+        return {}
+
+
 def merge_dicts(dict1, dict2):
     """ Recursively merge two dictionaries. """
     for key, value in dict2.items():

@@ -18,6 +18,7 @@ class NvidiaWidget(BaseWidget):
 
     def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget. """
+        tempunit = '°F' if self.temperature_unit == 'fahrenheit' else '°C'
         return utils.clean_spaces(f"""
             ${{texeci {self.update_interval} {PKMETER} update {self.name}}}\\
             ${{voffset 20}}${{goto 10}}{theme.header}NVIDIA${{font}}
@@ -25,7 +26,7 @@ class NvidiaWidget(BaseWidget):
             ${{execi 60 {PKMETER} get {self.name}.driver_version}}${{color}}
             ${{voffset 17}}${{goto 10}}{theme.label}GPU Usage${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.utilization_gpu}}%
             ${{goto 10}}{theme.label}GPU Freq${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.clocks_current_graphics}}
-            ${{goto 10}}{theme.label}GPU Temp${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.temperature_gpu}}
+            ${{goto 10}}{theme.label}GPU Temp${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.temperature_gpu}}{tempunit}
             ${{goto 10}}{theme.label}Mem Used${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.utilization_memory}}% of \\
               ${{execi 60 {PKMETER} get {self.name}.memory_total_gb}}
             ${{goto 10}}{theme.label}Mem Rate${{alignr 55}}{theme.value}${{execi 5 {PKMETER} get {self.name}.memory_transfer_rate}}
@@ -42,8 +43,8 @@ class NvidiaWidget(BaseWidget):
         return [
             self.draw('line', frm=(100,origin), to=(100,origin+40), thickness=width, color=theme.header_bg),  # header bg
             self.draw('line', frm=(100,origin+40), to=(100,origin+height), thickness=width, color=theme.bg),  # main bg
-            self.draw('bar_graph', conky_value=gpupct, frm=(155,origin+57), to=(190,origin+57), bar_color=theme.accent1, thickness=5, background_color=theme.graph_bg),  # gpu bar
-            self.draw('bar_graph', conky_value=pwrpct, frm=(155,origin+72), to=(190,origin+72), bar_color=theme.accent1, thickness=5, background_color=theme.graph_bg),  # pwr bar
+            self.draw('bar_graph', conky_value=gpupct, frm=(155,origin+57), to=(190,origin+57), bar_color=theme.accent1, bar_thickness=5, background_color=theme.graph_bg),  # gpu bar
+            self.draw('bar_graph', conky_value=pwrpct, frm=(155,origin+72), to=(190,origin+72), bar_color=theme.accent1, bar_thickness=5, background_color=theme.graph_bg),  # pwr bar
             self.draw('variable_text', conky_value=pwrdrw, frm=(155,origin+82), color=theme.value_color, font='ubuntu:size=8', alpha=0.7),  # pwrdrw
             self.draw('variable_text', conky_value=pstate, frm=(179,origin+82), color=theme.value_color, font='ubuntu:size=8', alpha=0.7),  # pstate
             self.draw('ring_graph', conky_value=mempct, center=(172,origin+104), radius=8, bar_color=theme.accent1, bar_thickness=4, background_color=theme.graph_bg),  # mem ring
