@@ -62,7 +62,7 @@ class NowPlayingWidget(BaseWidget):
     def update_cache(self):
         """ Fetch current track information from dbus and update cache. """
         newdata = {}
-        olddata = utils.load_cached_data(self.cachepath)
+        olddata = utils.load_cached_data(self.cachepath) or EMPTY_DATA
         # Fetch the track information from dbus
         session = dbus.SessionBus()
         players = (session.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
