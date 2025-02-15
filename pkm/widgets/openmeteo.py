@@ -1,4 +1,4 @@
-import re, requests
+import os, re, requests
 from datetime import datetime
 from shutil import copyfile
 from pkm.widgets.base import BaseWidget
@@ -78,16 +78,17 @@ class OpenMeteoWidget(BaseWidget):
         return [
             self.draw('line', frm=(100,origin), to=(100,origin+50), thickness=width, color=theme.header_bg),  # header bg
             self.draw('line', frm=(100,origin+50), to=(100,origin+height), thickness=width, color=theme.bg),  # main bg
-            self.draw('image', filepath=f'{CACHE}/current.png', frm=(90,origin+3), width=45),  # current day
-            self.draw('image', filepath=f'{CACHE}/day0.png', frm=(15,origin+59), width=25),    # day0 (today)
-            self.draw('image', filepath=f'{CACHE}/day1.png', frm=(63,origin+59), width=25),    # day1
-            self.draw('image', filepath=f'{CACHE}/day2.png', frm=(111,origin+59), width=25),   # day2
-            self.draw('image', filepath=f'{CACHE}/day3.png', frm=(160,origin+59), width=25),   # day3
+            self.draw('image', filepath=f'{CACHE}/{self.name}/current.png', frm=(90,origin+3), width=45),  # current day
+            self.draw('image', filepath=f'{CACHE}/{self.name}/day0.png', frm=(15,origin+59), width=25),    # day0 (today)
+            self.draw('image', filepath=f'{CACHE}/{self.name}/day1.png', frm=(63,origin+59), width=25),    # day1
+            self.draw('image', filepath=f'{CACHE}/{self.name}/day2.png', frm=(111,origin+59), width=25),   # day2
+            self.draw('image', filepath=f'{CACHE}/{self.name}/day3.png', frm=(160,origin+59), width=25),   # day3
         ]
 
     def update_cache(self):
         """ Fetch weather from OpenMeteo and copy weather images to cache. """
         if self.check_skip_update(): return None
+        os.makedirs(f'{CACHE}/{self.name}', exist_ok=True)
         # Make the API request to OpenMeteo
         url = OPENMETEO_URL
         for key in re.findall(r'({.*?})', OPENMETEO_URL):
@@ -122,5 +123,5 @@ class OpenMeteoWidget(BaseWidget):
     def _copy_weather_icon(self, iconcode, day='current'):
         """ Copy the icon to cache for for the specified day. """
         source = f'{ROOT}/pkm/img/weather/colorful/{iconcode}.png'
-        dest = f'{CACHE}/{day}.png'
+        dest = f'{CACHE}/{self.name}/{day}.png'
         copyfile(source, dest)
