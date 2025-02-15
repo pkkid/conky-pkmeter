@@ -69,22 +69,25 @@ class NowPlayingWidget(BaseWidget):
             .ListNames(dbus_interface='org.freedesktop.DBus'))
         players = [name for name in players if name.startswith('org.mpris.MediaPlayer2.')]
         for player in players:
-            playerobj = session.get_object(player, '/org/mpris/MediaPlayer2')
-            properties = dbus.Interface(playerobj, 'org.freedesktop.DBus.Properties')
-            metadata = properties.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
-            newdata['status'] = properties.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
-            newdata['title'] = str(metadata.get('xesam:title', 'Unknown Title'))
-            if newdata['status'] == 'Playing' and newdata['title'] != 'Unknown':
-                newdata['application'] = str(properties.Get('org.mpris.MediaPlayer2', 'Identity'))
-                newdata['artist'] = str(metadata.get('xesam:artist', ['Unknown Artist'])[0])
-                newdata['length'] = metadata.get('mpris:length', 0) // 1000000
-                newdata['position'] = properties.Get('org.mpris.MediaPlayer2.Player', 'Position') // 1000000
-                newdata['percent'] = utils.percent(newdata['position'], newdata['length'])
-                newdata['position'] = self._format_duration(newdata['position'])
-                newdata['length'] = self._format_duration(newdata['length'])
-                newdata['arturl'] = str(metadata.get('mpris:artUrl', ''))
-                self._download_art(newdata['arturl'])
-                return newdata
+            try:
+                playerobj = session.get_object(player, '/org/mpris/MediaPlayer2')
+                properties = dbus.Interface(playerobj, 'org.freedesktop.DBus.Properties')
+                metadata = properties.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
+                newdata['status'] = properties.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
+                newdata['title'] = str(metadata.get('xesam:title', 'Unknown Title'))
+                if newdata['status'] == 'Playing' and newdata['title'] != 'Unknown':
+                    newdata['application'] = str(properties.Get('org.mpris.MediaPlayer2', 'Identity'))
+                    newdata['artist'] = str(metadata.get('xesam:artist', ['Unknown Artist'])[0])
+                    newdata['length'] = metadata.get('mpris:length', 0) // 1000000
+                    newdata['position'] = properties.Get('org.mpris.MediaPlayer2.Player', 'Position') // 1000000
+                    newdata['percent'] = utils.percent(newdata['position'], newdata['length'])
+                    newdata['position'] = self._format_duration(newdata['position'])
+                    newdata['length'] = self._format_duration(newdata['length'])
+                    newdata['arturl'] = str(metadata.get('mpris:artUrl', ''))
+                    self._download_art(newdata['arturl'])
+                    return newdata
+            except Exception as err:
+                log.error(f"Error fetching player info: {err}")
         # No track information was found
         copyfile(DEFAULT_ART, NOWPLAYING_ART)
         newdata = dict(**EMPTY_DATA)
