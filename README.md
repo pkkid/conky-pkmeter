@@ -17,7 +17,8 @@ the first time.
 ```
 pkmeter-conky/pkmeter.py conkyrc && conky
 ```
-That's it, you should see Conky load up and start showing you stats!
+That's it, you should see Conky load up and start showing you stats! Anytime you
+modify a configuration value, you will need to rerun pkmeter.py conkyrc.
 
 Next, you will want to edit a few confiuguration options configure the output to your liking.
 Open up the file `pkmeter-conky/config.json5`. In here you will see the basic
