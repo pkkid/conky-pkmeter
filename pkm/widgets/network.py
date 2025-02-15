@@ -15,7 +15,7 @@ class NetworkWidget(BaseWidget):
         # Header and footer are 67px
         # Each network row adds 49px
         # Subtract 10px no voffset on last device
-        self.height = 67 + (len(self.devices) * 49) - 10
+        self.height = 57 + (len(self.devices) * 49)
 
     def get_conkyrc(self, theme):
         """ Create the conkyrc template for the this widget. """
@@ -31,7 +31,7 @@ class NetworkWidget(BaseWidget):
             ${{texeci {self.update_interval} {PKMETER} update {self.name}}}\\
             ${{voffset 22}}${{goto 100}}${{color {self.upload_color}}}${{upspeedgraph {device} 12,90}}
             ${{voffset -2}}${{goto 100}}${{color {self.download_color}}}${{downspeedgraph {device} -11,90}}
-            ${{voffset -30}}${{goto 10}}{theme.header}Network
+            ${{voffset -30}}${{goto 10}}{theme.header}Networks
             ${{goto 10}}{theme.subheader}${{execi 60 {PKMETER} get {self.name}.ip}}
             ${{voffset 17}}{NEWLINE.join(rows)}
         """)  # noqa

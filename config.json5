@@ -1,6 +1,5 @@
 {
-  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network'],
-  logfile: '{CACHE}/pkmeter.log',
+  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network', 'filesystems'],
   openmeteo: {
     city_name: 'Holliston',
     latitude: 42.20,
@@ -9,11 +8,21 @@
     timezone: 'America/New_York',
     windspeed_unit: 'mph',
   },
+  network: {
+
+  },
+  filesystems: {
+    filesystems: [
+      {name:'Root', path:'/'},
+      {name:'Synology', path:'/media/Synology'},
+    ],                 
+    graph_fs: '/dev/nvme0n1p5',
+  },
   conky: {
     // own_window_type: 'panel',
     alignment: 'top_left',
     gap_x: 350,
-    gap_y: 350,
+    gap_y: 300,
     own_window_type: 'normal',
     own_window_hints: '',
   }

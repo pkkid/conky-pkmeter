@@ -30,7 +30,8 @@ class SystemWidget(BaseWidget):
             self.draw('line', frm=(100,origin), to=(100,origin+40), thickness=width, color=theme.header_bg),  # header bg
             self.draw('line', frm=(100,origin+40), to=(100,origin+height), thickness=width, color=theme.bg),  # main bg
             self.draw('line', frm=(100,origin+20), to=(190, origin+20), thickness=24, color=theme.graph_bg),  # cpu graph
-            self.draw('ring_graph', conky_value='memperc', center=(172,origin+104), radius=8, bar_color=theme.accent1, bar_thickness=4, background_color=theme.graph_bg)  # mem ring
+            self.draw('ring_graph', conky_value='memperc', center=(172,origin+104), radius=8,
+                bar_color=theme.accent1, bar_thickness=4, background_color=theme.graph_bg)  # mem ring
         ] + list(self._cpu_entries(theme, origin))
 
     def _cpu_entries(self, theme, origin):

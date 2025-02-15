@@ -1,7 +1,7 @@
 {
   // PK Meter Settings
   // List of widgets to display
-  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network'],
+  widgets: ['clock', 'openmeteo', 'system', 'nvidia', 'processes', 'network', 'filesystems'],
 
   // Theme Colors
   accent1: '#d79921',
@@ -24,42 +24,49 @@
   // Widget Settings
   // These settings are specific for each widget
   clock: {
-    bignum: '%d',                     // Large number on clock
-    line1: '%b %Y',                   // Top line on clock
-    line2: '%A',                      // Middle line on clock
-    line3: '%H:%M:%S %P',             // Bottom line on clock
+    bignum: '%d',                       // Large number on clock
+    line1: '%b %Y',                     // Top line on clock
+    line2: '%A',                        // Middle line on clock
+    line3: '%H:%M:%S %P',               // Bottom line on clock
     clspath: 'pkm.widgets.clock.ClockWidget',
   },
   openmeteo: {
-    city_name: 'Holliston',           // Display Name (only used for display)
-    latitude: 42.20,                  // Latitude of location
-    longitude: -71.42,                // Longitude of location
-    temperature_unit: 'fahrenheit',   // Temperature unit {celsius, fahrenheit}
-    timezone: 'America/New_York',     // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-    wind_speed_unit: 'mph',           // OpenMeteo windspeed unit {kmh, ms, mph, kn}
-    update_interval: 1800,            // Update interval to call weather api
+    city_name: 'Holliston',             // Display Name (only used for display)
+    latitude: 42.20,                    // Latitude of location
+    longitude: -71.42,                  // Longitude of location
+    temperature_unit: 'fahrenheit',     // Temperature unit {celsius, fahrenheit}
+    timezone: 'America/New_York',       // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    wind_speed_unit: 'mph',             // OpenMeteo windspeed unit {kmh, ms, mph, kn}
+    update_interval: 1800,              // Update interval to call weather api
     clspath: 'pkm.widgets.openmeteo.OpenMeteoWidget',
   },
   system: {
     clspath: 'pkm.widgets.system.SystemWidget',
   },
   nvidia: {
+    temperature_unit: 'fahrenheit',     // Temperature unit {celsius, fahrenheit}
+    update_interval: 5,                 // Update interval to run nvidia-smi
     clspath: 'pkm.widgets.nvidia.NvidiaWidget',
-    temperature_unit: 'fahrenheit',   // Temperature unit {celsius, fahrenheit}
-    update_interval: 5,               // Update interval to run nvidia-smi
   },
   processes: {
+    count: 6,                           // Number of processes to display
+    sortby: 'top',                      // Conky obj to get data {top, top_mem, top_io, top_time}
     clspath: 'pkm.widgets.processes.ProcessesWidget',
-    count: 6,                         // Number of processes to display
-    sortby: 'top',                    // Conky obj to get data {top, top_mem, top_io, top_time}
   },
   network: {
-    clspath: 'pkm.widgets.network.NetworkWidget',
-    devices: ['enp4s0', 'vpn0'],        // List of devices to display (run ifconfig to get list)
+    devices: ['enp4s0', 'vpn0'],        // List of devices to display (run ifconfig to list)
     graph_device: '',                   // Device to display graph (defaults to first one)
     upload_color: '#cc2414',          // Upload color for graph
     download_color: '#98971a',        // Download color for graph
     update_interval: 1800,              // Update interval to grab external ip
+    clspath: 'pkm.widgets.network.NetworkWidget',
+  },
+  filesystems: {
+    filesystems: [                      // List of filesystems to display {name, path} (run df -h to list)
+      {name:'Root', path:'/'},
+    ],                 
+    graph_fs: '',                       // Filesystem to display graph (defaults to first one)
+    clspath: 'pkm.widgets.filesystems.FileSystemsWidget',
   },
 
   // Misc PKMeter Settings
