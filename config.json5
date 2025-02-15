@@ -21,22 +21,13 @@
     temperature_unit: 'fahrenheit',
   },
   networks: {
-    devices: ['enp4s0', 'vpn0'],
+    devices: ['enp4s0'],
   },
   filesystems: {
     graph_fs: '/dev/nvme0n1p5',
     filesystems: [
       {name:'Root', path:'/'},
-      {name:'Synology', path:'/media/Synology'},
+      {name:'Synology', path:'/media/Synology'}
     ],                 
   },
-  conky: {
-    own_window_type: 'panel',
-    // alignment: 'top_left',
-    // gap_x: 350,
-    // gap_y: 100,
-    // own_window_type: 'normal',
-    // own_window_hints: '',
-  },
-  debugui: false,
 }

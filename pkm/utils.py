@@ -20,12 +20,18 @@ def get_config(root):
         2. Recursivley merge the user config.json5.
         3. Recursivley merge the user [hostname]-specific config if applicable.
     """
-    hostname = socket.gethostname()
-    with open(f'{root}/defaults.json5', 'r') as handle:
-        defaults = json5.load(handle)
-    with open(f'{root}/config.json5', 'r') as handle:
-        config = merge_dicts(defaults, json5.load(handle))
-        config = merge_dicts(config, config.get(f'[{hostname}]', {}))
+    defaultconf = f'{root}/defaults.json5'
+    userconf = f'{root}/config.json5'
+    with open(defaultconf, 'r') as handle:
+        config = json5.load(handle)
+    if os.path.exists(userconf):
+        try:
+            hostname = socket.gethostname()
+            with open(f'{root}/config.json5', 'r') as handle:
+                config = merge_dicts(config, json5.load(handle))
+                config = merge_dicts(config, config.get(f'[{hostname}]', {}))
+        except Exception as err:
+            raise SystemExit(f'Error loading {userconf}: {err}')
     return config
 
 

@@ -95,7 +95,7 @@ class OpenMeteoWidget(BaseWidget):
             url = url.replace(key, str(self.wsettings[key[1:-1]]))
         data = requests.get(url, timeout=10).json()
         # Get current weather
-        isday = data['current_weather']['is_day']
+        isday = utils.rget('current_weather.is_day', True)
         inum, desc = self._get_icon_num(data['current_weather']['weathercode'], isday)
         self._copy_weather_icon(inum, 'current')
         data['current_weather']['desc'] = desc
