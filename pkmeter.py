@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import argparse, importlib
-import json5, os, sys, time
+import json5, sys, time
 from datetime import datetime
 from os.path import abspath, dirname, expanduser
 
@@ -40,6 +40,8 @@ def create_conky_text():
             conkytext += f'{widgettext}\n{conkytheme.reset}{debug}\\\n\\\n'
             luaentries += widget.get_lua_entries(luatheme)
             origin += widget.height
+            if update_cache := getattr(widget, 'widget.update_cache', None):
+                update_cache()
         except Exception:
             log.exception(f'Error creating widget {name}')
     conkytext += ']]\n'
@@ -103,7 +105,6 @@ if __name__ == '__main__':
     #  conkyrc: generate new conkyrc & config.lua files from config.json
     #  get <key>: get the specified widget value
     #  update <widget>: update the specified widget cache
-    os.makedirs(CACHE, exist_ok=True)
     parser = argparse.ArgumentParser(description='Helper tools for pkmeter.')
     subparsers = parser.add_subparsers(title='available commands', dest='command')
     conkyrc_parser = subparsers.add_parser('conkyrc', help='generate new conkyrc & config.lua files from config.json')

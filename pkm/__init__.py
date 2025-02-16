@@ -1,4 +1,4 @@
-import logging
+import logging, os
 from logging.handlers import RotatingFileHandler
 from os.path import abspath, dirname, expanduser
 from pkm import utils
@@ -10,6 +10,7 @@ CACHE = f'{ROOT}/pkm/cache'
 config = utils.get_config(ROOT)
 
 # Logging Configuration
+os.makedirs(CACHE, exist_ok=True)
 log = logging.getLogger('pkmeter')
 logformat = '%(asctime)s %(module)12s:%(lineno)-4s %(levelname)-9s %(message)s'
 streamhandler = logging.StreamHandler()

@@ -61,6 +61,7 @@ class NowPlayingWidget(BaseWidget):
 
     def update_cache(self):
         """ Fetch current track information from dbus and update cache. """
+        os.makedirs(f"{CACHE}/{self.name}", exist_ok=True)
         newdata = {}
         olddata = utils.load_cached_data(self.cachepath) or EMPTY_DATA
         # Fetch the track information from dbus
