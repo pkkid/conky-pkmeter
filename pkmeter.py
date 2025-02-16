@@ -56,7 +56,7 @@ def create_conkyrc(opts):
     conkyconfig = create_conky_config()
     conkytext, luaentries = create_conky_text()
     # Save the new conkyrc file
-    filepath = expanduser('~/.conkyrc')
+    filepath = f'{ROOT}/conkyrc'
     log.info(f'Saving {filepath}')
     with open(filepath, 'w') as handle:
         handle.write(conkyconfig + conkytext)

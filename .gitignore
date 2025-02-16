@@ -4,5 +4,6 @@ syntax: glob
 *.egg-info
 *.log
 *.pyc
+conkyrc
 pkm/cache
 pkm/config.lua

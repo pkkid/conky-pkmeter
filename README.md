@@ -15,7 +15,8 @@ sudo apt install conky-all python3-json5 python3-dbus
 The following command will generate a new ~/.conkyrc file and start Conky for
 the first time.
 ```
-pkmeter-conky/pkmeter.py conkyrc && conky
+pkmeter-conky/pkmeter.py conkyrc
+conky -c pkmeter-conky/conkyrc
 ```
 That's it, you should see Conky load up and start showing you stats! Anytime you
 modify a configuration value, you will need to rerun pkmeter.py conkyrc.
