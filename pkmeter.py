@@ -2,7 +2,7 @@
 import argparse, importlib
 import json5, sys, time
 from datetime import datetime
-from os.path import abspath, dirname, expanduser
+from os.path import abspath, dirname
 
 sys.path.append(dirname(abspath(__file__)))
 from pkm import ROOT, CACHE   # noqa
