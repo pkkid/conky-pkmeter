@@ -9,8 +9,8 @@ openmeteo.URL = openmeteo.URL..'&timezone={timezone}&daily=weathercode,apparent_
 openmeteo.ICONCODES = {
     -- Clear, Cloudy
     {desc='Clear', day='32', night='31', weathercodes={0}},
-    {desc='Mostly Sunny', day='34', night='33', weathercodes={1}},
-    {desc='Partly Sunny', day='30', night='29', weathercodes={2}},
+    {desc='Mostly Clear', day='34', night='33', weathercodes={1}},
+    {desc='Partly Clear', day='30', night='29', weathercodes={2}},
     {desc='Mostly Cloudy', day='28', night='27'},
     {desc='Cloudy', day='26'},
     {desc='Overcast', day='26', weathercodes={3}},

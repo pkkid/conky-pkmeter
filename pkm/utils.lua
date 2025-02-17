@@ -48,6 +48,15 @@ function utils.hex_to_rgba(hex)
 end
 
 
+-- Init Table
+-- Initialize a table with the specified value
+function utils.init_table(size, value)
+  local table = {}
+  for i=1,size do table[i] = value end
+  return table
+end
+
+
 -- Pretty Print
 -- Prints a table in a human-readable format to the console
 function utils.pprint(t, indent)

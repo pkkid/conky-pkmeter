@@ -1,6 +1,6 @@
 
 config = {}
-config.widgets = {'clock', 'openmeteo'}
+config.widgets = {'clock', 'openmeteo', 'system'}
 
 -- Theme
 config.default_font = 'ubuntu'
@@ -16,8 +16,6 @@ config.background = '#000000cc'
 config.header_bg = '#333333dd'
 config.graph_bg = '#cccccc11'
 
--- OpenMeteo (weather)
--- No api key needed
 config.openmeteo = {
   city_name = 'Holliston',             -- Display Name (only used for display)
   latitude = 42.20,                    -- Latitude of location
@@ -26,6 +24,9 @@ config.openmeteo = {
   timezone = 'America/New_York',       -- https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   wind_speed_unit = 'mph',             -- OpenMeteo windspeed unit {kmh, ms, mph, kn}
   update_interval = 900,               -- Update interval to call weather api
+}
+config.system = {
+  logscale = false,                     -- Chart cpu usage in logscale
 }
 
 -- If having issues loading weather images, try setting this

@@ -55,6 +55,49 @@ function draw.text(args)
   cairo_stroke(cr)
 end
 
+-- Draw Graph
+--  args.data (table): Table of numbers representing data (oldest first).
+--  args.x (number): x-coordinate where the rectangle will be drawn. Default is 0.
+--  args.y (number): y-coordinate where the rectangle will be drawn. Default is 0.
+--  args.width (number): Width of the rectangle. Default is 10.
+--  args.height (number): Height of the rectangle. Default is 10.
+--  args.color (string): Color of the rectangle in hex format. Default is #ffffff.
+--  args.linewidth (number): Width of the line. Default is 1.
+--  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
+function draw.graph(args)
+  local data = args.data
+  if data == nil then error('data is required') end
+  local x = args.x or 0
+  local y = args.y or 0
+  local width = args.width or 10
+  local height = args.height or 10
+  local color = args.color or '#ffffff'
+  local linewidth = args.linewidth or 1
+  local maxvalue = args.maxvalue or math.max(table.unpack(data))
+  local logscale = args.logscale or false
+  local bgcolor = args.bgcolor or '#00000000'
+
+  draw.rectangle{x=x, y=y, width=width, height=height, color=bgcolor}
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
+  cairo_set_line_width(cr, linewidth)
+  for i=1, #data do
+    local cx = x+(linewidth/2) + ((i-1)*linewidth)
+    local cy = y+height
+    if logscale then
+      local value = data[i] > 0 and math.log(data[i]) or 0
+      local logmax = maxvalue > 0 and math.log(maxvalue) or 1
+      barheight = (height / logmax) * value
+    else
+      barheight = (height / maxvalue) * data[i]
+    end
+    cairo_move_to(cr, cx, cy)
+    cairo_rel_line_to(cr, 0, barheight*-1)
+    cairo_stroke(cr)
+  end
+end
+
+
 -- Draw Image
 --  args.x (number): x-coordinate where the image will be rendered.
 --  args.y (number): y-coordinate where the image will be rendered.
@@ -96,13 +139,13 @@ end
 --  args.y (number): y-coordinate where the rectangle will be drawn. Default is 0.
 --  args.width (number): Width of the rectangle. Default is 10.
 --  args.height (number): Height of the rectangle. Default is 10.
---  args.color (number): Color of the rectangle in hexadecimal format. Default is 0xffffff.
+--  args.color (string): Color of the rectangle in hex. Default is #ffffff.
 function draw.rectangle(args)
   local x = args.x or 0
   local y = args.y or 0
   local width = args.width or 10
   local height = args.height or 10
-  local color = args.color or 0xffffff
+  local color = args.color or '#ffffff'
 
   cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
   cairo_rectangle(cr, x, y, width, height)
