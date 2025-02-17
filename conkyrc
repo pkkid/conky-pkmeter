@@ -1,0 +1,34 @@
+conky.config = {
+    -- Position
+    alignment = 'top_left',         -- Aligned position on screen {e: top_left, middle_middle, bottom_right}
+    minimum_width = 200,            -- Maximum width of window
+    minimum_height = 500,           -- Minimum width of window
+    gap_y = 200,                    -- Gap px between right or left border of screen
+    gap_x = 200,                    -- Gap px between top or bottom border of screen
+    -- Window Settings
+    background = false,             -- If true, Conky will be forked to background when started. 
+    double_buffer = true,           -- Use the Xdbe extension (eliminates flicker).
+    own_window = true,              -- Create own window to draw
+    own_window_class = 'Conky',     -- Class of the window
+    own_window_type = 'normal',     -- normal|desktop|dock|panel|utility|override
+    own_window_transparent = true,  -- Sets background opacity to 0% (when ARGB enabled)
+    border_inner_margin = 0,        -- Inner border margin px between border and text
+    border_outer_margin = 0,        -- Outer border margin px between border and window edge
+    -- own_window_hints = 'undecorated,sticky,skip_taskbar,skip_pager,below',
+    own_window_argb_visual = true,  -- ARGB can be used for real transparency
+    own_window_argb_value = 160,    -- Alpha value used (when ARGB enabled)
+    stippled_borders = 0,           -- Draw stippled borders
+    -- Metrics
+    pad_percents = 2,               -- Padding percentage
+    short_units = true,             -- Use short units
+    -- Font
+    override_utf8_locale = true,    -- Force UTF8, requires XFT
+    text_buffer_size = 2048,        -- Size of the buffer for the parsed text
+    use_xft = true,                 -- Use Xft (anti-aliased font and stuff)
+    -- Other
+    lua_load = 'pkmeter.lua',       -- Loads the Lua scripts separated by spaces.
+    lua_draw_hook_pre = 'main',     -- Called by Conky through each iteration before drawing window
+    update_interval = 1,            -- Conky update interval in seconds
+}
+
+conky.text = [[]]
