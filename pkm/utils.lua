@@ -34,6 +34,13 @@ end
 
 -- Get CPU Count
 -- Returns the number of 
+function utils.get_cpucount()
+  local cpucount = 0
+  for line in io.lines('/proc/stat') do
+    if line:match('cpu%d+') then cpucount = cpucount + 1 end
+  end
+  return cpucount
+end
 
 
 -- Hex to RGBA

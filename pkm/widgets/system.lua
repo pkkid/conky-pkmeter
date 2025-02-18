@@ -11,6 +11,7 @@ system.cpucount = 24
 function system:draw(origin)
   origin = origin or 0
   local height = 132
+  self.cpucount = self.cpucount or utils.get_cpucount()
 
   -- Header
   draw.rectangle{x=0, y=origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
@@ -33,7 +34,6 @@ function system:draw(origin)
   draw.text{x=145, y=origin+121, text=utils.parse('memeasyfree'), color=config.value, align='right'}
 
   -- CPU Bars
-  cpucount = 24     -- Num CPUs on this system
   barheight = 17    -- Height of the bars
   maxwidth = 36     -- Max drawing width available
   barwidth = math.floor(maxwidth / math.floor(self.cpucount / 2)) - 1
