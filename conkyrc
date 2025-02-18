@@ -28,7 +28,7 @@ conky.config = {
     -- Other
     lua_load = 'pkmeter.lua',       -- Loads the Lua scripts separated by spaces.
     lua_draw_hook_pre = 'main',     -- Called by Conky through each iteration before drawing window
-    update_interval = 1,            -- Conky update interval in seconds
+    update_interval = 2,            -- Conky update interval in seconds
 }
 
 conky.text = [[]]

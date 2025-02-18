@@ -32,6 +32,10 @@ function utils.contains(list, value)
 end
 
 
+-- Get CPU Count
+-- Returns the number of 
+
+
 -- Hex to RGBA
 -- Converts a hex string such as #ff000088 to an rgba tuple.
 function utils.hex_to_rgba(hex)

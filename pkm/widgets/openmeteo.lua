@@ -59,7 +59,7 @@ function openmeteo:draw(origin)
   local windspeed = math.floor(self.data.current_weather.windspeed + 0.5)..' '..self.wind_speed_unit
   draw.rectangle{x=0, y=origin, width=conky_window.width, height=50, color=config.header_bg} -- header background
   draw.rectangle{x=0, y=origin+50, width=conky_window.width, height=75, color=config.background} -- main background
-  draw.image{x=95, y=origin+3, path=ipath, width=45} -- current icon
+  draw.image{x=93, y=origin+3, path=ipath, width=45} -- current icon
   draw.text{x=10, y=origin+23, text=self.city_name, size=15, color=config.header, align='left'} -- city name
   draw.text{x=190, y=origin+23, text=temp..tempunit, size=15, color=config.header, align='right'} -- current temp
   draw.text{x=10, y=origin+38, text=idesc, color=config.subheader, align='left'} -- current desc
@@ -78,14 +78,14 @@ function openmeteo:draw(origin)
   return height
 end
 
--- Update weather data
--- opts.city_name:         Display Name (only used for display)
--- opts.latitude:          Latitude of location
--- opts.longitude:         Longitude of location
--- opts.temperature_unit:  Temperature unit {celsius, fahrenheit}
--- opts.timezone:          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
--- opts.wind_speed_unit:   OpenMeteo windspeed unit {kmh, ms, mph, kn}
--- opts.update_interval:   Update interval to call weather api
+-- Update weather data - config.lua options:
+-- openmeteo.city_name:         Display Name (only used for display)
+-- openmeteo.latitude:          Latitude of location
+-- openmeteo.longitude:         Longitude of location
+-- openmeteo.temperature_unit:  Temperature unit {celsius, fahrenheit}
+-- openmeteo.timezone:          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+-- openmeteo.wind_speed_unit:   OpenMeteo windspeed unit {kmh, ms, mph, kn}
+-- openmeteo.update_interval:   Update interval to call weather api
 function openmeteo:update()
   if utils.check_update(self.last_update, self.update_interval) then
     local url = string.gsub(self.URL, '{latitude}', self.latitude)
@@ -108,7 +108,7 @@ function openmeteo:get_iconpath(weathercode, isnight)
     if utils.contains(idata.weathercodes or {}, weathercode) then
       local key = isnight and 'night' or 'day'
       local inum = idata[key] or idata['day']
-      local ipath = pkmeter.ROOT..'/pkm/img/weather/colorful/'..inum..'.png'
+      local ipath = pkmeter.ROOT..'/pkm/img/weather/'..self.icon_theme..'/'..inum..'.png'
       return ipath, idata.desc
     end
   end

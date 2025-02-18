@@ -11,48 +11,51 @@ local utils = require 'pkm/utils'
 
 draw = {}
 
--- Writes text on the screen at specified coordinates with given font properties and alignment
--- x (number): x-coordinate where the text will be written. Default is 0
--- y (number): y-coordinate where the text will be written. Default is 0
--- text (string): Text to be written. Default is an empty string
--- font (string): Name of the font to be used. Default is "DejaVu Sans"
--- size (number): Size of the font. Default is 12
--- color (number): Color of the text in hexadecimal format. Default is 0xffffff
--- bold (boolean): Set true for bold
--- italic (boolean): Set true for italic
--- alignment (string): Alignment of the text {left, center, right}
-function draw.text(args)
+-- Draw Bar Graph
+--  args.value (number): Value of the bar. Default is 0.
+--  args.x (number): x-coordinate where the rectangle will be drawn. Default is 0.
+--  args.y (number): y-coordinate where the rectangle will be drawn. Default is 0.
+--  args.width (number): Width of the rectangle. Default is 10.
+--  args.height (number): Height of the rectangle. Default is 10.
+--  args.origin (string): Origin of the bar {bottom, top, left, right}. Default is left.
+--  args.color (string): Color of the rectangle in hex. Default is #ffffff.
+--  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
+function draw.bargraph(args)
+  local value = args.value or 0
+  if value == nil then error('value is required') end
   local x = args.x or 0
   local y = args.y or 0
-  local text = args.text or ""
-  local font = args.font or config.default_font
-  local size = args.size or config.default_font_size
-  local color = args.color or config.default_font_color
-  local bold = args.bold == nil and config.default_font_bold or args.bold
-  local italic = args.italic == nil and config.default_font_italic or args.italic
-  local align = args.align or 'left'
+  local width = args.width or 10
+  local height = args.height or 10
+  local origin = args.origin or 'left'
+  local color = args.color or '#ffffff'
+  local maxvalue = args.maxvalue or 100
+  local bgcolor = args.bgcolor or '#00000000'
+  local fullpx = args.fullpx
 
-  local font_face = bold and CAIRO_FONT_WEIGHT_BOLD or CAIRO_FONT_WEIGHT_NORMAL
-  local font_slant = italic and CAIRO_FONT_SLANT_ITALIC or CAIRO_FONT_SLANT_NORMAL
-  cairo_select_font_face(cr, font, font_slant, font_face)
-  cairo_set_font_size(cr, size)
+  if value > maxvalue then value = maxvalue end
+  if fullpx == nil then fullpx = config.fullpx end
+  draw.rectangle{x=x, y=y, width=width, height=height, color=bgcolor}
   cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
-  local x_align
-  local extents = cairo_text_extents_t:create()
-  tolua.takeownership(extents)
-  cairo_text_extents(cr, text, extents)
-  if align == 'left' or align == 'l' then
-    x_align = x
-  elseif align == 'center' or align == 'c' then
-    x_align = x - ((extents.width + extents.x_bearing) / 2)
-  elseif align == 'right' or align == 'r' then
-    x_align = x - (extents.width + extents.x_bearing)
-  else
-    x_align = x
+  if origin == 'bottom' then
+    local barheight = (height / maxvalue) * value
+    if fullpx then barheight = math.ceil(barheight) end
+    cairo_rectangle(cr, x, y+height-barheight, width, barheight)
+  elseif origin == 'top' then
+    local barheight = (height / maxvalue) * value
+    if fullpx then barheight = math.ceil(barheight) end
+    cairo_rectangle(cr, x, y, width, barheight)
+  elseif origin == 'left' then
+    local barwidth = (width / maxvalue) * value
+    if fullpx then barwidth = math.ceil(barwidth) end
+    cairo_rectangle(cr, x, y, barwidth, height)
+  elseif origin == 'right' then
+    local barwidth = (width / maxvalue) * value
+    if fullpx then barwidth = math.ceil(barwidth) end
+    cairo_rectangle(cr, x+width-barwidth, y, barheight, height)
   end
-  cairo_move_to(cr, x_align, y)
-  cairo_show_text(cr, text)
-  cairo_stroke(cr)
+  cairo_fill(cr)
 end
 
 -- Draw Graph
@@ -64,6 +67,7 @@ end
 --  args.color (string): Color of the rectangle in hex format. Default is #ffffff.
 --  args.linewidth (number): Width of the line. Default is 1.
 --  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.logscale (boolean): Set true for log scale.
 --  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
 function draw.graph(args)
   local data = args.data
@@ -77,7 +81,9 @@ function draw.graph(args)
   local maxvalue = args.maxvalue or math.max(table.unpack(data))
   local logscale = args.logscale or false
   local bgcolor = args.bgcolor or '#00000000'
+  local fullpx = args.fullpx
 
+  if fullpx == nil then fullpx = config.fullpx end
   draw.rectangle{x=x, y=y, width=width, height=height, color=bgcolor}
   cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
   cairo_set_line_width(cr, linewidth)
@@ -86,17 +92,18 @@ function draw.graph(args)
     local cy = y+height
     if logscale then
       local value = data[i] > 0 and math.log(data[i]) or 0
+      if value > maxvalue then value = maxvalue end
       local logmax = maxvalue > 0 and math.log(maxvalue) or 1
       barheight = (height / logmax) * value
     else
       barheight = (height / maxvalue) * data[i]
     end
+    if fullpx then barheight = math.ceil(barheight) end
     cairo_move_to(cr, cx, cy)
     cairo_rel_line_to(cr, 0, barheight*-1)
     cairo_stroke(cr)
   end
 end
-
 
 -- Draw Image
 --  args.x (number): x-coordinate where the image will be rendered.
@@ -152,21 +159,103 @@ function draw.rectangle(args)
   cairo_fill(cr)
 end
 
+-- Draw Ring
+--  args.x (number): x-coordinate where the ring will be drawn. Default is 0.
+--  args.y (number): y-coordinate where the ring will be drawn. Default is 0.
+--  args.radius (number): Radius of the ring. Default is 100.
+--  args.width (number): Width of the ring. Default is 10.
+--  args.angle_start (number): Starting angle of the ring. Default is 0.
+--  args.angle_end (number): Ending angle of the ring. Default is 360.
+--  args.color (string): Color of the ring in hex. Default is #ffffff.
+function draw.ring(args)
+  local x = args.x or 0
+  local y = args.y or 0
+  local radius = args.radius or 100
+  local width = args.width or 10
+  local angle_start = args.angle_start or 0
+  local angle_end = args.angle_end or 360
+  local color = args.color or '#ffffff'
 
-function bar_right(args)
-    local x = args.x or 0
-    local y = args.y or 0
-    local len = args.len or 10
-    local thickness = args.thickness or 10
-    local value = tonumber(args.value or 100)
-    local maxvalue = args.maxvalue or 100
-    local color = args.color or '#ffffff'
-    local bgcolor = args.bgcolor or '#00000000'
+  angle_start = angle_start * (2 * math.pi / 360) - (math.pi / 2)
+  angle_end = angle_end * (2 * math.pi / 360) - (math.pi / 2)
+  cairo_set_line_width(cr, width)
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
+  cairo_arc(cr, x, y, radius, angle_start, angle_end)
+  cairo_stroke(cr)
+end
 
-    if value > maxvalue then value = maxvalue end
-    local progress = (len / maxvalue) * value
-    draw.rectangle({x=x, y=y, width=len, height=thickness, color=color})
-    draw.rectangle({x=x, y=y, width=progress, height=thickness, color=bgcolor})
+-- Draw Ring Graph
+--  args.value (number): Value of the ring. Default is 0.
+--  args.x (number): x-coordinate where the ring will be drawn. Default is 0.
+--  args.y (number): y-coordinate where the ring will be drawn. Default is 0.
+--  args.radius (number): Radius of the ring. Default is 100.
+--  args.width (number): Width of the ring. Default is 10.
+--  args.angle_start (number): Starting angle of the ring. Default is 0.
+--  args.angle_end (number): Ending angle of the ring. Default is 360.
+--  args.color (string): Color of the ring in hex. Default is #ffffff.
+--  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.bgcolor (string): Color of the background ring. Default is #00000000.
+function draw.ringgraph(args)
+  local value = args.value or 0
+  local x = args.x or 0
+  local y = args.y or 0
+  local radius = args.radius or 100
+  local width = args.width or 10
+  local angle_start = args.angle_start or 0
+  local angle_end = args.angle_end or 360
+  local color = args.color or '#ffffff'
+  local maxvalue = args.maxvalue or 100
+  local bgcolor = args.bgcolor or '#00000000'
+
+  if value > maxvalue then value = maxvalue end
+  local progress = (value / maxvalue) * (angle_end - angle_start)
+  draw.ring{x=x, y=y, radius=radius, width=width, angle_start=angle_start, angle_end=angle_end, color=bgcolor}
+  draw.ring{x=x, y=y, radius=radius, width=width, angle_start=angle_start, angle_end=angle_start+progress, color=color}
+end
+
+
+-- Draw Text
+-- x (number): x-coordinate where the text will be written. Default is 0
+-- y (number): y-coordinate where the text will be written. Default is 0
+-- text (string): Text to be written. Default is an empty string
+-- font (string): Name of the font to be used. Default is "DejaVu Sans"
+-- size (number): Size of the font. Default is 12
+-- color (number): Color of the text in hexadecimal format. Default is 0xffffff
+-- bold (boolean): Set true for bold
+-- italic (boolean): Set true for italic
+-- alignment (string): Alignment of the text {left, center, right}
+function draw.text(args)
+  local x = args.x or 0
+  local y = args.y or 0
+  local text = args.text or ""
+  local font = args.font or config.default_font
+  local size = args.size or config.default_font_size
+  local color = args.color or config.default_font_color
+  local bold = args.bold == nil and config.default_font_bold or args.bold
+  local italic = args.italic == nil and config.default_font_italic or args.italic
+  local align = args.align or 'left'
+
+  local font_face = bold and CAIRO_FONT_WEIGHT_BOLD or CAIRO_FONT_WEIGHT_NORMAL
+  local font_slant = italic and CAIRO_FONT_SLANT_ITALIC or CAIRO_FONT_SLANT_NORMAL
+  cairo_select_font_face(cr, font, font_slant, font_face)
+  cairo_set_font_size(cr, size)
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
+  local x_align
+  local extents = cairo_text_extents_t:create()
+  tolua.takeownership(extents)
+  cairo_text_extents(cr, text, extents)
+  if align == 'left' or align == 'l' then
+    x_align = x
+  elseif align == 'center' or align == 'c' then
+    x_align = x - ((extents.width + extents.x_bearing) / 2)
+  elseif align == 'right' or align == 'r' then
+    x_align = x - (extents.width + extents.x_bearing)
+  else
+    x_align = x
+  end
+  cairo_move_to(cr, x_align, y)
+  cairo_show_text(cr, text)
+  cairo_stroke(cr)
 end
 
 return draw
