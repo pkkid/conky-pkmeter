@@ -1,8 +1,5 @@
 ----------------------------------
 -- Author: Michael Shepanski
--- Strongly derived from Zineddine SAIBI
--- Original License GPL-3.0
--- https://www.github.com/SZinedine/namoudaj-conky
 ----------------------------------
 local http = require 'socket.http'
 local json = require 'pkm/json'
@@ -10,15 +7,22 @@ local ltn12 = require 'ltn12'
 
 utils = {}
 
-function utils.format_date(str) return utils.parse(string.format("time %s", str)) end
-function utils.parse(str) return conky_parse(string.format("${%s}", str)) end
+function utils.format_date(str) return utils.parse(string.format('time %s', str)) end
+function utils.parse(str) return conky_parse(string.format('${%s}', str)) end
 function utils.updates() return utils.parse('updates') end
+
+
+-- Celsius To Fahrenheit
+-- Converts a temperature from Celsius to Fahrenheit.
+function utils.celsius_to_fahrenheit(value)
+  return math.floor((value * 9 / 5 + 32) + 0.5)
+end
 
 
 -- Check Update
 -- Checks if the last update was more than the update interval
 function utils.check_update(last_update, update_interval)
-  return not last_update or last_update + update_interval < os.time()
+  return not last_update or last_update + (update_interval * 0.9) < os.time()
 end
 
 
@@ -46,9 +50,9 @@ end
 -- Hex to RGBA
 -- Converts a hex string such as #ff000088 to an rgba tuple.
 function utils.hex_to_rgba(hex)
-  hex = hex:gsub("#", "")
+  hex = hex:gsub('#', '')
   if #hex == 3 or #hex == 4 then
-    hex = hex:gsub(".", "%1%1")
+    hex = hex:gsub('.', '%1%1')
   end
   local has_alpha = #hex == 8
   local r = tonumber(hex:sub(1, 2), 16) / 255
@@ -68,15 +72,33 @@ function utils.init_table(size, value)
 end
 
 
+-- Percent
+-- Calculates the percentage of numerator over denominator.
+--  numerator: The numerator value.
+--  denominator: The denominator value.
+--  precision: The number of decimal places to round to.
+--  maxval: The maximum value to return.
+--  default: The default value to return if denominator is zero.
+function utils.percent(numerator, denominator, precision, maxval, default)
+  precision = precision or 2
+  maxval = maxval or 999.9
+  default = default or 0.0
+  if denominator == 0 then return default end
+  local result = math.min(maxval, math.floor((numerator / denominator) * 100 * 10^precision + 0.5) / 10^precision)
+  if precision == 0 then return math.floor(result)
+  else return result end
+end
+
+
 -- Pretty Print
 -- Prints a table in a human-readable format to the console
 function utils.pprint(t, indent)
   indent = indent or 1
-  local indentstr = string.rep("  ", indent)
+  local indentstr = string.rep('  ', indent)
   if indent == 1 then print('{') end
   for k, v in pairs(t) do
-    if type(v) == "table" then
-      print(indentstr..k..": {")
+    if type(v) == 'table' then
+      print(indentstr..k..': {')
       utils.pprint(v, indent + 1)
     elseif type(v) == 'string' then
       print(indentstr..k..': "'..v..'"')
@@ -84,7 +106,7 @@ function utils.pprint(t, indent)
       print(indentstr..k..': '..tostring(v))
     end
   end
-  print(string.rep("  ", indent-1)..'}')
+  print(string.rep('  ', indent-1)..'}')
 end
 
 
@@ -102,8 +124,39 @@ function utils.request(args)
     return
   end
   local content = table.concat(response)
+  -- Check return JSON
   if asjson then return json.decode(content)
   else return content end
 end
+
+
+-- Round
+-- Rounds a number to the nearest integer
+function utils.round(value)
+  return math.floor(value + 0.5)
+end
+
+
+-- Run Command
+-- Runs a command and returns the output lines
+function utils.run_cmd(cmd)
+  local handle = io.popen(cmd)
+  if handle ~= nil then
+    local content = handle:read('*a')
+    if content ~= nil then
+      handle:close()
+      return content
+    end
+  end
+  return ''
+end
+
+
+-- Trim
+-- Trim white space from the string
+function utils.trim(str)
+  return str:match('^%s*(.-)%s*$')
+end
+
 
 return utils

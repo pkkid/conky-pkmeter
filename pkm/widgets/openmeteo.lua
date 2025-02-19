@@ -49,7 +49,7 @@ openmeteo.data = nil
 -- Draw weather widget
 function openmeteo:draw(origin)
   origin = origin or 0
-  local height = 125
+  local height = 131
 
   -- Current Weather
   local isnight = not self.data.current_weather.is_day == 1
@@ -58,7 +58,7 @@ function openmeteo:draw(origin)
   local temp = math.floor(self.data.current_weather.temperature + 0.5)
   local windspeed = math.floor(self.data.current_weather.windspeed + 0.5)..' '..self.wind_speed_unit
   draw.rectangle{x=0, y=origin, width=conky_window.width, height=50, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=origin+50, width=conky_window.width, height=75, color=config.background} -- main background
+  draw.rectangle{x=0, y=origin+50, width=conky_window.width, height=height-50, color=config.background} -- main background
   draw.image{x=93, y=origin+3, path=ipath, width=45} -- current icon
   draw.text{x=10, y=origin+23, text=self.city_name, size=15, color=config.header, align='left'} -- city name
   draw.text{x=190, y=origin+23, text=temp..tempunit, size=15, color=config.header, align='right'} -- current temp

@@ -1,6 +1,6 @@
 ----------------------------------
 -- Author: Michael Shepanski
--- Strongly derived from Zineddine SAIBI
+-- Derivative from Zineddine SAIBI
 -- Original License GPL-3.0
 -- https://www.github.com/SZinedine/namoudaj-conky
 ----------------------------------

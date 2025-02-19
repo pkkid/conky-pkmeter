@@ -2,7 +2,7 @@ conky.config = {
     -- Position
     alignment = 'top_left',         -- Aligned position on screen {e: top_left, middle_middle, bottom_right}
     minimum_width = 200,            -- Maximum width of window
-    minimum_height = 500,           -- Minimum width of window
+    minimum_height = 800,           -- Minimum width of window
     gap_y = 200,                    -- Gap px between right or left border of screen
     gap_x = 200,                    -- Gap px between top or bottom border of screen
     -- Window Settings
