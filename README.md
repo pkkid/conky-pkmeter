@@ -5,7 +5,7 @@ openmeteo (weather), system, nvidia, processes, networks, filesystems, and
 nowplaying (using playerctl).
 <br/>
 
-## Installation
+### Installation
 Clone this respositry and make sure you have the python-requirements installed
 on your system and start it with the final command below.
 ```bash
