@@ -4,8 +4,8 @@ local utils = require 'pkm/utils'
 
 local clock = {}
 
--- Draw clock widget
--- This widget has no options
+-- Draw
+-- Draw this widget
 function clock:draw(origin)
   origin = origin or 0
   local height = 90

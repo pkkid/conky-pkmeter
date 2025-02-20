@@ -3,7 +3,6 @@ local draw = require 'pkm/draw'
 local utils = require 'pkm/utils'
 
 local nvidia = {}
-nvidia.NVIDIA_SMI = '/usr/bin/nvidia-smi --format=csv,noheader'
 nvidia.QUERY_GPU = {
   'name', 'driver_version', 'clocks.current.graphics', 'clocks.current.memory',
   'clocks.current.sm', 'clocks.current.video', 'clocks.max.graphics', 'clocks.max.memory',
@@ -14,8 +13,8 @@ nvidia.last_update = nil
 nvidia.data = nil
 nvidia.history = nil
 
--- Draw clock widget
--- This widget has no options
+-- Draw
+-- Draw this widget
 function nvidia:draw(origin)
   origin = origin or 0
   local height = 142
@@ -24,7 +23,7 @@ function nvidia:draw(origin)
   local name = utils.trim(self.data['name']:gsub('NVIDIA', ''))..' - v'..self.data.driver_version
   draw.rectangle{x=0, y=origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
   draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background} -- background
-  draw.text{x=10, y=origin+17, text='NVIDIA', size=12, color=config.header} -- system
+  draw.text{x=10, y=origin+17, text='NVIDIA', size=12, color=config.header} -- nvidia
   draw.text{x=10, y=origin+32, text=name, color=config.subheader} -- card name
 
   -- GPU Stats
@@ -55,20 +54,21 @@ function nvidia:draw(origin)
   -- GPU Utilization
   local pwrpct = utils.percent(tonumber(self.data.power_draw:match('^(%d+)')), tonumber(self.data.power_limit:match('^(%d+)')))
   local pwrdraw = utils.round(tonumber(self.data.power_draw:match('^(%d+)')))
-  draw.bargraph{value=pwrpct, x=155, y=origin+82, width=35, height=2, color=config.accent1, bgcolor=config.graph_bg} -- pwrpct
-  draw.text{x=154, y=origin+91, text=pwrdraw..'W', size=8, bold=false, color=config.label}
-  draw.text{x=190, y=origin+91, text=self.data.pstate, size=8, bold=false, color=config.label, align='right'}
-  draw.ringgraph{value=mempct, x=172, y=origin+109, radius=9, width=5, color=config.accent1, bgcolor=config.graph_bg}
+  draw.bargraph{value=pwrpct, x=155, y=origin+82, width=35, height=2, color=config.accent1, bgcolor=config.graph_bg} -- power percent
+  draw.text{x=154, y=origin+91, text=pwrdraw..'W', size=8, bold=false, color=config.label} -- power draw
+  draw.text{x=190, y=origin+91, text=self.data.pstate, size=8, bold=false, color=config.label, align='right'} -- pstate
+  draw.ringgraph{value=mempct, x=172, y=origin+109, radius=9, width=5, color=config.accent1, bgcolor=config.graph_bg} -- memory percent
 
   return height
 end
 
+-- Update
 -- Update NVIDIA Data
 function nvidia:update()
-  if utils.check_update(self.last_update, self.update_interval) then
+  if utils.check_update(self.last_update, config.update_interval) then
     -- Fetch Stats from nvidi-smi
-    local cmd = self.NVIDIA_SMI..' --query-gpu='..table.concat(self.QUERY_GPU, ',')
-    local result = utils.run_cmd(cmd)
+    local cmd = self.nvidiasmi..' --format=csv,noheader --query-gpu='..table.concat(self.QUERY_GPU, ',')
+    local result = utils.run_command(cmd)
     local data, i = {}, 0
     for value in result:gmatch('[^,]+') do
       i = i + 1

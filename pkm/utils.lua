@@ -36,6 +36,35 @@ function utils.contains(list, value)
 end
 
 
+-- Download Image
+-- Download and returns the image data
+function utils.download_image(url, filepath)
+  local data = {}
+  print('Downloading '..url)
+  local _, code = http.request{url=url, sink=ltn12.sink.table(data)}
+  if code ~= 200 then
+    io.stderr:write('Failed to download image: HTTP '..code)
+    return nil
+  end
+  filepath = filepath or os.tmpname()
+  local handle = io.open(filepath, 'wb')
+  if not handle then error('Failed to open file: '..filepath) end
+  print('Saving '..filepath)
+  handle:write(table.concat(data))
+  handle:close()
+  return filepath
+end
+
+
+-- Duration
+-- Convert seconds to mm:ss format
+function utils.duration(seconds)
+  local minstr = math.floor(seconds / 60)
+  local secstr = seconds % 60
+  return string.format('%d:%02d', minstr, secstr)
+end
+
+
 -- Get CPU Count
 -- Returns the number of 
 function utils.get_cpucount()
@@ -96,14 +125,16 @@ function utils.pprint(t, indent)
   indent = indent or 1
   local indentstr = string.rep('  ', indent)
   if indent == 1 then print('{') end
-  for k, v in pairs(t) do
-    if type(v) == 'table' then
-      print(indentstr..k..': {')
-      utils.pprint(v, indent + 1)
-    elseif type(v) == 'string' then
-      print(indentstr..k..': "'..v..'"')
+  for key, val in pairs(t) do
+    if type(val) == 'table' then
+      print(indentstr..key..': {')
+      utils.pprint(val, indent + 1)
+    elseif string.sub(key, 1, 1) == '_' then
+      print(indentstr..key..': <size:'..#val..'>')
+    elseif type(val) == 'string' then
+      print(indentstr..key..': "'..val..'"')
     else
-      print(indentstr..k..': '..tostring(v))
+      print(indentstr..key..': '..tostring(val))
     end
   end
   print(string.rep('  ', indent-1)..'}')
@@ -120,7 +151,7 @@ function utils.request(args)
   local result, code, headers, status = http.request{
     url=url, sink=ltn12.sink.table(response)}
   if not result then
-    print('Request failed: '..code..'; '..url)
+    io.stderr:write('Request failed: '..code..'; '..url)
     return
   end
   local content = table.concat(response)
@@ -139,7 +170,8 @@ end
 
 -- Run Command
 -- Runs a command and returns the output lines
-function utils.run_cmd(cmd)
+function utils.run_command(cmd, default)
+  default = default or ''
   local handle = io.popen(cmd)
   if handle ~= nil then
     local content = handle:read('*a')
@@ -148,7 +180,16 @@ function utils.run_cmd(cmd)
       return content
     end
   end
-  return ''
+  return default
+end
+
+
+-- Titleize
+-- Capitalize the first letter of each word
+function utils.titleize(str)
+  return str:gsub("(%a)([%w_']*)", function(first, rest)
+    return first:upper() .. rest:lower()
+  end)
 end
 
 

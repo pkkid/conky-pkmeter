@@ -64,9 +64,11 @@ end
 --  args.y (number): y-coordinate where the rectangle will be drawn. Default is 0.
 --  args.width (number): Width of the rectangle. Default is 10.
 --  args.height (number): Height of the rectangle. Default is 10.
+--  args.origin (string): Origin of the bar {bottomright, topright}. Default is bottomright.
 --  args.color (string): Color of the rectangle in hex format. Default is #ffffff.
 --  args.linewidth (number): Width of the line. Default is 1.
 --  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.minmaxvalue (number): Minimum Max-value of the chart (so small numbers are not blown out).
 --  args.logscale (boolean): Set true for log scale.
 --  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
 function draw.graph(args)
@@ -76,20 +78,21 @@ function draw.graph(args)
   local y = args.y or 0
   local width = args.width or 10
   local height = args.height or 10
+  local origin = args.origin or 'bottom'
   local color = args.color or '#ffffff'
   local linewidth = args.linewidth or 1
   local maxvalue = args.maxvalue or math.max(table.unpack(data))
+  local minmaxvalue = args.minmaxvalue or nil
   local logscale = args.logscale or false
   local bgcolor = args.bgcolor or '#00000000'
   local fullpx = args.fullpx
 
+  if minmaxvalue then maxvalue = math.max(maxvalue, minmaxvalue) end
   if fullpx == nil then fullpx = config.fullpx end
   draw.rectangle{x=x, y=y, width=width, height=height, color=bgcolor}
   cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
   cairo_set_line_width(cr, linewidth)
   for i=1, #data do
-    local cx = x+(linewidth/2) + ((i-1)*linewidth)
-    local cy = y+height
     if logscale then
       local value = data[i] > 0 and math.log(data[i]) or 0
       if value > maxvalue then value = maxvalue end
@@ -98,9 +101,18 @@ function draw.graph(args)
     else
       barheight = (height / maxvalue) * data[i]
     end
-    if fullpx then barheight = math.ceil(barheight) end
-    cairo_move_to(cr, cx, cy)
-    cairo_rel_line_to(cr, 0, barheight*-1)
+    if fullpx then
+      barheight = math.ceil(barheight)
+    end
+    if origin == 'bottom' then
+      local cx, cy = x+(linewidth/2) + ((i-1)*linewidth), y+height
+      cairo_move_to(cr, cx, cy)
+      cairo_rel_line_to(cr, 0, barheight*-1)
+    elseif origin == 'top' then
+      local cx, cy = x+(linewidth/2) + ((i-1)*linewidth), y
+      cairo_move_to(cr, cx, cy)
+      cairo_rel_line_to(cr, 0, barheight)
+    end
     cairo_stroke(cr)
   end
 end
@@ -109,29 +121,28 @@ end
 --  args.x (number): x-coordinate where the image will be rendered.
 --  args.y (number): y-coordinate where the image will be rendered.
 --  args.path (string): Path to image to be rendered.
---  args.width (number): Width of the image. Default is 0
---  args.height (number): Height of the image. Default is 0
+--  args.width (number): Width of the image. Default is nil
+--  args.height (number): Height of the image. Default is nil
 function draw.image(args)
   local x = args.x or 0
   local y = args.y or 0
+  local path = args.path or error('path is required')
+  local width = args.width
+  local height = args.height
 
-  if args.path == nil then error('path is required') end
-  local img = imlib_load_image(args.path)
+  local img = imlib_load_image(path)
   if img == nil then return end
   imlib_context_set_image(img)
-  if args.width or args.height then
+  if width or height then
     local origwidth = imlib_image_get_width()
     local origheight = imlib_image_get_height()
     local aspectratio = origwidth / origheight
-    if args.width and not args.height then
-      width = args.width
-      height = width / aspectratio
-    elseif args.height and not args.width then
-      height = args.height
-      width = height * aspectratio
+    if width and not height then
+      width, height = width, width / aspectratio
+    elseif height and not width then
+      width, height = height * aspectratio, height
     else
-      width = args.width or origwidth
-      height = args.height or origheight
+      width, height = width or origwidth, height or origheight
     end
     img = imlib_create_cropped_scaled_image(0, 0, origwidth, origheight, width, height)
     imlib_context_set_image(img)

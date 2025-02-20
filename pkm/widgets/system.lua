@@ -6,8 +6,8 @@ local system = {}
 system.history = nil
 system.cpucount = nil
 
--- Draw clock widget
--- This widget has no options
+-- Draw
+-- Draw this widget
 function system:draw(origin)
   origin = origin or 0
   local height = 142
@@ -62,9 +62,10 @@ function system:draw(origin)
   return height
 end
 
+-- Update
 -- Update CPU History
 function system:update()
-  if utils.check_update(self.last_update, self.update_interval) then
+  if utils.check_update(self.last_update, config.update_interval) then
     self.history = self.history or utils.init_table(90, 0)
     local usage = tonumber(utils.parse('cpu cpu'))
     table.insert(self.history, usage)

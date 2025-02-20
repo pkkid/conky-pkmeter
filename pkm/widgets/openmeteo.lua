@@ -45,8 +45,8 @@ openmeteo.ICONCODES = {
 openmeteo.last_update = nil
 openmeteo.data = nil
 
-
--- Draw weather widget
+-- Draw
+-- Draw this widget
 function openmeteo:draw(origin)
   origin = origin or 0
   local height = 131
@@ -78,14 +78,15 @@ function openmeteo:draw(origin)
   return height
 end
 
--- Update weather data - config.lua options:
--- openmeteo.city_name:         Display Name (only used for display)
--- openmeteo.latitude:          Latitude of location
--- openmeteo.longitude:         Longitude of location
--- openmeteo.temperature_unit:  Temperature unit {celsius, fahrenheit}
--- openmeteo.timezone:          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
--- openmeteo.wind_speed_unit:   OpenMeteo windspeed unit {kmh, ms, mph, kn}
--- openmeteo.update_interval:   Update interval to call weather api
+-- Update
+-- Update weather data; config.lua options:
+--  openmeteo.city_name:         Display Name (only used for display)
+--  openmeteo.latitude:          Latitude of location
+--  openmeteo.longitude:         Longitude of location
+--  openmeteo.temperature_unit:  Temperature unit {celsius, fahrenheit}
+--  openmeteo.timezone:          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+--  openmeteo.wind_speed_unit:   OpenMeteo windspeed unit {kmh, ms, mph, kn}
+--  openmeteo.update_interval:   Update interval to call weather api
 function openmeteo:update()
   if utils.check_update(self.last_update, self.update_interval) then
     local url = string.gsub(self.URL, '{latitude}', self.latitude)
@@ -99,6 +100,7 @@ function openmeteo:update()
   end
 end
 
+-- Get Icon Path
 -- Return iconpath and description for the specified weathercode
 -- weathercode: Weather code from OpenMeteo API
 -- night: Set true to get night icon
