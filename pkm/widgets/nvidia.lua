@@ -48,16 +48,16 @@ function nvidia:draw(origin)
 
   -- GPU Charts
   
-  draw.graph{data=self.history, x=155, y=origin+53, width=35, height=23, color=config.accent1,
+  draw.graph{data=self.history, x=155, y=origin+53, width=35, height=23, color=config.accent,
     bgcolor=config.graph_bg, maxvalue=100, logscale=self.logscale} -- gpu history
 
   -- GPU Utilization
   local pwrpct = utils.percent(tonumber(self.data.power_draw:match('^(%d+)')), tonumber(self.data.power_limit:match('^(%d+)')))
   local pwrdraw = utils.round(tonumber(self.data.power_draw:match('^(%d+)')))
-  draw.bargraph{value=pwrpct, x=155, y=origin+82, width=35, height=2, color=config.accent1, bgcolor=config.graph_bg} -- power percent
+  draw.bargraph{value=pwrpct, x=155, y=origin+82, width=35, height=2, color=config.accent, bgcolor=config.graph_bg} -- power percent
   draw.text{x=154, y=origin+91, text=pwrdraw..'W', size=8, bold=false, color=config.label} -- power draw
   draw.text{x=190, y=origin+91, text=self.data.pstate, size=8, bold=false, color=config.label, align='right'} -- pstate
-  draw.ringgraph{value=mempct, x=172, y=origin+109, radius=9, width=5, color=config.accent1, bgcolor=config.graph_bg} -- memory percent
+  draw.ringgraph{value=mempct, x=172, y=origin+109, radius=9, width=5, color=config.accent, bgcolor=config.graph_bg} -- memory percent
 
   return height
 end

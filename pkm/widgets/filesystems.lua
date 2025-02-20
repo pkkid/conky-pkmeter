@@ -17,7 +17,7 @@ function filesystems:draw(origin)
   draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background} -- background
   draw.text{x=10, y=origin+17, text='File Systems', size=12, color=config.header} -- file systems
   draw.text{x=10, y=origin+32, text='IO: '..utils.parse('diskio')..'/s', color=config.subheader} -- io
-  draw.graph{data=self.history, x=100, y=origin+8, width=90, height=24, color=config.accent1,
+  draw.graph{data=self.history, x=100, y=origin+8, width=90, height=24, color=config.accent,
     bgcolor=config.header_graph_bg, minmaxvalue=100*1024, logscale=self.logscale} -- io chart
 
   -- filesystems
@@ -28,7 +28,7 @@ function filesystems:draw(origin)
     draw.text{x=145, y=y, text=utils.parse('fs_free '..fs.path)..' free', color=config.value, align='right'} -- fs free
     draw.text{x=10, y=y+15, text=utils.parse('fs_used_perc '..fs.path)..'%', color=config.value} -- fs percent
     draw.text{x=145, y=y+15, text=utils.parse('fs_size '..fs.path)..' total', color=config.value, align='right'} -- fs size
-    draw.ringgraph{value=fspct, x=172, y=y+3, radius=9, width=5, color=config.accent1, bgcolor=config.graph_bg} -- fs percent
+    draw.ringgraph{value=fspct, x=172, y=y+3, radius=9, width=5, color=config.accent, bgcolor=config.graph_bg} -- fs percent
     y = y + 40
   end
 

@@ -2,8 +2,7 @@
 config = {}
 -- List of widgets to display.
 -- See pkm/widgets/ for available widgets.
--- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying'}
-config.widgets = {'clock','system','nvidia','processes','networks','filesystems','nowplaying'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying'}
 config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -11,7 +10,7 @@ config.default_font = 'ubuntu'
 config.default_font_bold = true
 config.default_font_color = '#ccc'
 config.default_font_size = 11
-config.accent1 = '#d79921'
+config.accent = '#d79921'
 config.header = '#cccccc'
 config.subheader = '#d79921'
 config.label = '#999999'

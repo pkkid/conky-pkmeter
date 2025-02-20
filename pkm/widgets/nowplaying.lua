@@ -28,7 +28,7 @@ function nowplaying:draw(origin)
   for _, player in ipairs(self.players) do
     local duration = utils.duration(player.position)..' of '..utils.duration(player.length)
     draw.bargraph{x=10, y=y, width=120, height=2, value=player.position, maxvalue=player.length,
-      color=config.accent1, bgcolor=config.graph_bg} -- progress
+      color=config.accent, bgcolor=config.graph_bg} -- progress
     draw.text{x=10, y=y+17, text=string.sub(player.title, 1, 23), color=config.value} -- title
     draw.text{x=10, y=y+32, text=string.sub(player.artist, 1, 23), color=config.label} -- artist
     draw.text{x=10, y=y+47, text=duration, color=config.label} -- duration
