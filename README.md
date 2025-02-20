@@ -3,7 +3,7 @@
 Conky configuration written entirely in Lua. Provides widgets for clock,
 openmeteo (weather), system, nvidia, processes, networks, filesystems, and 
 nowplaying (using playerctl).
-<br/>
+<br/><br/>
 
 ### Installation
 Clone this respositry and make sure you have the python-requirements installed
@@ -16,7 +16,6 @@ conky -c pkmeter-conky/conkyrc
 <br/>
 
 ### Configuration
-
 Most of the configuration is in the file `config.lua`. If there are a few more
 options available in conkyrc that help control the main conky window. At the
 very least, I believe you'll want to take a look at the following:
