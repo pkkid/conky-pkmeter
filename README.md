@@ -9,8 +9,8 @@ nowplaying (using playerctl).
 Clone this respositry and make sure you have the python-requirements installed
 on your system and start it with the final command below.
 ```bash
-git clone https://github.com/pkkid/pkmeter-conky.git
 sudo apt install conky-all
+git clone https://github.com/pkkid/pkmeter-conky.git
 conky -c pkmeter-conky/conkyrc
 ```
 <br/>
