@@ -11,7 +11,8 @@ on your system and start it with the final command below.
 ```bash
 sudo apt install conky-all
 git clone https://github.com/pkkid/pkmeter-conky.git
-conky -c pkmeter-conky/conkyrc
+cd pkmeter-conky
+conky -c conkyrc
 ```
 <br/>
 

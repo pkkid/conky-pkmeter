@@ -64,8 +64,9 @@ config.nowplaying = {
   max_players = 2,                        -- Maximum number of players to display
 }
 
--- If having issues loading weather images, try setting this
--- to the root directory of the PKMeter project
+-- Set this if you want to be able to start conky without having to first be in
+-- the pkmeter-conky directory. You will also need to update conkyrc.lua_load
+-- setting to be an absolute path.
 config.root = nil
 
 -- Set true to draw call math.ceil on the graph and bargraph
