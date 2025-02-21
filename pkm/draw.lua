@@ -263,9 +263,12 @@ function draw.text(args)
     local truncated_text = text
     while extents.width > maxwidth and #truncated_text > 0 do
       truncated_text = truncated_text:sub(1, -2)
-      cairo_text_extents(cr, truncated_text.."...", extents)
+      local newextents = cairo_text_extents_t:create()
+      tolua.takeownership(newextents)
+      cairo_text_extents(cr, truncated_text..'...', newextents)
+      extents = newextents
     end
-    text = truncated_text.."..."
+    text = truncated_text..'...'
   end
 
   -- Set alignment
