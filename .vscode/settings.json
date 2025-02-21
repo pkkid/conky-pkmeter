@@ -3,6 +3,7 @@
     "lowercase-global",
   ],
   "Lua.diagnostics.globalsRegex": [
+    "^conky$",
     "^conky_",
     "^cairo_",
     "^CAIRO_",
