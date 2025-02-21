@@ -41,6 +41,14 @@ config.nvidia = {
   temperature_unit = 'fahrenheit',        -- Temperature unit {celsius, fahrenheit}
   logscale = false,                       -- Chart gpu usage in logscale
 }
+config.radeon = {
+  radeontop = '/usr/bin/radeontop',       -- Path to radeontop
+  gpuname = 'Radeon HD 7750',             -- Name of the gpu to display (hard coded for now)
+  gputemp = 'hwmon 1 temp 1',             -- Conky cmd to read gputemp (See /sys/class/hwmon/ on your pc)
+  gpufreq = 'hwmon 1 freq 1',             -- Conky cmd to read gpufreq (See /sys/class/hwmon/ on your pc)
+  temperature_unit = 'fahrenheit',        -- Temperature unit {celsius, fahrenheit}
+  logscale = false,                       -- Chart gpu usage in logscale
+}
 config.processes = {
   count = 6,                              -- Number of processes to display
   sortby = 'top',                         -- Sort method {top, top_mem, top_io, top_time}
