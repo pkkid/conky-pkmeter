@@ -21,9 +21,9 @@ function networks:draw(origin)
   draw.text{x=10, y=origin+17, text='Networks', size=12, color=config.header} -- networks
   draw.text{x=10, y=origin+32, text=self.extip, color=config.subheader} -- external ip
   draw.graph{data=self.history_upspeed, x=100, y=origin+8, width=90, height=12, color=self.upspeed_color,
-    bgcolor=config.header_graph_bg, minmaxvalue=100, logscale=self.logscale} -- upspeed graph
-    draw.graph{data=self.history_downspeed, x=100, y=origin+20, width=90, height=12, origin='top', color=self.downspeed_color,
-    bgcolor=config.header_graph_bg, minmaxvalue=100, logscale=self.logscale} -- downspeed graph
+    bgcolor=config.header_graph_bg, minmaxvalue=50, logscale=self.logscale} -- upspeed graph
+  draw.graph{data=self.history_downspeed, x=100, y=origin+20, width=90, height=12, origin='top', color=self.downspeed_color,
+    bgcolor=config.header_graph_bg, minmaxvalue=50, logscale=self.logscale} -- downspeed graph
 
   -- Devices
   y = origin + 61
