@@ -20,13 +20,14 @@ config.background = '#000000cc'
 config.header_bg = '#333333dd'
 config.graph_bg = '#cccccc33'
 config.header_graph_bg = '#cccccc11'
+config.tempunit = 'fahrenheit'
 
 -- Widgets
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
   latitude = 42.20,                       -- Latitude of location
   longitude = -71.42,                     -- Longitude of location
-  temperature_unit = 'fahrenheit',        -- Temperature unit {celsius, fahrenheit}
+  temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
   timezone = 'America/New_York',          -- https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   wind_speed_unit = 'mph',                -- OpenMeteo windspeed unit {kmh, ms, mph, kn}
   icon_theme = 'colorful',                -- Icon theme {colorful,dark,flat-black,flat-colorful,flat-white,light}
@@ -35,11 +36,11 @@ config.openmeteo = {
 config.system = {
   logscale = false,                       -- Chart cpu usage in logscale
   coretempstr = 'hwmon 2 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
-  temperature_unit = 'fahrenheit',        -- Temperature unit {celsius, fahrenheit}
+  temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi
-  temperature_unit = 'fahrenheit',        -- Temperature unit {celsius, fahrenheit}
+  temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
   logscale = false,                       -- Chart gpu usage in logscale
 }
 config.radeon = {
@@ -47,7 +48,7 @@ config.radeon = {
   gpuname = 'Radeon HD 7750',             -- Name of the gpu to display (hard coded for now)
   gputemp = 'hwmon 1 temp 1',             -- Conky cmd to read gputemp (See /sys/class/hwmon/ on your pc)
   gpufreq = 'hwmon 1 freq 1',             -- Conky cmd to read gpufreq (See /sys/class/hwmon/ on your pc)
-  temperature_unit = 'fahrenheit',        -- Temperature unit {celsius, fahrenheit}
+  temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
   logscale = false,                       -- Chart gpu usage in logscale
 }
 config.processes = {
