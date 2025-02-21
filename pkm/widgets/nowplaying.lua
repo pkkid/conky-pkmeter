@@ -59,7 +59,7 @@ function nowplaying:update()
       if player.status == 'Playing' then
         if player.length then player.length = math.floor(tonumber(player.length) / 1000000) end
         if player.position then player.position = math.floor(tonumber(player.position) / 1000000) end
-        if player.arturl then player.artpath = self:get_artpath(i, player.arturl) end
+        if player.arturl then player.artpath = self:get_artpath(player.playername, player.arturl) end
         table.insert(players, player)
         if #players >= self.max_players then break end
       end
@@ -74,15 +74,25 @@ end
 
 -- Get Image Data
 -- Check we need to download the image for this player
-function nowplaying:get_artpath(i, arturl)
-  prefix = string.sub(arturl, 1, 7)
-  if self.players[i] and self.players[i].arturl == arturl then
-    return self.players[i].artpath
+function nowplaying:get_artpath(playername, arturl)
+  local player = self:get_player_by_name(playername)
+  local prefix = string.sub(arturl, 1, 7)
+  if player and player.arturl == arturl then
+    return player.artpath
   elseif string.sub(arturl, 1, 7) == 'file://' then
     return string.sub(arturl, 7)
   else
     return utils.download_image(arturl)
   end
+end
+
+-- Get Player by Name
+-- Returns the player object by playername
+function nowplaying:get_player_by_name(playername)
+  for _, player in ipairs(self.players) do
+    if player.playername == playername then return player end
+  end
+  return nil
 end
 
 -- List Playernames
