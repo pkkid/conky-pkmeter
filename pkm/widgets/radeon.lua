@@ -25,7 +25,7 @@ function radeon:draw(origin)
   if self.temperature_unit == 'fahrenheit' then
     temp, tempunit = utils.celsius_to_fahrenheit(tonumber(temp)), '°F'
   end
-  local gpufreq = tonumber(utils.parse(self.gpufreq) or '0') / 1000000
+  local gpufreq = math.floor(tonumber(utils.parse(self.gpufreq) or '0') / 1000000)
   local memrate = utils.round(tonumber(self.data.mclk_meta:match('^([%d%.]+)') or '0') * 1000.0)
   local memamt = self.data.vram_meta:gsub("%.%d+", "")
   draw.text{x=10, y=origin+61, text='GPU Usage', color=config.label} -- gpu usage
