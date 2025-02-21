@@ -76,7 +76,6 @@ end
 -- Check we need to download the image for this player
 function nowplaying:get_artpath(playername, arturl)
   local player = self:get_player_by_name(playername)
-  local prefix = string.sub(arturl, 1, 7)
   if player and player.arturl == arturl then
     return player.artpath
   elseif string.sub(arturl, 1, 7) == 'file://' then
