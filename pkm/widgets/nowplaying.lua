@@ -54,14 +54,12 @@ function nowplaying:update()
       local player = {}
       for keyval in string.gmatch(line, "([^;;]+)") do
         local key, val = string.match(keyval, "^(%S+)=(.+)$")
-        if key and val then
-          if key == 'length' then val = math.floor(tonumber(val) / 1000000) end
-          if key == 'position' then val = math.floor(tonumber(val) / 1000000) end
-          if key == 'arturl' then player.artpath = self:get_artpath(i, val) end
-          player[key] = val
-        end
+        if key and val then player[key] = val end
       end
       if player.status == 'Playing' then
+        if player.length then player.length = tonumber(player.length) end
+        if player.position then player.position = tonumber(player.position) end
+        if player.arturl then player.artpath = self:get_artpath(i, player.arturl) end
         table.insert(players, player)
         if #players >= self.max_players then break end
       end
