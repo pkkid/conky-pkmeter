@@ -21,10 +21,10 @@ function nowplaying:draw(origin)
   draw.rectangle{x=0, y=origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
   draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background} -- background
   draw.text{x=10, y=origin+17, text='Now Playing', size=12, color=config.header} -- now playing
-  draw.text{x=10, y=origin+32, text=playernames, color=config.subheader} -- player names
+  draw.text{x=10, y=origin+32, text=playernames, color=config.subheader, maxwidth=180} -- player names
 
   -- Player Info
-  y = origin + 50
+  local y = origin + 50
   for _, player in ipairs(self.players) do
     local duration = utils.duration(player.position)..' of '..utils.duration(player.length)
     draw.bargraph{x=10, y=y, width=120, height=2, value=player.position, maxvalue=player.length,
