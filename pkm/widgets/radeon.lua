@@ -59,7 +59,6 @@ function radeon:update()
     --   gtt 4.03% 645.77mb, mclk 100.00% 0.800ghz, sclk 37.50% 0.300ghz
     local data = {}
     local cmd = self.radeontop..' -l 1 -d -'
-    cmd = 'cat /home/pkkid/Downloads/radeontop.txt'
     local result = utils.run_command(cmd)..','
     for key, value in result:gmatch('(%l+) ([%d%.%%%l%s]+),') do
       if string.find(value, ' ') then
