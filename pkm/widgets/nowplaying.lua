@@ -57,8 +57,8 @@ function nowplaying:update()
         if key and val then player[key] = val end
       end
       if player.status == 'Playing' then
-        if player.length then player.length = tonumber(player.length) end
-        if player.position then player.position = tonumber(player.position) end
+        if player.length then player.length = math.floor(tonumber(player.length) / 1000000) end
+        if player.position then player.position = math.floor(tonumber(player.position) / 1000000) end
         if player.arturl then player.artpath = self:get_artpath(i, player.arturl) end
         table.insert(players, player)
         if #players >= self.max_players then break end
