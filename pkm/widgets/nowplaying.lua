@@ -29,8 +29,8 @@ function nowplaying:draw(origin)
     local duration = utils.duration(player.position)..' of '..utils.duration(player.length)
     draw.bargraph{x=10, y=y, width=120, height=2, value=player.position, maxvalue=player.length,
       color=config.accent, bgcolor=config.graph_bg} -- progress
-    draw.text{x=10, y=y+17, text=string.sub(player.title, 1, 23), color=config.value} -- title
-    draw.text{x=10, y=y+32, text=string.sub(player.artist, 1, 23), color=config.label} -- artist
+    draw.text{x=10, y=y+17, text=player.title, maxwidth=120, color=config.value} -- title
+    draw.text{x=10, y=y+32, text=player.artist, maxwidth=120, color=config.label} -- artist
     draw.text{x=10, y=y+47, text=duration, color=config.label} -- duration
     draw.image{x=140, y=y+0, path=player.artpath, width=50}
     y = y + 67

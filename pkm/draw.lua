@@ -234,7 +234,8 @@ end
 -- color (number): Color of the text in hexadecimal format. Default is 0xffffff
 -- bold (boolean): Set true for bold
 -- italic (boolean): Set true for italic
--- alignment (string): Alignment of the text {left, center, right}
+-- align (string): Alignment of the text {left, center, right}
+-- maxwidth (number): Maximum width of the text. Default is nil (no limit)
 function draw.text(args)
   local x = args.x or 0
   local y = args.y or 0
@@ -245,6 +246,7 @@ function draw.text(args)
   local bold = args.bold == nil and config.default_font_bold or args.bold
   local italic = args.italic == nil and config.default_font_italic or args.italic
   local align = args.align or 'left'
+  local maxwidth = args.maxwidth
 
   local font_face = bold and CAIRO_FONT_WEIGHT_BOLD or CAIRO_FONT_WEIGHT_NORMAL
   local font_slant = italic and CAIRO_FONT_SLANT_ITALIC or CAIRO_FONT_SLANT_NORMAL
@@ -255,6 +257,18 @@ function draw.text(args)
   local extents = cairo_text_extents_t:create()
   tolua.takeownership(extents)
   cairo_text_extents(cr, text, extents)
+
+  -- Truncate text if it exceeds max_width
+  if maxwidth and extents.width > maxwidth then
+    local truncated_text = text
+    while extents.width > maxwidth and #truncated_text > 0 do
+      truncated_text = truncated_text:sub(1, -2)
+      cairo_text_extents(cr, truncated_text.."...", extents)
+    end
+    text = truncated_text.."..."
+  end
+
+  -- Set alignment
   if align == 'left' or align == 'l' then
     x_align = x
   elseif align == 'center' or align == 'c' then
