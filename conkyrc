@@ -3,7 +3,7 @@ conky.config = {
   alignment = 'top_right',        -- Aligned position on screen {e: top_left, middle_middle, bottom_right}
   minimum_width = 200,            -- Maximum width of window
   minimum_height = 1200,          -- Minimum width of window
-  gap_y = 33,                     -- Gap px between right or left border of screen
+  gap_y = 40,                     -- Gap px between right or left border of screen
   gap_x = 0,                      -- Gap px between top or bottom border of screen
   -- Window Settings
   background = false,             -- If true, Conky will be forked to background when started. 
@@ -28,6 +28,7 @@ conky.config = {
   -- Other
   lua_load = 'pkmeter.lua',       -- Loads the Lua scripts separated by spaces.
   lua_draw_hook_pre = 'main',     -- Called by Conky through each iteration before drawing window
+  lua_mouse_hook = 'conky_mouse_event', -- Called by Conky on mouse events
   update_interval = 2,            -- Conky update interval in seconds
 }
 

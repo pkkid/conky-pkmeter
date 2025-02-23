@@ -6,37 +6,38 @@ local nowplaying = {}
 nowplaying.PLAYERCTL_FORMAT = {'playername={{playerName}}', 'status={{status}}',
   'title={{title}}', 'artist={{artist}}', 'album={{album}}', 'length={{mpris:length}}',
   'position={{position}}', 'arturl={{mpris:artUrl}}'}
+nowplaying.origin = 0
+nowplaying.height = 0
 nowplaying.players = {}
 nowplaying.last_update = nil
 
 -- Draw
 -- Draw this widget
-function nowplaying:draw(origin)
+function nowplaying:draw()
   if #self.players == 0 then return 0 end
-  origin = origin or 0
-  local height = 51 + (#self.players * 67)
+  self.height = 51
 
   -- Header
   local playernames = self:list_playernames(self.players, self.max_players)
-  draw.rectangle{x=0, y=origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background} -- background
-  draw.text{x=10, y=origin+17, text='Now Playing', size=12, color=config.header} -- now playing
-  draw.text{x=10, y=origin+32, text=playernames, color=config.subheader, maxwidth=180} -- player names
+  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
+  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
+  draw.text{x=10, y=self.origin+17, text='Now Playing', size=12, color=config.header} -- now playing
+  draw.text{x=10, y=self.origin+32, text=playernames, color=config.subheader, maxwidth=180} -- player names
 
   -- Player Info
-  local y = origin + 50
+  local y = self.origin + 50
   for _, player in ipairs(self.players) do
     local duration = utils.duration(player.position)..' of '..utils.duration(player.length)
+    draw.rectangle{x=0, y=y-1, width=conky_window.width, height=67, color=config.background} -- background
     draw.bargraph{x=10, y=y, width=120, height=2, value=player.position, maxvalue=player.length,
       color=config.accent, bgcolor=config.graph_bg} -- progress
     draw.text{x=10, y=y+17, text=player.title, maxwidth=120, color=config.value} -- title
     draw.text{x=10, y=y+32, text=player.artist, maxwidth=120, color=config.label} -- artist
     draw.text{x=10, y=y+47, text=duration, color=config.label} -- duration
     draw.image{x=140, y=y+0, path=player.artpath, width=50}
+    self.height = self.height + 67
     y = y + 67
   end
-
-  return height
 end
 
 -- Update

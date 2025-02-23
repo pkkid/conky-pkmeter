@@ -23,6 +23,9 @@ config.header_graph_bg = '#cccccc11'
 config.tempunit = 'fahrenheit'
 
 -- Widgets
+config.clock = {
+  onclick = 'gnome-clocks',             -- Click action
+}
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
   latitude = 42.20,                       -- Latitude of location
@@ -31,17 +34,20 @@ config.openmeteo = {
   timezone = 'America/New_York',          -- https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   wind_speed_unit = 'mph',                -- OpenMeteo windspeed unit {kmh, ms, mph, kn}
   icon_theme = 'colorful',                -- Icon theme {colorful,dark,flat-black,flat-colorful,flat-white,light}
+  onclick = 'x-www-browser https://www.google.com/search?q=Holliston+weather', -- Click action
   update_interval = 900,                  -- Update interval to call weather api
 }
 config.system = {
   logscale = false,                       -- Chart cpu usage in logscale
   coretempstr = 'hwmon 2 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
   temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
+  onclick = 'gnome-system-monitor -r &',  -- Click action
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi
   temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
   logscale = false,                       -- Chart gpu usage in logscale
+  onclick = 'nvidia-settings',          -- Click action
 }
 config.radeon = {
   radeontop = '/usr/bin/radeontop',       -- Path to radeontop
@@ -54,19 +60,26 @@ config.radeon = {
 config.processes = {
   count = 6,                              -- Number of processes to display
   sortby = 'top',                         -- Sort method {top, top_mem, top_io, top_time}
+  onclick = 'gnome-system-monitor -p',    -- Click action
 }
 config.networks = {
-  devices = {'enp4s0', 'vpn0'},           -- List of devices to display (run ifconfig to list)
+  devices = {                             -- List of devices to display {name, device} (run ip a to list)
+    {name='Ethernet', device='enp4s0'},
+    {name='Nasuni VPN', device='vpn0'},
+    {name='PIA', device='tun0'},
+  },
   upspeed_color = '#cc2414',            -- Upload color for graph
   downspeed_color = '#98971a',          -- Download color for graph
   extip_url = 'https://ipinfo.io/ip',     -- URL to get external ip (https://ipinfo.io/ip, https://api.ipify.org, https://api.ipify.org)
   extip_update_interval = 900,            -- Update interval to grab external ip
+  onclick = 'gnome-system-monitor -r',  -- Click action
 }
 config.filesystems = {
   paths = {                               -- List of filesystems to display {name, path} (run df -h to list)
     {name='Root', path='/'},
     {name='Synology', path='/media/Synology'},
   },
+  onclick = 'nautilus',  -- Click action
 }
 config.nowplaying = {
   playerctl = '/usr/bin/playerctl',       -- Path to playerctl

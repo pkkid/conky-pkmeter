@@ -172,6 +172,7 @@ end
 -- Runs a command and returns the output lines
 function utils.run_command(cmd, default)
   default = default or ''
+  cmd = cmd..' 2>/dev/null'
   local handle = io.popen(cmd)
   if handle ~= nil then
     local content = handle:read('*a')

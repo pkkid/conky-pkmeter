@@ -42,14 +42,15 @@ openmeteo.ICONCODES = {
     -- Not Available
     {desc='Not Available', day='na'},
 }
+openmeteo.origin = 0
+openmeteo.height = 0
 openmeteo.last_update = nil
 openmeteo.data = nil
 
 -- Draw
 -- Draw this widget
-function openmeteo:draw(origin)
-  origin = origin or 0
-  local height = 131
+function openmeteo:draw()
+  self.height = 131
 
   -- Current Weather
   local isnight = not self.data.current_weather.is_day == 1
@@ -57,25 +58,23 @@ function openmeteo:draw(origin)
   local tempunit = self.temperature_unit == 'fahrenheit' and '°F' or '°C'
   local temp = math.floor(self.data.current_weather.temperature + 0.5)
   local windspeed = math.floor(self.data.current_weather.windspeed + 0.5)..' '..self.wind_speed_unit
-  draw.rectangle{x=0, y=origin, width=conky_window.width, height=50, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=origin+50, width=conky_window.width, height=height-50, color=config.background} -- main background
-  draw.image{x=93, y=origin+3, path=ipath, width=45} -- current icon
-  draw.text{x=10, y=origin+23, text=self.city_name, size=15, color=config.header, align='left'} -- city name
-  draw.text{x=190, y=origin+23, text=temp..tempunit, size=15, color=config.header, align='right'} -- current temp
-  draw.text{x=10, y=origin+38, text=idesc, color=config.subheader, align='left'} -- current desc
-  draw.text{x=190, y=origin+38, text=windspeed, color=config.value, align='right'} -- current wind
+  draw.rectangle{x=0, y=self.origin, width=conky_window.width, height=50, color=config.header_bg} -- header background
+  draw.rectangle{x=0, y=self.origin+50, width=conky_window.width, height=self.height-50, color=config.background} -- main background
+  draw.image{x=93, y=self.origin+3, path=ipath, width=45} -- current icon
+  draw.text{x=10, y=self.origin+23, text=self.city_name, size=15, color=config.header, align='left'} -- city name
+  draw.text{x=190, y=self.origin+23, text=temp..tempunit, size=15, color=config.header, align='right'} -- current temp
+  draw.text{x=10, y=self.origin+38, text=idesc, color=config.subheader, align='left'} -- current desc
+  draw.text{x=190, y=self.origin+38, text=windspeed, color=config.value, align='right'} -- current wind
 
   -- Forecast
   for i=0,3 do
     local weekday = self:get_weekday(self.data.daily.time[i+1])
     temp = self.data.daily.apparent_temperature_max[i+1]..'°'
     ipath, idesc = self:get_iconpath(self.data.daily.weathercode[i+1])
-    draw.image{x=15+(48*i), y=origin+59, path=ipath, width=25} -- icon
-    draw.text{x=25+(48*i), y=origin+98, text=weekday, size=9, color=config.label, align='center'} -- day of week
-    draw.text{x=25+(48*i), y=origin+110, text=temp, size=9, color=config.value, align='center'} -- day of week  
+    draw.image{x=15+(48*i), y=self.origin+59, path=ipath, width=25} -- icon
+    draw.text{x=25+(48*i), y=self.origin+98, text=weekday, size=9, color=config.label, align='center'} -- day of week
+    draw.text{x=25+(48*i), y=self.origin+110, text=temp, size=9, color=config.value, align='center'} -- day of week  
   end
-
-  return height
 end
 
 -- Update
@@ -98,6 +97,12 @@ function openmeteo:update()
     if data then self.data = data end
     self.last_update = os.time()
   end
+end
+
+-- Click
+-- Perform click action
+function openmeteo:click(event, x, y)
+  if y < 50 then os.execute(self.onclick..' &') end
 end
 
 -- Get Icon Path
