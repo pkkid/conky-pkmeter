@@ -18,7 +18,7 @@ function system:draw()
   draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
   draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
   draw.text{x=10, y=self.origin+17, text='System', size=12, color=config.header} -- system
-  draw.text{x=10, y=self.origin+32, text=utils.parse('nodename'), color=config.subheader} -- hostname
+  draw.text{x=10, y=self.origin+32, text=utils.parse('nodename'), maxwidth=80, color=config.subheader} -- hostname
   draw.graph{data=self.history, x=100, y=self.origin+8, width=90, height=24, color=config.accent,
     bgcolor=config.header_graph_bg, maxvalue=100, logscale=self.logscale} -- cpu chart
 
