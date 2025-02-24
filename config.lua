@@ -96,4 +96,21 @@ config.root = nil
 -- heights making them easier to see at small values
 config.fullpx = false
 
+-- Work Desktop
+-- Adding an entry for [<hostname>] will override
+-- any configuration variables above.
+config['[mshepanski-desktop]'] = {
+  widgets = {'clock','openmeteo','system','processes','networks','filesystems','nowplaying'},
+  networks = {
+    devices={
+      {name='Ethernet', device='enp0s31f6'}
+    }
+  },
+  filesystems = {
+    paths={
+      {name='Root', path='/'}
+    }
+  },
+}
+
 return config

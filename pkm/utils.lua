@@ -100,6 +100,20 @@ function utils.init_table(size, value)
   return table
 end
 
+-- Merge
+-- Recursivly merge two tables applying values from the second table
+-- into the first. Dicts will be merged; Lists replaced.
+function utils.merge(t1, t2)
+  for key, val in pairs(t2) do
+    if type(val) == 'table' and not val[1] then
+      utils.merge(t1[key], t2[key])
+    else
+      t1[key] = val
+    end
+  end
+  return t1
+end
+
 
 -- Percent
 -- Calculates the percentage of numerator over denominator.

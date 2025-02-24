@@ -1,9 +1,11 @@
 require "cairo"
 require "imlib2"
 local config = require 'config'
+local utils = require 'pkm/utils'
 
 pkmeter = {}
 pkmeter.ROOT = config.root or io.popen('pwd'):read('*l')
+config = utils.merge(config, config['['..utils.parse('nodename')..']'] or {})
 
 -- Draw Widgets
 -- Draw the PKMeter widgets
