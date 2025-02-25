@@ -10,8 +10,8 @@ Clone this respositry and make sure you have the python-requirements installed
 on your system and start it with the final command below.
 ```bash
 sudo apt install conky-all lua-socket lua-sec playerctl
-git clone https://github.com/pkkid/pkmeter-conky.git
-cd pkmeter-conky
+git clone https://github.com/pkkid/conky-pkmeter.git
+cd conky-pkmeter
 conky -c conkyrc
 ```
 <br/>
