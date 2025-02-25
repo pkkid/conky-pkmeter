@@ -1,4 +1,4 @@
-# PKMeter-Conky
+# Conky-PKMeter
 <img align="right" src="preview.png" style="z-index:999">
 Conky configuration written entirely in Lua. Provides widgets for clock,
 openmeteo (weather), system, nvidia, processes, networks, filesystems, and 
