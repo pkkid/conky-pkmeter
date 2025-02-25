@@ -32,5 +32,12 @@ very least, I believe you'll want to take a look at the following:
    ever ones you want to monitor to the filesystems section.
 <br/>
 
+### Auto Start In Ubuntu
+I add the folloing to Startup Applications:
+```bash
+/usr/bin/bash -c "/usr/bin/sleep 5; cd ~/Projects/conky-pkmeter/ && conky -c conkyrc"
+```
+<br/>
+
 ### Thanks
 Fisadev & Zineddine SAIBI for creating the original Conky draw.lua scripts.
