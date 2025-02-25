@@ -41,13 +41,13 @@ config.system = {
   logscale = false,                       -- Chart cpu usage in logscale
   coretempstr = 'hwmon 2 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
   temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
-  onclick = 'gnome-system-monitor -r &',  -- Click action
+  onclick = 'gnome-system-monitor -r',    -- Click action
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi
   temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
   logscale = false,                       -- Chart gpu usage in logscale
-  onclick = 'nvidia-settings',          -- Click action
+  onclick = 'nvidia-settings',            -- Click action
 }
 config.radeon = {
   radeontop = '/usr/bin/radeontop',       -- Path to radeontop
