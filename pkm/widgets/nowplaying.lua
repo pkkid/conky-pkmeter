@@ -23,6 +23,20 @@ function nowplaying:draw()
   draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
   draw.text{x=10, y=self.origin+17, text='Now Playing', size=12, color=config.header} -- now playing
   draw.text{x=10, y=self.origin+32, text=playernames, color=config.subheader, maxwidth=180} -- player names
+  
+  -- Play Buttons
+  local imgnext = pkmeter.ROOT..'/pkm/img/nowplaying/next.png'
+  local imgplay = pkmeter.ROOT..'/pkm/img/nowplaying/play.png'
+  local imgpause = pkmeter.ROOT..'/pkm/img/nowplaying/pause.png'
+  local imgprev = pkmeter.ROOT..'/pkm/img/nowplaying/prev.png'
+  draw.image{x=122, y=y+6, path=imgprev, width=21}
+  if self.players[1].status == 'Playing' then
+    draw.image{x=147, y=y+6, path=imgpause, width=21}
+  else
+    draw.image{x=147, y=y+6, path=imgplay, width=21}
+  end
+  draw.image{x=172, y=y+6, path=imgnext, width=21}
+  
 
   -- Player Info
   local y = self.origin + 50
@@ -57,19 +71,32 @@ function nowplaying:update()
         local key, val = string.match(keyval, "^(%S+)=(.+)$")
         if key and val then player[key] = val end
       end
-      if player.status == 'Playing' then
-        if player.length then player.length = math.floor(tonumber(player.length) / 1000000) end
-        if player.position then player.position = math.floor(tonumber(player.position) / 1000000) end
-        if player.arturl then player.artpath = self:get_artpath(player.playername, player.arturl) end
-        table.insert(players, player)
-        if #players >= self.max_players then break end
-      end
+      -- Cleanup length & position, download art
+      if player.length then player.length = math.floor(tonumber(player.length) / 1000000) end
+      if player.position then player.position = math.floor(tonumber(player.position) / 1000000) end
+      if player.arturl then player.artpath = self:get_artpath(player.playername, player.arturl) end
+      table.insert(players, player)
+      if #players >= self.max_players then break end
       i = i + 1
     end
     -- Clenaup old _art objects (in case it leaks memory)
     for _, player in ipairs(self.players) do player._art = nil end
     self.players = players
     self.last_update = os.time()
+  end
+end
+
+-- Click
+-- Perform click action
+function nowplaying:click(event, x, y)
+  if 5 <= y and y <= 5+20 then
+    if 122 <= x and x <= 122+20 then
+      os.execute(self.playerctl..' previous')
+    elseif 147 <= x and x <= 147+20 then
+      os.execute(self.playerctl..' play-pause')
+    elseif 172 <= x and x <= 172+20 then
+      os.execute(self.playerctl..' next')
+    end
   end
 end
 
