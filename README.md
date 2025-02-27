@@ -33,7 +33,7 @@ very least, I believe you'll want to take a look at the following:
 <br/>
 
 ### Auto Start In Ubuntu
-I add the folloing to Startup Applications:
+Add the following to Startup Applications:
 ```bash
 /usr/bin/bash -c "/usr/bin/sleep 5; cd ~/Projects/conky-pkmeter/ && conky -c conkyrc"
 ```
