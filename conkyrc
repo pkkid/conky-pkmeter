@@ -3,14 +3,14 @@ conky.config = {
   alignment = 'top_right',        -- Aligned position on screen {e: top_left, middle_middle, bottom_right}
   minimum_width = 200,            -- Maximum width of window
   minimum_height = 1200,          -- Minimum width of window
-  gap_y = 40,                     -- Gap px between right or left border of screen
-  gap_x = 0,                      -- Gap px between top or bottom border of screen
+  gap_y = 50,                     -- Gap px between right or left border of screen
+  gap_x = 10,                      -- Gap px between top or bottom border of screen
   -- Window Settings
   background = false,             -- If true, Conky will be forked to background when started. 
   double_buffer = true,           -- Use the Xdbe extension (eliminates flicker).
   own_window = true,              -- Create own window to draw
   own_window_class = 'Conky',     -- Class of the window
-  own_window_type = 'panel',      -- normal|desktop|dock|panel|utility|override
+  own_window_type = 'desktop',    -- normal|desktop|dock|panel|utility|override
   own_window_transparent = true,  -- Sets background opacity to 0% (when ARGB enabled)
   border_inner_margin = 0,        -- Inner border margin px between border and text
   border_outer_margin = 0,        -- Outer border margin px between border and window edge
