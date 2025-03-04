@@ -24,7 +24,7 @@ config.tempunit = 'fahrenheit'
 
 -- Widgets
 config.clock = {
-  onclick = 'gnome-clocks',             -- Click action
+  onclick = 'gnome-clocks',               -- Click action
 }
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
@@ -72,7 +72,7 @@ config.networks = {
   downspeed_color = '#98971a',          -- Download color for graph
   extip_url = 'https://ipinfo.io/ip',     -- URL to get external ip (https://ipinfo.io/ip, https://api.ipify.org, https://api.ipify.org)
   extip_update_interval = 900,            -- Update interval to grab external ip
-  onclick = 'gnome-system-monitor -r',  -- Click action
+  onclick = 'gnome-system-monitor -r',    -- Click action
 }
 config.filesystems = {
   paths = {                               -- List of filesystems to display {name, path} (run df -h to list)
