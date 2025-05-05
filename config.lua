@@ -99,11 +99,18 @@ config.fullpx = false
 -- Work Desktop
 -- Adding an entry for [<hostname>] will override
 -- any configuration variables above.
-config['[mshepanski-desktop]'] = {
+config['[mshepanski-laptop]'] = {
   widgets = {'clock','openmeteo','system','processes','networks','filesystems','nowplaying'},
+  system = {
+    logscale = false,                       -- Chart cpu usage in logscale
+    coretempstr = 'hwmon 7 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
+    temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
+    onclick = 'gnome-system-monitor -r',    -- Click action
+  },
   networks = {
     devices={
-      {name='Ethernet', device='enp0s31f6'}
+      {name='Ethernet', device='enp3s0u2u4'},
+      {name='Wifi', device='wlp113s0f0'},
     }
   },
   filesystems = {
