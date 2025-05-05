@@ -103,7 +103,7 @@ config['[mshepanski-laptop]'] = {
   widgets = {'clock','openmeteo','system','processes','networks','filesystems','nowplaying'},
   system = {
     logscale = false,                       -- Chart cpu usage in logscale
-    coretempstr = 'hwmon 7 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
+    coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
     temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
     onclick = 'gnome-system-monitor -r',    -- Click action
   },
