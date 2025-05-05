@@ -1,4 +1,5 @@
 require "cairo"
+require "cairo_xlib"
 require "imlib2"
 local config = require 'config'
 local utils = require 'pkm/utils'
