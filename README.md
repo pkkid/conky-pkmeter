@@ -39,5 +39,15 @@ Add the following to Startup Applications:
 ```
 <br/>
 
+### Click Events Not Working
+There is a [known bug in conky](https://github.com/brndnmtthws/conky/issues/2047) affecting
+versions 1.21.7 and later where mouse click events are incorrectly reported as `mouse_enter`
+events instead of `button_down`/`button_up`. This affects XWayland on Wayland sessions and
+some X11 window managers.
+
+As a temporary workaround, you can set the conky window mode to normal, and update
+pkmeter.lua to look for mouse_leave events instead of button_down events. It's not
+a great workaround.
+
 ### Thanks
 Fisadev & Zineddine SAIBI for creating the original Conky draw.lua scripts.

@@ -1,0 +1,10 @@
+.claude/
+.vscode/
+
+.DS_Store
+*.luac
+*.swo
+*.swp
+*~
+
+Thumbs.db

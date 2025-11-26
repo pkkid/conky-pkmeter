@@ -7,7 +7,7 @@ conky.config = {
   gap_x = 0,                      -- Gap px between top or bottom border of screen
   -- Window Settings
   background = false,             -- If true, Conky will be forked to background when started. 
-  double_buffer = true,           -- Use the Xdbe extension (eliminates flicker).
+  double_buffer = true,           -- Double buffering (eliminates flicker)
   own_window = true,              -- Create own window to draw
   own_window_class = 'Conky',     -- Class of the window
   own_window_type = 'desktop',    -- normal|desktop|dock|panel|utility|override
@@ -24,7 +24,7 @@ conky.config = {
   -- Font
   override_utf8_locale = true,    -- Force UTF8, requires XFT
   text_buffer_size = 2048,        -- Size of the buffer for the parsed text
-  use_xft = true,                 -- Use Xft (anti-aliased font and stuff)
+  use_xft = true,                 -- Use anti-aliased fonts
   -- Other
   lua_load = 'pkmeter.lua',       -- Loads the Lua scripts separated by spaces.
   lua_draw_hook_pre = 'main',     -- Called by Conky through each iteration before drawing window
