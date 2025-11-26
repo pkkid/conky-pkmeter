@@ -46,7 +46,7 @@ events instead of `button_down`/`button_up`. This affects XWayland on Wayland se
 some X11 window managers.
 
 As a temporary workaround, you can set the conky window mode to normal, and update
-pkmeter.lua to look for mouse_leave events instead of button_down events. It's not
+pkmeter.lua to look for mouse_enter events instead of button_down events. It's not
 a great workaround.
 
 ### Thanks
