@@ -45,9 +45,13 @@ versions 1.21.7 and later where mouse click events are incorrectly reported as `
 events instead of `button_down`/`button_up`. This affects XWayland on Wayland sessions and
 some X11 window managers.
 
-As a temporary workaround, you can set the conky window mode to normal, and update
-pkmeter.lua to look for mouse_enter events instead of button_down events. It's not
-a great workaround.
+As a temporary workaround, you can update pkmeter.lua to look for mouse_enter events instead
+of button_down events. Also set the configrc options below. However, you will unfortunatly
+have a window title on the panel.
+```
+own_window_type = 'normal',
+own_window_hints = 'skip_taskbar,sticky,below',
+```
 
 ### Thanks
 Fisadev & Zineddine SAIBI for creating the original Conky draw.lua scripts.
