@@ -30,6 +30,9 @@ very least, I believe you'll want to take a look at the following:
    the io chart requires you input the proper device name to be monitored. You
    can list the filesystems on your device with the command `df -h`. Add which
    ever ones you want to monitor to the filesystems section.
+4. `nowplaying` - This uses the application playerctl in the background to fetch
+   the currently playing music and artwork. You may need to install this on your
+   system.
 <br/>
 
 ### Auto Start In Ubuntu
