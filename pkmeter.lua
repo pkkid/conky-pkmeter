@@ -28,7 +28,7 @@ end
 -- Called on conky mouse events
 function conky_mouse_event(event)
   -- print("Mouse event: ".. event.type .." x=".. event.x .." y=".. event.y)
-  if event.type == 'button_down' then
+  if event.type == 'mouse_enter' then
     -- Ignore events too close to the window edge
     local margin = 20
     if event.x < margin or event.x > (conky_window.width - margin) then return end
