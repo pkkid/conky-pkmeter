@@ -20,7 +20,7 @@ config.background = '#11111199'
 config.header_bg = '#444444bb'
 config.graph_bg = '#cccccc33'
 config.header_graph_bg = '#cccccc11'
-config.tempunit = 'fahrenheit'
+config.tempunit = 'celsius'
 
 -- Widgets
 config.clock = {
@@ -39,9 +39,14 @@ config.openmeteo = {
 }
 config.system = {
   logscale = false,                       -- Chart cpu usage in logscale
-  coretempstr = 'hwmon 2 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
+  coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
   temperature_unit = config.tempunit,     -- Temperature unit {celsius, fahrenheit}
   onclick = 'gnome-system-monitor -r',    -- Click action
+  extras = {
+    {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
+    {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
+    {name='Pump Speed', device='hwmon 7 fan 1', unit=' RPM'},
+  }
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi

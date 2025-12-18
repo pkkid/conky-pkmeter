@@ -7,11 +7,15 @@ system.origin = 0
 system.height = 0
 system.history = nil
 system.cpucount = nil
+system.showextra = false
 
 -- Draw
 -- Draw this widget
 function system:draw()
   self.height = 142
+  if self.showextra then
+    self.height = self.height + 5 + (#self.extras * 15)
+  end
   self.cpucount = self.cpucount or utils.get_cpucount()
 
   -- Header
@@ -38,6 +42,16 @@ function system:draw()
   draw.text{x=145, y=self.origin+106, text=utils.parse('memperc')..'% of '..memtotal, color=config.value, align='right'}
   draw.text{x=10, y=self.origin+121, text='Uptime', color=config.label} -- uptime
   draw.text{x=145, y=self.origin+121, text=utils.parse('uptime_short'), color=config.value, align='right'}
+
+  if self.showextra then
+    y = self.origin + 141
+    for _, sensor in ipairs(self.extras) do
+      local value = utils.parse(sensor.device)
+      draw.text{x=10, y=y, text=sensor.name, color=config.label} -- pump speed
+      draw.text{x=145, y=y, text=value..sensor.unit, color=config.value, align='right'}
+      y = y + 15
+    end
+  end
 
   -- CPU Bars
   barheight = 17    -- Height of the bars
@@ -76,7 +90,11 @@ end
 -- Click
 -- Perform click action
 function system:click(event, x, y)
-  if y < 40 then os.execute(self.onclick..' &') end
+  if y < 40 then
+    os.execute(self.onclick..' &')
+  else
+    self.showextra = not self.showextra
+  end
 end
 
 return system
