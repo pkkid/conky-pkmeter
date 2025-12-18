@@ -53,8 +53,8 @@ function nvidia:draw()
   local pwrpct = utils.percent(tonumber(self.data.power_draw:match('^(%d+)')), tonumber(self.data.power_limit:match('^(%d+)')))
   local pwrdraw = utils.round(tonumber(self.data.power_draw:match('^(%d+)')))
   draw.bargraph{value=pwrpct, x=155, y=self.origin+82, width=35, height=2, color=config.accent, bgcolor=config.graph_bg} -- power percent
-  draw.text{x=154, y=self.origin+91, text=pwrdraw..'W', size=8, bold=false, color=config.label} -- power draw
-  draw.text{x=190, y=self.origin+91, text=self.data.pstate, size=8, bold=false, color=config.label, align='right'} -- pstate
+  draw.text{x=154, y=self.origin+91, text=pwrdraw..'W', size=7, bold=false, color=config.label} -- power draw
+  draw.text{x=190, y=self.origin+91, text=self.data.pstate, size=7, bold=false, color=config.label, align='right'} -- pstate
   draw.ringgraph{value=mempct, x=172, y=self.origin+109, radius=9, width=5, color=config.accent, bgcolor=config.graph_bg} -- memory percent
 end
 
