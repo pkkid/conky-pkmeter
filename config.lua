@@ -136,7 +136,7 @@ config.fullpx = false
 -- Work Desktop
 -- Adding an entry for [<hostname>] will override
 -- any configuration variables above.
-config['[mshepanski-laptop]'] = {
+config['[pkkid-laptop]'] = {
   widgets = {'clock','openmeteo','system','processes','networks','filesystems','nowplaying'},
   system = {
     logscale = false,                       -- Chart cpu usage in logscale
