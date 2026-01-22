@@ -3,7 +3,7 @@ config = {}
 -- List of widgets to display.
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
 config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -92,6 +92,38 @@ config.nowplaying = {
   max_players = 2,                        -- Maximum number of players to display
 }
 
+-- Custom Widget
+-- Checking Game Server Status
+config.custom = {
+  commands = {
+    {cmd='/home/pkkid/Projects/scripts/factorio.sh status', frequency=60},
+    {cmd='/home/pkkid/Projects/scripts/hytale.sh status', frequency=60},
+  },
+  variables = {
+    {name='factorio_players', fromcmd=0, regex='Online:%s+(%d+) players', default='--'},
+    {name='factorio_uptime', fromcmd=0, regex='Uptime:%s+([%d:]+)', default='--'},
+    {name='factorio_memory', fromcmd=0, regex='Memory:%s+([^%s]+)', default='--'},
+    {name='hytale_players', fromcmd=1, regex='Online:%s+(%d+) players', default='--'},
+    {name='hytale_uptime', fromcmd=1, regex='Uptime:%s+([%d:]+)', default='--'},
+    {name='hytale_memory', fromcmd=1, regex='Memory:%s+([^%s]+)', default='--'},
+  },
+  templates = {
+    {
+      title = 'Game Servers',
+      subtitle = 'Factorio & Hytale',
+      lines = {
+        {left = 'Factorio Server', right='{factorio_uptime}'},
+        {left = '   Memory', right='{factorio_memory}'},
+        {left = '   Online', right='{factorio_players} players'},
+        {},
+        {left = 'Hytale Server', right = '{hytale_uptime}'},
+        {left = '   Memory', right='{hytale_memory}'},
+        {left = '   Online', right='{hytale_players} players'},
+      }
+    },
+  }
+}
+
 -- Set this if you want to be able to start conky without having to first be in
 -- the pkmeter-conky directory. You will also need to update conkyrc.lua_load
 -- setting to be an absolute path.
@@ -123,6 +155,7 @@ config['[mshepanski-laptop]'] = {
       {name='Root', path='/'}
     }
   },
+  custom = {},
 }
 
 return config
