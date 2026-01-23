@@ -14,7 +14,10 @@ nowplaying.last_update = nil
 -- Draw
 -- Draw this widget
 function nowplaying:draw()
-  if #self.players == 0 then return 0 end
+  if #self.players == 0 then
+    self.height = 0
+    return
+  end
   self.height = 51
 
   -- Header
