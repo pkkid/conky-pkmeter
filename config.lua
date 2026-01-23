@@ -101,10 +101,10 @@ config.custom = {
   },
   variables = {
     {name='factorio_players', fromcmd=0, regex='Online:%s+(%d+) players', default='--'},
-    {name='factorio_uptime', fromcmd=0, regex='Uptime:%s+([%d:]+)', default='--'},
+    {name='factorio_uptime', fromcmd=0, regex='Uptime:%s+([%d:-]+):%d+', default='Offline'},
     {name='factorio_memory', fromcmd=0, regex='Memory:%s+([^%s]+)', default='--'},
     {name='hytale_players', fromcmd=1, regex='Online:%s+(%d+) players', default='--'},
-    {name='hytale_uptime', fromcmd=1, regex='Uptime:%s+([%d:]+)', default='--'},
+    {name='hytale_uptime', fromcmd=1, regex='Uptime:%s+([%d:-]+):%d+', default='Offline'},
     {name='hytale_memory', fromcmd=1, regex='Memory:%s+([^%s]+)', default='--'},
   },
   templates = {
