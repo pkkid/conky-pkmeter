@@ -114,11 +114,11 @@ config.custom = {
       lines = {
         {left = 'Factorio Server', right='{factorio_uptime}'},
         {left = '   Memory', right='{factorio_memory}'},
-        {left = '   Online', right='{factorio_players} players'},
+        {left = '   Players', right='{factorio_players}'},
         {},
         {left = 'Hytale Server', right = '{hytale_uptime}'},
         {left = '   Memory', right='{hytale_memory}'},
-        {left = '   Online', right='{hytale_players} players'},
+        {left = '   Players', right='{hytale_players}'},
       }
     },
   }
