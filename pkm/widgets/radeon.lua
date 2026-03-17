@@ -15,30 +15,18 @@ function radeon:draw()
   self.height = 142
 
   -- Header
-  -- local name = utils.trim(self.data['name']:gsub('Radeon', ''))..' - v'..self.data.driver_version
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='AMD GPU', size=12, color=config.header} -- radeon
-  draw.text{x=10, y=self.origin+32, text=self.gpuname, color=config.subheader} -- card name
+  draw.widget_header(self.origin, self.height, 'AMD GPU', self.gpuname)
 
   -- GPU Stats
-  local temp, tempunit = utils.parse(self.gputemp), '°C'
-  if self.temperature_unit == 'fahrenheit' then
-    temp, tempunit = utils.celsius_to_fahrenheit(tonumber(temp)), '°F'
-  end
+  local temp = utils.format_temp(utils.parse(self.gputemp), self.temperature_unit)
   local gpufreq = math.floor(tonumber(utils.parse(self.gpufreq) or '0') / 1000000)
   local memrate = utils.round(tonumber(self.data.mclk_meta:match('^([%d%.]+)') or '0') * 1000.0)
   local memamt = self.data.vram_meta:gsub("%.%d+", "")
-  draw.text{x=10, y=self.origin+61, text='GPU Usage', color=config.label} -- gpu usage
-  draw.text{x=145, y=self.origin+61, text=self.data.gpu..'%', color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+76, text='GPU Temp', color=config.label} -- uptime
-  draw.text{x=145, y=self.origin+76, text=temp..tempunit, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+91, text='GPU Freq', color=config.label} -- gpu freq
-  draw.text{x=145, y=self.origin+91, text=gpufreq..' MHz', color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+106, text='Mem Used', color=config.label} -- mem used
-  draw.text{x=145, y=self.origin+106, text=self.data.vram..'% '..memamt, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+121, text='Mem Rate', color=config.label} -- mem rate
-  draw.text{x=145, y=self.origin+121, text=memrate..' MHz', color=config.value, align='right'}
+  draw.stat_row(self.origin+61, 'GPU Usage', self.data.gpu..'%')
+  draw.stat_row(self.origin+76, 'GPU Temp', temp)
+  draw.stat_row(self.origin+91, 'GPU Freq', gpufreq..' MHz')
+  draw.stat_row(self.origin+106, 'Mem Used', self.data.vram..'% '..memamt)
+  draw.stat_row(self.origin+121, 'Mem Rate', memrate..' MHz')
 
   -- GPU Charts
   draw.graph{data=self.history, x=155, y=self.origin+53, width=35, height=23, color=config.accent,
@@ -70,9 +58,7 @@ function radeon:update()
     end
 
     -- Update History
-    self.history = self.history or utils.init_table(35, 0)
-    table.insert(self.history, data.gpu)
-    table.remove(self.history, 1)
+    self.history = utils.push_history(self.history, data.gpu, 35)
 
     if data then self.data = data end
     self.last_update = os.time()

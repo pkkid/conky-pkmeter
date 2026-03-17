@@ -13,10 +13,7 @@ function processes:draw()
   self.height = 68
 
   -- Header
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='Processes', size=12, color=config.header} -- processes
-  draw.text{x=10, y=self.origin+32, text=utils.parse('processes')..' processes', color=config.subheader} -- num processes
+  draw.widget_header(self.origin, self.height, 'Processes', utils.parse('processes')..' processes')
 
   -- Processes
   local y = self.origin + 61

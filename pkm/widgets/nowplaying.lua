@@ -22,23 +22,19 @@ function nowplaying:draw()
 
   -- Header
   local playernames = self:list_playernames(self.players, self.max_players)
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='Now Playing', size=12, color=config.header} -- now playing
-  draw.text{x=10, y=self.origin+32, text=playernames, color=config.subheader, maxwidth=180} -- player names
-  
-  -- Play Buttons
-  local imgnext = pkmeter.ROOT..'/pkm/img/nowplaying/next.png'
-  local imgplay = pkmeter.ROOT..'/pkm/img/nowplaying/play.png'
-  local imgpause = pkmeter.ROOT..'/pkm/img/nowplaying/pause.png'
-  local imgprev = pkmeter.ROOT..'/pkm/img/nowplaying/prev.png'
-  draw.image{x=122, y=y+6, path=imgprev, width=21}
-  if self.players[1].status == 'Playing' then
-    draw.image{x=147, y=y+6, path=imgpause, width=21}
-  else
-    draw.image{x=147, y=y+6, path=imgplay, width=21}
-  end
-  draw.image{x=172, y=y+6, path=imgnext, width=21}
+  draw.widget_header(self.origin, self.height, 'Now Playing', playernames, function()
+    local imgnext = pkmeter.ROOT..'/pkm/img/nowplaying/next.png'
+    local imgplay = pkmeter.ROOT..'/pkm/img/nowplaying/play.png'
+    local imgpause = pkmeter.ROOT..'/pkm/img/nowplaying/pause.png'
+    local imgprev = pkmeter.ROOT..'/pkm/img/nowplaying/prev.png'
+    draw.image{x=122, y=self.origin+6, path=imgprev, width=21}
+    if self.players[1].status == 'Playing' then
+      draw.image{x=147, y=self.origin+6, path=imgpause, width=21}
+    else
+      draw.image{x=147, y=self.origin+6, path=imgplay, width=21}
+    end
+    draw.image{x=172, y=self.origin+6, path=imgnext, width=21}
+  end)
   
 
   -- Player Info

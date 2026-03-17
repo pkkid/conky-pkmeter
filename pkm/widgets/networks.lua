@@ -18,14 +18,12 @@ function networks:draw()
   self.height = 57
 
   -- Header
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='Networks', size=12, color=config.header} -- networks
-  draw.text{x=10, y=self.origin+32, text=self.extip, color=config.subheader} -- external ip
-  draw.graph{data=self.history_upspeed, x=100, y=self.origin+8, width=90, height=12, color=self.upspeed_color,
-    bgcolor=config.header_graph_bg, minmaxvalue=50, logscale=self.logscale} -- upspeed graph
-  draw.graph{data=self.history_downspeed, x=100, y=self.origin+20, width=90, height=12, origin='top', color=self.downspeed_color,
-    bgcolor=config.header_graph_bg, minmaxvalue=50, logscale=self.logscale} -- downspeed graph
+  draw.widget_header(self.origin, self.height, 'Networks', self.extip, function()
+    draw.graph{data=self.history_upspeed, x=100, y=self.origin+8, width=90, height=12, color=self.upspeed_color,
+      bgcolor=config.header_graph_bg, minmaxvalue=50, logscale=self.logscale}
+    draw.graph{data=self.history_downspeed, x=100, y=self.origin+20, width=90, height=12, origin='top', color=self.downspeed_color,
+      bgcolor=config.header_graph_bg, minmaxvalue=50, logscale=self.logscale}
+  end)
 
   -- Devices
   y = self.origin + 61
@@ -55,18 +53,13 @@ function networks:update()
   end
   -- Network History
   if utils.check_update(self.history_last_update, config.update_interval) then
-    self.history_upspeed = self.history_upspeed or utils.init_table(90, 0)
-    self.history_downspeed = self.history_downspeed or utils.init_table(90, 0)
-    local upspeed = 0
-    local downspeed = 0
+    local upspeed, downspeed = 0, 0
     for _, dev in ipairs(self.devices) do
       upspeed = upspeed + tonumber(utils.parse('upspeedf '..dev.device))
       downspeed = downspeed + tonumber(utils.parse('downspeedf '..dev.device))
     end
-    table.insert(self.history_upspeed, upspeed)
-    table.remove(self.history_upspeed, 1)
-    table.insert(self.history_downspeed, downspeed)
-    table.remove(self.history_downspeed, 1)
+    self.history_upspeed = utils.push_history(self.history_upspeed, upspeed, 90)
+    self.history_downspeed = utils.push_history(self.history_downspeed, downspeed, 90)
     self.history_last_update = os.time()
   end
 end

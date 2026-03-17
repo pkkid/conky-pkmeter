@@ -19,29 +19,19 @@ function system:draw()
   self.cpucount = self.cpucount or utils.get_cpucount()
 
   -- Header
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='System', size=12, color=config.header} -- system
-  draw.text{x=10, y=self.origin+32, text=utils.parse('nodename'), maxwidth=80, color=config.subheader} -- hostname
-  draw.graph{data=self.history, x=100, y=self.origin+8, width=90, height=24, color=config.accent,
-    bgcolor=config.header_graph_bg, maxvalue=100, logscale=self.logscale} -- cpu chart
+  draw.widget_header(self.origin, self.height, 'System', utils.parse('nodename'), function()
+    draw.graph{data=self.history, x=100, y=self.origin+8, width=90, height=24, color=config.accent,
+      bgcolor=config.header_graph_bg, maxvalue=100, logscale=self.logscale}
+  end)
 
   -- System Stats
   local memtotal = utils.round(utils.parse('memmax'):match('^(%d+)'))..'G'
-  local temp, tempunit = utils.parse(self.coretempstr), '°C'
-  if self.temperature_unit == 'fahrenheit' then
-    temp, tempunit = utils.celsius_to_fahrenheit(tonumber(temp)), '°F'
-  end
-  draw.text{x=10, y=self.origin+61, text='CPU Usage', color=config.label} -- cpu usage
-  draw.text{x=145, y=self.origin+61, text=utils.parse('cpu cpu0')..'%', color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+76, text='CPU Temp', color=config.label} -- cpu temp
-  draw.text{x=145, y=self.origin+76, text=temp..tempunit, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+91, text='CPU Freq', color=config.label} -- cpu freq
-  draw.text{x=145, y=self.origin+91, text=utils.parse('freq')..' MHz', color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+106, text='Mem Used', color=config.label} -- mem rate
-  draw.text{x=145, y=self.origin+106, text=utils.parse('memperc')..'% of '..memtotal, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+121, text='Uptime', color=config.label} -- uptime
-  draw.text{x=145, y=self.origin+121, text=utils.parse('uptime_short'), color=config.value, align='right'}
+  local temp = utils.format_temp(utils.parse(self.coretempstr), self.temperature_unit)
+  draw.stat_row(self.origin+61, 'CPU Usage', utils.parse('cpu cpu0')..'%')
+  draw.stat_row(self.origin+76, 'CPU Temp', temp)
+  draw.stat_row(self.origin+91, 'CPU Freq', utils.parse('freq')..' MHz')
+  draw.stat_row(self.origin+106, 'Mem Used', utils.parse('memperc')..'% of '..memtotal)
+  draw.stat_row(self.origin+121, 'Uptime', utils.parse('uptime_short'))
 
   if self.showextra then
     y = self.origin + 141
@@ -79,10 +69,8 @@ end
 -- Update CPU History
 function system:update()
   if utils.check_update(self.last_update, config.update_interval) then
-    self.history = self.history or utils.init_table(90, 0)
     local usage = tonumber(utils.parse('cpu cpu'))
-    table.insert(self.history, usage)
-    table.remove(self.history, 1)
+    self.history = utils.push_history(self.history, usage, 90)
     self.last_update = os.time()
   end
 end

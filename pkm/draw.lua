@@ -23,7 +23,6 @@ draw = {}
 --  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
 function draw.bargraph(args)
   local value = args.value or 0
-  if value == nil then error('value is required') end
   local x = args.x or 0
   local y = args.y or 0
   local width = args.width or 10
@@ -284,6 +283,33 @@ function draw.text(args)
   cairo_move_to(cr, x_align, y)
   cairo_show_text(cr, text)
   cairo_stroke(cr)
+end
+
+-- Draw Widget Header
+-- Draws a standard widget header with title and optional subtitle
+--  origin (number): y-coordinate origin of the widget
+--  height (number): total height of the widget
+--  title (string): header title text
+--  subtitle (string): optional subtitle text
+--  extras (function): optional function to draw extra elements in header
+function draw.widget_header(origin, height, title, subtitle, extras)
+  draw.rectangle{x=0, y=origin, width=conky_window.width, height=40, color=config.header_bg}
+  draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background}
+  draw.text{x=10, y=origin+17, text=title, size=12, color=config.header}
+  if subtitle then
+    draw.text{x=10, y=origin+32, text=subtitle, maxwidth=80, color=config.subheader}
+  end
+  if extras then extras() end
+end
+
+-- Draw Stat Row
+-- Draws a label/value row commonly used in widgets
+--  y (number): y-coordinate for the row
+--  label (string): left-aligned label text
+--  value (string): right-aligned value text
+function draw.stat_row(y, label, value)
+  draw.text{x=10, y=y, text=label, color=config.label}
+  draw.text{x=145, y=y, text=value, color=config.value, align='right'}
 end
 
 return draw

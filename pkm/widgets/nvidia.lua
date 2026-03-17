@@ -22,30 +22,19 @@ function nvidia:draw()
 
   -- Header
   local name = utils.trim(self.data['name']:gsub('NVIDIA', ''))..' - v'..self.data.driver_version
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='NVIDIA', size=12, color=config.header} -- nvidia
-  draw.text{x=10, y=self.origin+32, text=name, color=config.subheader} -- card name
+  draw.widget_header(self.origin, self.height, 'NVIDIA', name)
 
   -- GPU Stats
   local usage = tonumber(self.data.utilization_gpu:match('^(%d+)'))
-  local temp, tempunit = self.data.temperature_gpu, '°C'
-  if self.temperature_unit == 'fahrenheit' then
-    temp, tempunit = utils.celsius_to_fahrenheit(tonumber(temp)), '°F'
-  end
-  local mempct = tonumber(self.data.utilization_memory:match('^(%d+)')) -- %
+  local temp = utils.format_temp(self.data.temperature_gpu, self.temperature_unit)
+  local mempct = tonumber(self.data.utilization_memory:match('^(%d+)'))
   local memtotal = utils.round(tonumber(self.data.memory_total:match('^(%d+)')) / 1024)..'G'
   local memrate = (tonumber(self.data.clocks_current_memory:match('^(%d+)')) * 2)..' MHz' -- x2 for DDR
-  draw.text{x=10, y=self.origin+61, text='GPU Usage', color=config.label} -- gpu usage
-  draw.text{x=145, y=self.origin+61, text=usage..'%', color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+76, text='GPU Temp', color=config.label} -- uptime
-  draw.text{x=145, y=self.origin+76, text=temp..tempunit, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+91, text='GPU Freq', color=config.label} -- gpu freq
-  draw.text{x=145, y=self.origin+91, text=self.data.clocks_current_graphics, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+106, text='Mem Used', color=config.label} -- mem used
-  draw.text{x=145, y=self.origin+106, text=mempct..'% of '..memtotal, color=config.value, align='right'}
-  draw.text{x=10, y=self.origin+121, text='Mem Rate', color=config.label} -- mem rate
-  draw.text{x=145, y=self.origin+121, text=memrate, color=config.value, align='right'}
+  draw.stat_row(self.origin+61, 'GPU Usage', usage..'%')
+  draw.stat_row(self.origin+76, 'GPU Temp', temp)
+  draw.stat_row(self.origin+91, 'GPU Freq', self.data.clocks_current_graphics)
+  draw.stat_row(self.origin+106, 'Mem Used', mempct..'% of '..memtotal)
+  draw.stat_row(self.origin+121, 'Mem Rate', memrate)
 
   -- GPU Charts
   draw.graph{data=self.history, x=155, y=self.origin+53, width=35, height=23, color=config.accent,
@@ -73,10 +62,8 @@ function nvidia:update()
     end
 
     -- Update History
-    self.history = self.history or utils.init_table(35, 0)
-    usage = tonumber(data.utilization_gpu:match('^(%d+)'))
-    table.insert(self.history, usage)
-    table.remove(self.history, 1)
+    local usage = tonumber(data.utilization_gpu:match('^(%d+)'))
+    self.history = utils.push_history(self.history, usage, 35)
 
     if data then self.data = data end
     self.last_update = os.time()

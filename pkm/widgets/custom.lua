@@ -30,15 +30,9 @@ function custom:draw()
     -- Substitute variables in template strings
     local title = self:substitute_variables(template.title or 'Custom')
     local subtitle = template.subtitle and self:substitute_variables(template.subtitle) or ''
-    -- Draw header
-    draw.rectangle{x=0, y=y, width=conky_window.width, height=40, color=config.header_bg}
-    draw.text{x=10, y=y+17, text=title, size=12, color=config.header}
-    if subtitle and #subtitle > 0 then
-      draw.text{x=10, y=y+32, text=subtitle, maxwidth=180, color=config.subheader}
-    end
-    -- Draw lines if present
+    -- Draw header and lines
+    draw.widget_header(y, section_height, title, (#subtitle > 0) and subtitle or nil)
     if template.lines and #template.lines > 0 then
-      draw.rectangle{x=0, y=y+40, width=conky_window.width, height=section_height-40, color=config.background}
       local line_y = y + 56
       for _, line in ipairs(template.lines) do
         local left = self:substitute_variables(line.left or '')

@@ -14,12 +14,10 @@ function filesystems:draw()
   self.height = 57
 
   -- Header
-  draw.rectangle{x=0, y=self.origin+0, width=conky_window.width, height=40, color=config.header_bg} -- header background
-  draw.rectangle{x=0, y=self.origin+40, width=conky_window.width, height=self.height-40, color=config.background} -- background
-  draw.text{x=10, y=self.origin+17, text='File Systems', size=12, color=config.header} -- file systems
-  draw.text{x=10, y=self.origin+32, text='IO: '..utils.parse('diskio')..'/s', color=config.subheader} -- io
-  draw.graph{data=self.history, x=100, y=self.origin+8, width=90, height=24, color=config.accent,
-    bgcolor=config.header_graph_bg, minmaxvalue=100*1024, logscale=self.logscale} -- io chart
+  draw.widget_header(self.origin, self.height, 'File Systems', 'IO: '..utils.parse('diskio')..'/s', function()
+    draw.graph{data=self.history, x=100, y=self.origin+8, width=90, height=24, color=config.accent,
+      bgcolor=config.header_graph_bg, minmaxvalue=100*1024, logscale=self.logscale}
+  end)
 
   -- filesystems
   y = self.origin + 61
@@ -37,18 +35,16 @@ function filesystems:draw()
 end
 
 -- Update
--- Update External IP & Network History
+-- Update IO History
 function filesystems:update()
   if utils.check_update(self.history_last_update, config.update_interval) then
-    self.history = self.history or utils.init_table(90, 0)
     local iostr = utils.parse('diskio')
     local io, unit = iostr:match('^(%d+).*(%a+)$')
     io = tonumber(io)
     if unit == 'K' then io = io * 1024 end
     if unit == 'M' then io = io * 1024^2 end
     if unit == 'G' then io = io * 1024^3 end
-    table.insert(self.history, io)
-    table.remove(self.history, 1)
+    self.history = utils.push_history(self.history, io, 90)
     self.history_last_update = os.time()
   end
 end

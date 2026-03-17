@@ -19,6 +19,16 @@ function utils.celsius_to_fahrenheit(value)
 end
 
 
+-- Format Temperature
+-- Returns formatted temperature string with unit conversion if needed
+function utils.format_temp(temp, unit)
+  if unit == 'fahrenheit' then
+    return utils.celsius_to_fahrenheit(tonumber(temp))..'°F'
+  end
+  return temp..'°C'
+end
+
+
 -- Check Update
 -- Checks if the last update was more than the update interval
 function utils.check_update(last_update, update_interval)
@@ -98,6 +108,16 @@ function utils.init_table(size, value)
   local table = {}
   for i=1,size do table[i] = value end
   return table
+end
+
+
+-- Push History
+-- Pushes a value to history table, maintaining fixed size
+function utils.push_history(history, value, size)
+  history = history or utils.init_table(size, 0)
+  table.insert(history, value)
+  table.remove(history, 1)
+  return history
 end
 
 -- Merge
@@ -185,17 +205,10 @@ end
 -- Run Command
 -- Runs a command and returns the output lines
 function utils.run_command(cmd, default)
-  default = default or ''
-  cmd = cmd..' 2>/dev/null'
-  local handle = io.popen(cmd)
-  if handle ~= nil then
-    local content = handle:read('*a')
-    if content ~= nil then
-      handle:close()
-      return content
-    end
-  end
-  return default
+  local handle = io.popen(cmd..' 2>/dev/null')
+  local content = handle and handle:read('*a')
+  if handle then handle:close() end
+  return content or default or ''
 end
 
 
