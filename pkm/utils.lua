@@ -4,6 +4,7 @@
 local http = require 'socket.http'
 local json = require 'pkm/json'
 local ltn12 = require 'ltn12'
+local socket = require 'socket'
 
 utils = {}
 
@@ -32,7 +33,9 @@ end
 -- Check Update
 -- Checks if the last update was more than the update interval
 function utils.check_update(last_update, update_interval)
-  return not last_update or last_update + (update_interval * 0.9) < os.time()
+  local now = socket.gettime()
+  local interval = update_interval or config.default_update_interval
+  return not last_update or last_update + interval < now
 end
 
 

@@ -3,8 +3,10 @@ config = {}
 -- List of widgets to display.
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
+-- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
+config.widgets = {'clock','openmeteo','system'}
 config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
+config.default_update_interval = 1        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
 config.default_font = 'nunito'

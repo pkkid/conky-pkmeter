@@ -68,7 +68,7 @@ end
 -- Update
 -- Update CPU History
 function system:update()
-  if utils.check_update(self.last_update, config.update_interval) then
+  if utils.check_update(self.last_update, self.update_interval) then
     local usage = tonumber(utils.parse('cpu cpu'))
     self.history = utils.push_history(self.history, usage, 90)
     self.last_update = os.time()
