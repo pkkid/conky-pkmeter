@@ -49,7 +49,8 @@ config.system = {
     {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
     {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
     {name='Pump Speed', device='hwmon 7 fan 1', unit=' RPM'},
-  }
+  },
+  cpubars_update_interval = 0.1
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi

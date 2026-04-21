@@ -1,5 +1,6 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local openmeteo = {}
@@ -95,7 +96,7 @@ function openmeteo:update()
     url = string.gsub(url, '{timezone}', self.timezone)
     local data = utils.request{url=url, json=true}
     if data then self.data = data end
-    self.last_update = os.time()
+    self.last_update = socket.gettime()
   end
 end
 
