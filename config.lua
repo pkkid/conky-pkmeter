@@ -7,15 +7,15 @@ config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','
 config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
 
 -- Theme
-config.default_font = 'ubuntu'
+config.default_font = 'nunito'
 config.default_font_bold = true
-config.default_font_color = '#ccc'
+config.default_font_color = '#ebdbb2'
 config.default_font_size = 11
 config.accent = '#d79921'
-config.header = '#cccccc'
+config.header = '#d5c4a1'
 config.subheader = '#d79921'
-config.label = '#999999'
-config.value = '#cccccc'
+config.label = '#928374'
+config.value = '#bdae93'
 config.background = '#11111199'
 config.header_bg = '#444444bb'
 config.graph_bg = '#cccccc33'
