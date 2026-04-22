@@ -4,7 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes'}
 config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
 config.default_update_interval = 1        -- Update interval for widgets (update conkyrc also)
 
@@ -44,7 +44,7 @@ config.system = {
   logscale = false,                       -- Chart cpu usage in logscale
   coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
   temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
-  onclick = 'gnome-system-monitor -r',    -- Click action
+  onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=missioncenter io.missioncenter.MissionCenter',    -- Click action
   extras = {
     {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
     {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
@@ -67,9 +67,10 @@ config.radeon = {
   logscale = false,                       -- Chart gpu usage in logscale
 }
 config.processes = {
-  count = 6,                              -- Number of processes to display
+  min_count = 6,                          -- Min number of processes to display
+  max_count = 10,                         -- Max number of processes to display (max is 10)
   sortby = 'top',                         -- Sort method {top, top_mem, top_io, top_time}
-  onclick = 'gnome-system-monitor -p',    -- Click action
+  onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=missioncenter io.missioncenter.MissionCenter',    -- Click action
 }
 config.networks = {
   devices = {                             -- List of devices to display {name, device} (run ip a to list)
