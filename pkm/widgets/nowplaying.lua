@@ -1,5 +1,6 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local nowplaying = {}
@@ -9,7 +10,6 @@ nowplaying.PLAYERCTL_FORMAT = {'playername={{playerName}}', 'status={{status}}',
 nowplaying.origin = 0
 nowplaying.height = 0
 nowplaying.players = {}
-nowplaying.last_update = nil
 
 -- Draw
 -- Draw this widget
@@ -56,7 +56,7 @@ end
 -- Update
 -- Update Playerctl info
 function nowplaying:update()
-  if utils.check_update(self.last_update, config.update_interval) then
+  if utils.check_update(self.last_update, self.update_interval) then
     players = {}
     cmd = self.playerctl..' metadata -af "'..table.concat(self.PLAYERCTL_FORMAT, ';;')..'"'
     if self.ignore_players and #self.ignore_players > 0 then
@@ -81,7 +81,7 @@ function nowplaying:update()
     -- Clenaup old _art objects (in case it leaks memory)
     for _, player in ipairs(self.players) do player._art = nil end
     self.players = players
-    self.last_update = os.time()
+    self.last_update = socket.gettime()
   end
 end
 

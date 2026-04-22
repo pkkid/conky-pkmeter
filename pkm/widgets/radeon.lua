@@ -35,7 +35,7 @@ end
 -- Update
 -- Update AMD GPU Data
 function radeon:update()
-  if utils.check_update(self.last_update, config.update_interval) then
+  if utils.check_update(self.last_update, self.update_interval) then
     -- Fetch stats from radeontop. Example output:
     -- Dumping to -, line limit 1.
     -- 1740072917.256376: bus 01, gpu 51.67%, ee 0.00%, vgt 22.50%, ta 30.83%, sx 34.17%, \

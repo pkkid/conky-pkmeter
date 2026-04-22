@@ -29,7 +29,7 @@ conky.config = {
   lua_load = 'pkmeter.lua',       -- Loads the Lua scripts separated by spaces.
   lua_draw_hook_pre = 'main',     -- Called by Conky through each iteration before drawing window
   lua_mouse_hook = 'conky_mouse_event', -- Called by Conky on mouse events
-  update_interval = 0.06,            -- Conky update interval in seconds; fps=1/<value>
+  update_interval = 0.25,         -- Conky update interval in seconds; fps=1/<value>
 }
 
 conky.text = [[]]

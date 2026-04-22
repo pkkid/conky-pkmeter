@@ -4,8 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks'}
-config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems'}
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
