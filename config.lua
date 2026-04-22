@@ -4,7 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia','processes'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks'}
 config.update_interval = 2                -- Update interval for widgets (update conkyrc also)
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
@@ -81,7 +81,7 @@ config.networks = {
   upspeed_color = '#cc2414',            -- Upload color for graph
   downspeed_color = '#98971a',          -- Download color for graph
   extip_url = 'https://ipinfo.io/ip',     -- URL to get external ip (https://ipinfo.io/ip, https://api.ipify.org, https://api.ipify.org)
-  extip_update_interval = 900,            -- Update interval to grab external ip
+  update_interval_extip = 900,            -- Update interval to grab external ip
   onclick = 'gnome-system-monitor -r',    -- Click action
 }
 config.filesystems = {

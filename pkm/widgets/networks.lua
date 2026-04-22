@@ -1,5 +1,6 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local networks = {}
@@ -7,10 +8,11 @@ networks.origin = 0
 networks.height = 0
 networks.extip = nil
 networks.extip_last_update = nil
+networks.last_update = nil
 networks.history_upspeed = nil
 networks.history_downspeed = nil
-networks.history_last_update = nil
 networks.show_all = false
+
 
 -- Draw
 -- Draw this widget
@@ -26,17 +28,16 @@ function networks:draw()
   end)
 
   -- Devices
-  y = self.origin + 61
+  local y = self.origin + 61
   for _, dev in ipairs(self.devices) do
-    local ipaddr = utils.parse('addr '..dev.device)
-    if ipaddr ~= 'No Address' or self.show_all then
+    if dev.ipaddr ~= 'No Address' or self.show_all then
       draw.rectangle{x=0, y=y-4, width=conky_window.width, height=55, color=config.background} -- background
       draw.text{x=10, y=y, text=dev.name, color=config.value} -- device name
-      draw.text{x=190, y=y, text=utils.parse('addr '..dev.device), color=config.value, align='right'} -- local ip address
+      draw.text{x=190, y=y, text=dev.ipaddr, color=config.value, align='right'} -- local ip address
       draw.text{x=10, y=y+15, text='Upload', color=config.label} -- upload
-      draw.text{x=190, y=y+15, text=utils.parse('upspeed '..dev.device)..'/s of '..utils.parse('totalup '..dev.device), color=config.value, align='right'} -- upspeed
+      draw.text{x=190, y=y+15, text=dev.upspeed..'/s of '..dev.uptotal, color=config.value, align='right'} -- upspeed
       draw.text{x=10, y=y+30, text='Download', color=config.label} -- download
-      draw.text{x=190, y=y+30, text=utils.parse('downspeed '..dev.device)..'/s of '..utils.parse('totaldown '..dev.device), color=config.value, align='right'} -- downspeed
+      draw.text{x=190, y=y+30, text=dev.downspeed..'/s of '..dev.downtotal, color=config.value, align='right'} -- downspeed
       self.height = self.height + 55
       y = y + 55
     end
@@ -47,20 +48,32 @@ end
 -- Update External IP & Network History
 function networks:update()
   -- External IP
-  if utils.check_update(self.extip_last_update, self.extip_update_interval) then
+  if utils.check_update(self.last_update_extip, self.update_interval_extip) then
     self.extip = utils.request{url=self.extip_url}
-    self.extip_last_update = os.time()
+    self.last_update_extip = socket.gettime()
   end
-  -- Network History
-  if utils.check_update(self.history_last_update, config.update_interval) then
-    local upspeed, downspeed = 0, 0
+  -- Network Devices
+  
+  if utils.check_update(self.last_update, self.update_interval) then
+    local total_upspeed = 0
+    local total_downspeed = 0
     for _, dev in ipairs(self.devices) do
-      upspeed = upspeed + tonumber(utils.parse('upspeedf '..dev.device))
-      downspeed = downspeed + tonumber(utils.parse('downspeedf '..dev.device))
+      dev.name = dev.name
+      dev.ipaddr = utils.parse('addr '..dev.device) or 'No Address'
+      dev.upspeed = utils.parse('upspeed '..dev.device) or '0 B'
+      dev.uptotal = utils.parse('totalup '..dev.device) or '0 B'
+      dev.downspeed = utils.parse('downspeed '..dev.device) or '0 B'
+      dev.downtotal = utils.parse('totaldown '..dev.device) or '0 B'
+      total_upspeed = total_upspeed + (tonumber(utils.parse('upspeedf '..dev.device)) or 0)
+      total_downspeed = total_downspeed + (tonumber(utils.parse('downspeedf '..dev.device)) or 0)
     end
-    self.history_upspeed = utils.push_history(self.history_upspeed, upspeed, 90)
-    self.history_downspeed = utils.push_history(self.history_downspeed, downspeed, 90)
-    self.history_last_update = os.time()
+    self.history_upspeed = utils.push_history(self.history_upspeed, total_upspeed, 90)
+    self.history_downspeed = utils.push_history(self.history_downspeed, total_downspeed, 90)
+    self.last_update = socket.gettime()
+  else
+    -- prime conky cache for device details. I dont use this value, but witout
+    -- continuing to call addr, the values above will not update, not sure why.
+    conky_parse('$addr '..self.devices[1].device) 
   end
 end
 
