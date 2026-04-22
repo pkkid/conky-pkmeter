@@ -1,5 +1,6 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local radeon = {}
@@ -18,15 +19,11 @@ function radeon:draw()
   draw.widget_header(self.origin, self.height, 'AMD GPU', self.gpuname)
 
   -- GPU Stats
-  local temp = utils.format_temp(utils.parse(self.gputemp), self.temperature_unit)
-  local gpufreq = math.floor(tonumber(utils.parse(self.gpufreq) or '0') / 1000000)
-  local memrate = utils.round(tonumber(self.data.mclk_meta:match('^([%d%.]+)') or '0') * 1000.0)
-  local memamt = self.data.vram_meta:gsub("%.%d+", "")
-  draw.stat_row(self.origin+61, 'GPU Usage', self.data.gpu..'%')
-  draw.stat_row(self.origin+76, 'GPU Temp', temp)
-  draw.stat_row(self.origin+91, 'GPU Freq', gpufreq..' MHz')
-  draw.stat_row(self.origin+106, 'Mem Used', self.data.vram..'% '..memamt)
-  draw.stat_row(self.origin+121, 'Mem Rate', memrate..' MHz')
+  draw.stat_row(self.origin+61, 'GPU Usage', self.usage..'%')
+  draw.stat_row(self.origin+76, 'GPU Temp', self.temp)
+  draw.stat_row(self.origin+91, 'GPU Freq', self.freq..' MHz')
+  draw.stat_row(self.origin+106, 'Mem Used', self.mempct..'% '..self.memtotal)
+  draw.stat_row(self.origin+121, 'Mem Rate', self.memrate..' MHz')
 
   -- GPU Charts
   draw.graph{data=self.history, x=155, y=self.origin+53, width=35, height=23, color=config.accent,
@@ -57,11 +54,16 @@ function radeon:update()
       data[key] = utils.round(tonumber(value))
     end
 
+    self.usage = data.gpu
+    self.freq = math.floor(tonumber(utils.parse(self.gpufreq) or '0') / 1000000)
+    self.temp = utils.format_temp(utils.parse(self.gputemp), self.temperature_unit)
+    self.mempct = data.vram
+    self.memtotal = data.vram_meta:gsub('%.%d+', '')
+    self.memrate = utils.round(tonumber(data.mclk_meta:match('^([%d%.]+)') or '0') * 1000.0)
+
     -- Update History
     self.history = utils.push_history(self.history, data.gpu, 35)
-
-    if data then self.data = data end
-    self.last_update = os.time()
+    self.last_update = socket.gettime()
   end
 end
 
