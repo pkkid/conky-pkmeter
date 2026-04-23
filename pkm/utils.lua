@@ -12,7 +12,6 @@ function utils.format_date(str) return utils.parse(string.format('time %s', str)
 function utils.parse(str) return conky_parse(string.format('${%s}', str)) end
 function utils.updates() return utils.parse('updates') end
 
-
 -- Celsius To Fahrenheit
 -- Converts a temperature from Celsius to Fahrenheit.
 function utils.celsius_to_fahrenheit(value)

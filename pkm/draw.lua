@@ -20,6 +20,7 @@ draw = {}
 --  args.origin (string): Origin of the bar {bottom, top, left, right}. Default is left.
 --  args.color (string): Color of the rectangle in hex. Default is #ffffff.
 --  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.logscale (boolean): Set true for log scale.
 --  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
 function draw.bargraph(args)
   local value = args.value or 0
@@ -30,10 +31,15 @@ function draw.bargraph(args)
   local origin = args.origin or 'left'
   local color = args.color or '#ffffff'
   local maxvalue = args.maxvalue or 100
+  local logscale = args.logscale or false
   local bgcolor = args.bgcolor or '#00000000'
   local fullpx = args.fullpx
 
   if value > maxvalue then value = maxvalue end
+  if logscale then
+    value = value > 0 and math.log(value) or 0
+    maxvalue = maxvalue > 0 and math.log(maxvalue) or 1
+  end
   if fullpx == nil then fullpx = config.fullpx end
   draw.rectangle{x=x, y=y, width=width, height=height, color=bgcolor}
   cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
@@ -67,6 +73,7 @@ end
 --  args.color (string): Color of the rectangle in hex format. Default is #ffffff.
 --  args.linewidth (number): Width of the line. Default is 1.
 --  args.maxvalue (number): Max value of the chart (defaults to max args.data).
+--  args.minvalue (number): Min value of the chart (static lower bound, default 0).
 --  args.minmaxvalue (number): Minimum Max-value of the chart (so small numbers are not blown out).
 --  args.logscale (boolean): Set true for log scale.
 --  args.bgcolor (string): Color of the background rectangle. Default is #00000000.
@@ -81,6 +88,7 @@ function draw.graph(args)
   local color = args.color or '#ffffff'
   local linewidth = args.linewidth or 1
   local maxvalue = args.maxvalue or math.max(table.unpack(data))
+  local minvalue = args.minvalue or 0
   local minmaxvalue = args.minmaxvalue or nil
   local logscale = args.logscale or false
   local bgcolor = args.bgcolor or '#00000000'
@@ -91,14 +99,15 @@ function draw.graph(args)
   draw.rectangle{x=x, y=y, width=width, height=height, color=bgcolor}
   cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
   cairo_set_line_width(cr, linewidth)
+  local range = maxvalue - minvalue
   for i=1, #data do
+    local value = math.max(data[i] - minvalue, 0)
     if logscale then
-      local value = data[i] > 0 and math.log(data[i]) or 0
-      if value > maxvalue then value = maxvalue end
-      local logmax = maxvalue > 0 and math.log(maxvalue) or 1
-      barheight = (height / logmax) * value
+      value = value > 0 and math.log(value) or 0
+      local logrange = range > 0 and math.log(range) or 1
+      barheight = (height / logrange) * value
     else
-      barheight = (height / maxvalue) * data[i]
+      barheight = range > 0 and (height / range) * value or 0
     end
     if fullpx then
       barheight = math.ceil(barheight)

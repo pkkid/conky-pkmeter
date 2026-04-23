@@ -14,7 +14,8 @@ nvidia.origin = 0
 nvidia.height = 0
 nvidia.last_update = nil
 nvidia.data = nil
-nvidia.history = nil
+nvidia.history_usage = nil
+nvidia.history_temp = nil
 
 -- Draw
 -- Draw this widget
@@ -22,7 +23,11 @@ function nvidia:draw()
   self.height = 157
 
   -- Header
-  draw.widget_header(self.origin, self.height, 'NVIDIA', self.cardname)
+  color_usage = self.color_usage or config.accent
+  draw.widget_header(self.origin, self.height, 'NVIDIA', self.cardname, function()
+    draw.graph{data=self.history_usage, x=100, y=self.origin+8, width=90, height=24, color=color_usage,
+      bgcolor=config.header_graph_bg, maxvalue=100, logscale=self.logscale}
+  end)
 
   -- GPU Stats
   draw.stat_row(self.origin+61, 'GPU Usage', self.usage..'%')
@@ -33,12 +38,15 @@ function nvidia:draw()
   draw.stat_row(self.origin+136, 'Driver', self.driver)
 
   -- GPU Charts
-  draw.graph{data=self.history, x=155, y=self.origin+53, width=35, height=23, color=config.accent,
-    bgcolor=config.graph_bg, maxvalue=100, logscale=self.logscale} -- gpu history
-  draw.bargraph{value=self.pwrpct, x=155, y=self.origin+82, width=35, height=2, color=config.accent, bgcolor=config.graph_bg} -- power percent
-  draw.text{x=154, y=self.origin+91, text=self.pwrdraw..'W', size=7, bold=false, color=config.label} -- power draw
-  draw.text{x=190, y=self.origin+91, text=self.pstate, size=7, bold=false, color=config.label, align='right'} -- pstate
-  draw.ringgraph{value=self.mempct, x=172, y=self.origin+109, radius=9, width=5, color=config.accent, bgcolor=config.graph_bg} -- memory percent
+  color_pwrpct = self.color_pwrpct or config.accent
+  color_temp = self.color_temp or config.accent
+  color_mem = self.color_mem or config.accent
+  draw.bargraph{value=self.pwrpct, x=155, y=self.origin+53, width=35, height=3, color=color_pwrpct, bgcolor=config.graph_bg} -- power percent
+  draw.text{x=154, y=self.origin+64, text=self.pwrdraw..'W', size=8, bold=false, color=config.label, font='tiny5'} -- power draw
+  draw.text{x=190, y=self.origin+64, text=self.pstate, size=8, bold=false, color=config.label, align='right', font='tiny5'} -- pstate
+  draw.graph{data=self.history_temp, x=155, y=self.origin+74, width=35, height=12, color=color_temp,
+    bgcolor=config.graph_bg, minvalue=35, maxvalue=100, logscale=false} -- temp history
+  draw.ringgraph{value=self.mempct, x=172, y=self.origin+109, radius=9, width=5, color=color_mem, bgcolor=config.graph_bg} -- memory percent
 end
 
 -- Update
@@ -69,7 +77,9 @@ function nvidia:update()
 
     -- Update History
     local usage = tonumber(data.utilization_gpu:match('^(%d+)'))
-    self.history = utils.push_history(self.history, usage, 35)
+    local temp = tonumber(data.temperature_gpu)
+    self.history_usage = utils.push_history(self.history_usage, usage, 90)
+    self.history_temp = utils.push_history(self.history_temp, temp, 35)
     self.last_update = socket.gettime()
   end
 end

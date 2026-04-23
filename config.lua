@@ -49,13 +49,18 @@ config.system = {
     {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
     {name='Pump Speed', device='hwmon 7 fan 1', unit=' RPM'},
   },
-  cpubars_update_interval = 0.1
+  cpubars_update_interval = 0.1,
+  color_temp = '#cc2414'
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi
   temperature_unit = config.tempunit_pc, -- Temperature unit {celsius, fahrenheit}
   logscale = false,                       -- Chart gpu usage in logscale
   onclick = 'nvidia-settings',            -- Click action
+  color_usage = '#98971a',
+  color_pwrpct = '#98971a',
+  color_mem = '#98971a',
+  color_temp = '#cc2414'
 }
 config.radeon = {
   radeontop = '/usr/bin/radeontop',       -- Path to radeontop
