@@ -4,7 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying'}
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -45,9 +45,9 @@ config.system = {
   temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
   onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=missioncenter io.missioncenter.MissionCenter',    -- Click action
   extras = {
-    {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
-    {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
-    {name='Pump Speed', device='hwmon 7 fan 1', unit=' RPM'},
+  --   {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
+  --   {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
+  --   {name='Pump Speed', device='hwmon 7 fan 1', unit=' RPM'},
   },
   cpubars_update_interval = 0.1,
   color_temp = '#cc2414'
@@ -80,7 +80,7 @@ config.networks = {
   devices = {                             -- List of devices to display {name, device} (run ip a to list)
     {name='Ethernet', device='enp4s0'},
     {name='Nasuni VPN', device='vpn0'},
-    {name='PIA', device='tun0'},
+    {name='PIA', device='wgpia0'},
   },
   upspeed_color = '#cc2414',            -- Upload color for graph
   downspeed_color = '#98971a',          -- Download color for graph
