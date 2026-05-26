@@ -17,10 +17,15 @@ function pkmeter:draw_widgets()
     for k,v in pairs(config[name] or {}) do
       widget[k] = widget[k] or v
     end
-    if widget.update then widget:update() end
     widget.origin = origin
-    widget:draw()
-    origin = origin + widget.height
+    local ok, err = pcall(function()
+      if widget.update then widget:update() end
+      widget:draw()
+    end)
+    if not ok then
+      io.stderr:write('Widget '..name..' failed: '..tostring(err)..'\n')
+    end
+    origin = origin + (widget.height or 0)
   end
 end
 

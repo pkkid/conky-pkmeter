@@ -180,19 +180,29 @@ end
 -- Request
 -- Makes an HTTP request returns the response
 function utils.request(args)
-  url = args.url
-  asjson = args.json or false
+  local url = args.url
+  local asjson = args.json or false
   print('Requesting: '..url)
   local response = {}
   local result, code, headers, status = http.request{
     url=url, sink=ltn12.sink.table(response)}
   if not result then
-    io.stderr:write('Request failed: '..code..'; '..url)
+    io.stderr:write('Request failed: '..tostring(code)..'; '..url..'\n')
+    return
+  end
+  if tonumber(code) ~= 200 then
+    io.stderr:write('Request failed with HTTP '..tostring(code)..'; '..url..'\n')
     return
   end
   local content = table.concat(response)
   -- Check return JSON
-  if asjson then return json.decode(content)
+  if asjson then
+    local ok, decoded = pcall(json.decode, content)
+    if not ok then
+      io.stderr:write('Failed to decode JSON from '..url..': '..tostring(decoded)..'\n')
+      return
+    end
+    return decoded
   else return content end
 end
 

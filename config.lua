@@ -38,6 +38,7 @@ config.openmeteo = {
   icon_theme = 'colorful',                -- Icon theme {colorful,dark,flat-black,flat-colorful,flat-white,light}
   onclick = 'xdg-open https://www.google.com/search?q=Holliston,+MA+weather', -- Click action
   update_interval = 900,                  -- Update interval to call weather api
+  max_stale_seconds = 7200,               -- Keep showing old data for up to 2 hours when API updates fail
 }
 config.system = {
   logscale = false,                       -- Chart cpu usage in logscale

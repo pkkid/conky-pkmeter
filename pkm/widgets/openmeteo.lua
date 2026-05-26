@@ -46,15 +46,42 @@ openmeteo.ICONCODES = {
 openmeteo.origin = 0
 openmeteo.height = 0
 openmeteo.last_update = nil
+openmeteo.last_success = nil
+openmeteo.max_stale_seconds = 7200
 openmeteo.data = nil
+openmeteo.errormsg = nil
+
+-- Validate Data
+-- Returns true when the weather payload has the minimum required fields.
+function openmeteo:is_valid_data(data)
+  if not data or type(data) ~= 'table' then return false end
+  if not data.current_weather or not data.daily then return false end
+  if type(data.current_weather) ~= 'table' or type(data.daily) ~= 'table' then return false end
+  if data.current_weather.temperature == nil
+      or data.current_weather.windspeed == nil
+      or data.current_weather.weathercode == nil
+      or data.current_weather.is_day == nil then
+    return false
+  end
+  if not data.daily.time or not data.daily.weathercode or not data.daily.apparent_temperature_max then
+    return false
+  end
+  return true
+end
 
 -- Draw
 -- Draw this widget
 function openmeteo:draw()
   self.height = 131
 
+  if not self.data then
+    self.height = 0
+    return
+  end
+
   -- Current Weather
-  local isnight = not self.data.current_weather.is_day == 1
+  local is_day = self.data.current_weather.is_day
+  local isnight = not (is_day == 1 or is_day == true)
   local ipath, idesc = self:get_iconpath(self.data.current_weather.weathercode, isnight)
   local tempunit = self.temperature_unit == 'fahrenheit' and '°F' or '°C'
   local temp = math.floor(self.data.current_weather.temperature + 0.5)
@@ -89,14 +116,23 @@ end
 --  openmeteo.update_interval:   Update interval to call weather api
 function openmeteo:update()
   if utils.check_update(self.last_update, self.update_interval) then
+    local now = socket.gettime()
     local url = string.gsub(self.URL, '{latitude}', self.latitude)
     url = string.gsub(url, '{longitude}', self.longitude)
     url = string.gsub(url, '{temperature_unit}', self.temperature_unit)
     url = string.gsub(url, '{wind_speed_unit}', self.wind_speed_unit)
     url = string.gsub(url, '{timezone}', self.timezone)
     local data = utils.request{url=url, json=true}
-    if data then self.data = data end
-    self.last_update = socket.gettime()
+    local isstale = self.last_success ~= nil
+      and (now - self.last_success) > self.max_stale_seconds
+    if self:is_valid_data(data) then
+      self.data = data
+      self.last_success = now
+      self.errormsg = nil
+    elseif not self.data or isstale then
+      self.data = nil
+    end
+    self.last_update = now
   end
 end
 
