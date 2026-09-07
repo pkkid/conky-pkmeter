@@ -23,6 +23,16 @@ local function pick(value, snake, camel)
   return value[snake] ~= nil and value[snake] or value[camel]
 end
 
+-- Waits for User
+-- Returns true when a tool call requests user input or elevated permission.
+local function waits_for_user(payload)
+  local name = tostring(payload.name or ''):lower()
+  if name:find('request_user_input', 1, true) or name:find('approval', 1, true) then return true end
+  local arguments = payload.input or payload.arguments
+  return type(arguments) == 'string'
+    and arguments:match("[,{]%s*['\"]?sandbox_permissions['\"]?%s*:%s*['\"]require_escalated['\"]") ~= nil
+end
+
 -- Parse Timestamp
 -- Converts an ISO 8601 UTC timestamp into Unix epoch seconds.
 local function timestamp(value)
@@ -189,8 +199,16 @@ function codexpoll.status(codex_home, previous, timeout)
   if status.source_offset and status.source_offset > 0 then handle:seek('set', status.source_offset) end
   local deadline = socket.gettime() + (timeout or 1)
   local complete = true
-  for line in handle:lines() do
+  while true do
+    local line_offset = handle:seek()
+    local line = handle:read('*L')
+    if not line then break end
     local ok, row = pcall(json.decode, line)
+    if not ok and line:sub(-1) ~= '\n' then
+      handle:seek('set', line_offset)
+      complete = false
+      break
+    end
     local payload = ok and type(row) == 'table' and row.payload or nil
     if type(payload) == 'table' then
       local task_state = row.type == 'event_msg' and TASK_STATES[payload.type]
@@ -199,13 +217,8 @@ function codexpoll.status(codex_home, previous, timeout)
         status.waiting_calls = {}
       elseif row.type == 'response_item'
           and (payload.type == 'custom_tool_call' or payload.type == 'function_call') then
-        local name = tostring(payload.name or ''):lower()
-        local arguments = payload.input or payload.arguments or ''
-        local waiting = name:find('request_user_input', 1, true)
-          or name:find('approval', 1, true)
-          or type(arguments) == 'string' and arguments:find('require_escalated', 1, true)
-        if waiting then
-          status.waiting_calls[payload.call_id or name] = true
+        if waits_for_user(payload) then
+          status.waiting_calls[payload.call_id or payload.name] = true
           status.state = 'waiting'
         end
       elseif row.type == 'response_item'
