@@ -24,7 +24,7 @@ local ssl = require 'ssl'
 -- Make pkm/json.lua importable regardless of cwd.
 local script_dir = (arg[0] or ''):match('(.*/)') or './'
 package.path = script_dir .. '../?.lua;' .. package.path
-local json = require 'pkm.json'
+local json = require 'pkm/json'
 
 
 -- ---------------------------------------------------------------------

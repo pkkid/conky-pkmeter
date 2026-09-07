@@ -28,11 +28,22 @@ local function timestamp(value)
   local year, month, day, hour, minute, second = value:match(
     '^(%d%d%d%d)%-(%d%d)%-(%d%d)T(%d%d):(%d%d):(%d%d)')
   if not year then return nil end
+  local year_number = math.tointeger(tonumber(year))
+  local month_number = math.tointeger(tonumber(month))
+  local day_number = math.tointeger(tonumber(day))
+  local hour_number = math.tointeger(tonumber(hour))
+  local minute_number = math.tointeger(tonumber(minute))
+  local second_number = math.tointeger(tonumber(second))
+  if not year_number or not month_number or not day_number
+      or not hour_number or not minute_number or not second_number then
+    return nil
+  end
   local interpreted = os.time{
-    year=tonumber(year), month=tonumber(month), day=tonumber(day),
-    hour=tonumber(hour), min=tonumber(minute), sec=tonumber(second), isdst=false,
+    year=year_number, month=month_number, day=day_number,
+    hour=hour_number, min=minute_number, sec=second_number, isdst=false,
   }
   local utc = os.date('!*t', interpreted)
+  if type(utc) ~= 'table' then return nil end
   utc.isdst = false
   return interpreted + os.difftime(interpreted, os.time(utc))
 end
