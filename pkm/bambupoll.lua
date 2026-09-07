@@ -30,6 +30,8 @@ local json = require 'pkm.json'
 -- ---------------------------------------------------------------------
 -- Args
 -- ---------------------------------------------------------------------
+-- Parse Args
+-- Parses command-line options and falls back to Bambu environment variables.
 local function parse_args()
   local opts = {
     host=nil, port=8883, serial=nil, code=nil,
@@ -73,15 +75,20 @@ end
 -- ---------------------------------------------------------------------
 -- MQTT 3.1.1 wire format helpers
 -- ---------------------------------------------------------------------
+-- Encode Unsigned 16-Bit Integer
+-- Encodes an integer as two network-order bytes.
 local function u16(n)
   return string.char((n >> 8) & 0xFF, n & 0xFF)
 end
 
+-- Encode MQTT String
+-- Prefixes a string with its two-byte MQTT length.
 local function mqtt_string(s)
   return u16(#s) .. s
 end
 
--- MQTT "remaining length" varint: 1-4 bytes, 7 bits of value per byte.
+-- Encode Variable Integer
+-- Encodes an MQTT remaining length as a one-to-four-byte variable integer.
 local function encode_varint(n)
   local out = {}
   repeat
@@ -93,7 +100,8 @@ local function encode_varint(n)
   return table.concat(out)
 end
 
--- Read the varint remaining length off a socket, byte-at-a-time.
+-- Read Variable Integer
+-- Reads an MQTT remaining length from a socket one byte at a time.
 local function read_varint(sock)
   local value = 0
   local mult = 1
@@ -112,7 +120,8 @@ end
 -- ---------------------------------------------------------------------
 -- Packet builders
 -- ---------------------------------------------------------------------
--- CONNECT: username + password + clean session, keepalive 60s.
+-- Build Connect Packet
+-- Builds an MQTT CONNECT packet with credentials, a clean session, and a 60-second keepalive.
 local function build_connect(client_id, username, password)
   local variable_header = mqtt_string('MQTT')
     .. string.char(0x04)   -- Protocol Level 4 (MQTT 3.1.1)
@@ -125,19 +134,22 @@ local function build_connect(client_id, username, password)
   return string.char(0x10) .. encode_varint(#body) .. body
 end
 
--- SUBSCRIBE with a single topic filter at QoS 0.
+-- Build Subscribe Packet
+-- Builds an MQTT SUBSCRIBE packet for one QoS 0 topic filter.
 local function build_subscribe(packet_id, topic)
   local body = u16(packet_id) .. mqtt_string(topic) .. string.char(0)
   return string.char(0x82) .. encode_varint(#body) .. body
 end
 
--- PUBLISH at QoS 0.
+-- Build Publish Packet
+-- Builds an MQTT QoS 0 PUBLISH packet for a topic and payload.
 local function build_publish(topic, payload)
   local body = mqtt_string(topic) .. payload
   return string.char(0x30) .. encode_varint(#body) .. body
 end
 
--- DISCONNECT.
+-- Build Disconnect Packet
+-- Builds an MQTT DISCONNECT packet.
 local function build_disconnect()
   return string.char(0xE0, 0x00)
 end
@@ -146,8 +158,8 @@ end
 -- ---------------------------------------------------------------------
 -- Packet reader
 -- ---------------------------------------------------------------------
--- Read a single MQTT packet from the (SSL) socket.
--- Returns { type=..., flags=..., body=<raw bytes> } or nil, error.
+-- Read Packet
+-- Reads and decodes one MQTT packet header and body from an SSL socket.
 local function read_packet(sock)
   local head, err = sock:receive(1)
   if not head then return nil, err end
@@ -166,6 +178,8 @@ end
 -- ---------------------------------------------------------------------
 -- Connection
 -- ---------------------------------------------------------------------
+-- Connect TLS
+-- Opens a TCP connection and wraps it in an unverified local TLS session.
 local function connect_tls(host, port, timeout)
   local sock, err = socket.tcp()
   if not sock then return nil, err end
@@ -190,7 +204,8 @@ end
 -- ---------------------------------------------------------------------
 -- Body parsers
 -- ---------------------------------------------------------------------
--- PUBLISH body: 2-byte topic length, topic, (optional packet id if QoS>0), payload.
+-- Parse Publish Packet
+-- Extracts the topic and payload from an MQTT PUBLISH packet body.
 local function parse_publish(pkt)
   local body = pkt.body
   if #body < 2 then return nil, 'publish body too short' end
@@ -207,7 +222,8 @@ end
 -- ---------------------------------------------------------------------
 -- Output
 -- ---------------------------------------------------------------------
--- Merge fields from delta.print into acc.print.
+-- Merge Print State
+-- Copies fields from a partial printer report into the accumulated state.
 local function merge_print(acc, delta)
   if type(delta) ~= 'table' then return end
   for k, v in pairs(delta) do
@@ -215,6 +231,8 @@ local function merge_print(acc, delta)
   end
 end
 
+-- Write Atomic
+-- Writes content to a temporary file and atomically renames it into place.
 local function write_atomic(path, content)
   local tmp = path .. '.tmp'
   local fh, err = io.open(tmp, 'wb')
@@ -226,6 +244,8 @@ local function write_atomic(path, content)
   return true
 end
 
+-- Write Result
+-- Serializes a timestamped poll result and writes it atomically as JSON.
 local function write_result(path, ok, print_state, extra)
   local out = {
     ok = ok,
@@ -244,18 +264,24 @@ end
 -- Thumbnail (FTPS to printer, extract Metadata/plate_1_small.png from
 -- the current .gcode.3mf, cache to disk).
 -- ---------------------------------------------------------------------
+-- URL Encode
+-- Percent-encodes a string for use in an FTPS URL path.
 local function urlencode(s)
   return (s:gsub('[^%w%-_%.~]', function(c)
     return string.format('%%%02X', string.byte(c))
   end))
 end
 
+-- File Exists
+-- Returns true when a path can be opened for reading.
 local function file_exists(path)
   local fh = io.open(path, 'r')
   if fh then fh:close(); return true end
   return false
 end
 
+-- Read File
+-- Reads and returns an entire text file, or nil when it cannot be opened.
 local function read_file(path)
   local fh = io.open(path, 'r')
   if not fh then return nil end
@@ -264,8 +290,8 @@ local function read_file(path)
   return content
 end
 
--- Only re-download when the current print's `subtask_name` differs from
--- the marker sidecar written by the previous successful fetch.
+-- Fetch Thumbnail
+-- Downloads and caches the current plate thumbnail when the print name changes.
 local function fetch_thumbnail(host, code, subtask_name, out_path, log)
   if not subtask_name or subtask_name == '' then
     log('no subtask_name; skipping thumbnail')
@@ -321,11 +347,15 @@ end
 -- ---------------------------------------------------------------------
 -- Main
 -- ---------------------------------------------------------------------
+-- Main
+-- Connects to the printer, collects its status, writes the result, and fetches its thumbnail.
 local function main()
   local opts = parse_args()
   local report_topic = 'device/'..opts.serial..'/report'
   local request_topic = 'device/'..opts.serial..'/request'
 
+  -- Log
+  -- Writes a poller message to stderr when verbose output is enabled.
   local function log(msg)
     if opts.verbose then io.stderr:write('[bambu_poll] '..msg..'\n') end
   end

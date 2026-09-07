@@ -1,60 +1,65 @@
 # Conky-PKMeter
-<img align="right" src="preview.png" style="z-index:999">
-Conky configuration written entirely in Lua. Provides widgets for clock,
-openmeteo (weather), system, nvidia, processes, networks, filesystems, and 
-nowplaying (using playerctl).
-<br/><br/>
 
-### Installation
-Clone this respositry and make sure you have the python-requirements installed
-on your system and start it with the final command below.
+<img align="right" src="preview.png">
+
+A Conky configuration written entirely in Lua. It includes clock, weather,
+system, GPU, process, network, filesystem, media, Bambu printer, and Codex usage
+widgets.
+
+## Installation
+
 ```bash
-sudo apt install conky-all lua-socket lua-sec playerctl
+sudo apt install conky-all lua-socket lua-sec playerctl curl unzip
 git clone https://github.com/pkkid/conky-pkmeter.git
 cd conky-pkmeter
 conky -c conkyrc
 ```
-<br/>
 
-### Configuration
-Most of the configuration is in the file `config.lua`. If there are a few more
-options available in conkyrc that help control the main conky window. At the
-very least, I believe you'll want to take a look at the following:
+## Configuration
 
-1. `openmeteo` - This this is the weather widget. You will want to update these
-   settings to grab the right weather for your area.
-2. `networks` - To find out what your the network device names are on your system
-   you can run the command `ifconfig`. Add the devices you want to monitor to
-   the devices section.
-3. `filesystems` - By default, this only watches the root filesystem. However,
-   the io chart requires you input the proper device name to be monitored. You
-   can list the filesystems on your device with the command `df -h`. Add which
-   ever ones you want to monitor to the filesystems section.
-4. `nowplaying` - This uses the application playerctl in the background to fetch
-   the currently playing music and artwork. You may need to install this on your
-   system.
-<br/>
+Widget settings and display order are defined in `config.lua`. Window placement,
+size, and Conky behavior are configured in `conkyrc`.
 
-### Auto Start In Ubuntu
-Add the following to Startup Applications:
+- `openmeteo`: Set your location, timezone, units, and icon theme.
+- `networks`: Find interface names with `ip link`, then configure the devices to monitor.
+- `filesystems`: Find mount paths with `df -h`, then configure the paths to monitor.
+- `nowplaying`: Uses `playerctl` for playback information and controls.
+- `bambu`: Set the printer host, serial number, and LAN access code.
+
+## Codex Usage
+
+The Codex widget displays five-hour and weekly usage, compact reset times,
+weekly pacing, and the top three locally recorded models by token share. It reads
+session records from `$CODEX_HOME` or `~/.codex`; it does not run Codex, start an
+app server, access credentials, or make network requests.
+
+Limits refresh every minute and model totals refresh every five minutes. Clicking
+the widget forces a local rescan. Model percentages represent local token share,
+not each model's contribution to the subscription limit. Codex's local session
+format is internal and may change in future releases.
+
+## Auto Start
+
+Add the following command to Ubuntu Startup Applications:
+
 ```bash
 /usr/bin/bash -c "/usr/bin/sleep 5; cd ~/Projects/conky-pkmeter/ && conky -c conkyrc"
 ```
-<br/>
 
-### Click Events Not Working
-There is a [known bug in conky](https://github.com/brndnmtthws/conky/issues/2047) affecting
-versions 1.21.7 and later where mouse click events are incorrectly reported as `mouse_enter`
-events instead of `button_down`/`button_up`. This affects XWayland on Wayland sessions and
-some X11 window managers.
+## Mouse Clicks
 
-As a temporary workaround, you can update pkmeter.lua to look for mouse_enter events instead
-of button_down events. Also set the configrc options below. However, you will unfortunatly
-have a window title on the panel.
-```
+[Conky issue #2047](https://github.com/brndnmtthws/conky/issues/2047) can cause
+mouse clicks to be reported as `mouse_enter` under XWayland and some X11 window
+managers. As a temporary workaround, handle `mouse_enter` instead of
+`button_down` in `pkmeter.lua` and use:
+
+```lua
 own_window_type = 'normal',
 own_window_hints = 'skip_taskbar,sticky,below',
 ```
 
-### Thanks
-Fisadev & Zineddine SAIBI for creating the original Conky draw.lua scripts.
+This workaround may display a window title on the panel.
+
+## Credits
+
+Fisadev and Zineddine SAIBI created the original Conky drawing scripts.

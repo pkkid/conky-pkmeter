@@ -4,7 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','bambu'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','bambu','codex'}
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -27,6 +27,13 @@ config.tempunit_pc = 'celsius'
 -- Widgets
 config.clock = {
   onclick = 'gnome-clocks',               -- Click action
+}
+config.codex = {
+  limit_id = 'codex',
+  update_interval = 60,
+  scan_timeout = 1,
+  model_update_interval = 300,
+  model_scan_timeout = 3,
 }
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
@@ -158,7 +165,7 @@ config.fullpx = false
 -- Adding an entry for [<hostname>] will override
 -- any configuration variables above.
 config['[pkkid-laptop]'] = {
-  widgets = {'clock','openmeteo','system','processes','networks','filesystems','nowplaying'},
+  widgets = {'clock','openmeteo','codex','system','processes','networks','filesystems','nowplaying'},
   system = {
     logscale = false,                       -- Chart cpu usage in logscale
     coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
