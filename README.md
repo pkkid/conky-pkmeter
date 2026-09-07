@@ -33,10 +33,10 @@ weekly pacing, and the top three locally recorded models by token share and
 prompt count. It reads session records from `$CODEX_HOME` or `~/.codex`; it does
 not run Codex, start an app server, access credentials, or make network requests.
 
-Limits refresh every minute and model totals refresh every five minutes. Clicking
-the widget forces a local rescan. Model percentages represent local token share,
-not each model's contribution to the subscription limit. Codex's local session
-format is internal and may change in future releases.
+Task status refreshes every five seconds, shown blue while running or orange
+while waiting. Limits refresh every minute and models every five minutes.
+Clicking forces a local rescan. Model percentages represent local token share,
+not subscription-limit contribution. Codex's local session format may change.
 
 ## Auto Start
 

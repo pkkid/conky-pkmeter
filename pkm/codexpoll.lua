@@ -2,6 +2,8 @@ local json = require 'pkm/json'
 local socket = require 'socket'
 
 local codexpoll = {}
+local STATUS_STALE_SECONDS = 900
+local TASK_STATES = {task_started='running', task_complete='idle'}
 
 -- Shell Quote
 -- Quotes a value for safe use as one POSIX shell argument.
@@ -166,6 +168,63 @@ function codexpoll.limits(codex_home, limit_id, previous, timeout)
     end
   end
   return nil, 'No local Codex usage found'
+end
+
+-- Read Task Status
+-- Infers the latest local Codex task state from session lifecycle and pending input events.
+function codexpoll.status(codex_home, previous, timeout)
+  local files = session_files(codex_home)
+  local file = files[1]
+  if not file then return {state='idle'} end
+  local stale = os.time() - file.modified > STATUS_STALE_SECONDS
+  if previous and previous.source_file == file.path
+      and file.modified <= (previous.source_modified or 0) and not previous.partial then
+    if previous.state == 'running' and stale then previous.state = 'idle' end
+    return previous
+  end
+  local status = previous and previous.source_file == file.path and previous
+    or {state='idle', waiting_calls={}}
+  local handle = io.open(file.path, 'r')
+  if not handle then return nil, 'Unable to read local Codex status' end
+  if status.source_offset and status.source_offset > 0 then handle:seek('set', status.source_offset) end
+  local deadline = socket.gettime() + (timeout or 1)
+  local complete = true
+  for line in handle:lines() do
+    local ok, row = pcall(json.decode, line)
+    local payload = ok and type(row) == 'table' and row.payload or nil
+    if type(payload) == 'table' then
+      local task_state = row.type == 'event_msg' and TASK_STATES[payload.type]
+      if task_state then
+        status.state = task_state
+        status.waiting_calls = {}
+      elseif row.type == 'response_item'
+          and (payload.type == 'custom_tool_call' or payload.type == 'function_call') then
+        local name = tostring(payload.name or ''):lower()
+        local arguments = payload.input or payload.arguments or ''
+        local waiting = name:find('request_user_input', 1, true)
+          or name:find('approval', 1, true)
+          or type(arguments) == 'string' and arguments:find('require_escalated', 1, true)
+        if waiting then
+          status.waiting_calls[payload.call_id or name] = true
+          status.state = 'waiting'
+        end
+      elseif row.type == 'response_item'
+          and (payload.type == 'custom_tool_call_output' or payload.type == 'function_call_output') then
+        if payload.call_id then status.waiting_calls[payload.call_id] = nil end
+        if status.state == 'waiting' and next(status.waiting_calls) == nil then
+          status.state = 'running'
+        end
+      end
+    end
+    if socket.gettime() > deadline then complete = false; break end
+  end
+  status.source_file = file.path
+  status.source_modified = file.modified
+  status.source_offset = handle:seek()
+  status.partial = not complete
+  handle:close()
+  if status.state == 'running' and stale then status.state = 'idle' end
+  return status
 end
 
 -- Read Model Usage

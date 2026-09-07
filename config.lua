@@ -31,6 +31,7 @@ config.clock = {
 config.codex = {
   limit_id = 'codex',
   update_interval = 60,
+  status_update_interval = 5,
   scan_timeout = 1,
   model_update_interval = 300,
   model_scan_timeout = 3,

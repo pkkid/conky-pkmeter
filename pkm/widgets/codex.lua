@@ -5,6 +5,7 @@ local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local codex = {origin=0, height=0}
+local STATUS_COLORS = {running='#458588', waiting='#d65d0e'}
 
 -- Format Duration
 -- Formats seconds using only the largest relevant day, hour, or minute unit.
@@ -23,7 +24,7 @@ function codex:home_path()
 end
 
 -- Update
--- Refreshes local limit and model usage data when their intervals expire.
+-- Refreshes local limits, task status, and model usage when their intervals expire.
 function codex:update(force)
   local now = socket.gettime()
   if force or utils.check_update(self.last_limit_update, self.update_interval) then
@@ -31,6 +32,12 @@ function codex:update(force)
       self:home_path(), self.limit_id or 'codex', self.snapshot, self.scan_timeout or 1)
     if snapshot then self.snapshot = snapshot; self.error = nil else self.error = err end
     self.last_limit_update = now
+  end
+  if force or utils.check_update(self.last_status_update, self.status_update_interval or 5) then
+    local task_status = codexpoll.status(
+      self:home_path(), self.task_status, self.scan_timeout or 1)
+    if task_status then self.task_status = task_status end
+    self.last_status_update = now
   end
   local weekly = self.snapshot and self.snapshot.data.windows.weekly
   local reset = weekly and weekly.resets_at
@@ -88,7 +95,13 @@ function codex:draw()
   self.height = 105 + #rows * 15
   local subtitle = data.plan or 'Local usage'
   if age then subtitle = subtitle..' · '..duration(age)..' ago' end
-  draw.widget_header(self.origin, self.height, 'Codex Usage', subtitle)
+  draw.widget_header(self.origin, self.height, 'Codex Usage', subtitle, function()
+    local color = self.task_status and STATUS_COLORS[self.task_status.state]
+    if color then
+      draw.ring{x=conky_window.width-14, y=self.origin+20, radius=2, width=4,
+        color=color}
+    end
+  end)
   local vertical = self.origin + 55
   for _, entry in ipairs({{'5 hour', 'five_hour'}, {'Weekly', 'weekly'}}) do
     local window = windows[entry[2]]
