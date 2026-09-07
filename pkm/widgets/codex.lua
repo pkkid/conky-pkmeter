@@ -75,7 +75,9 @@ function codex:draw()
   local usage = self.model_usage
   if usage and usage.total_tokens > 0 then
     for _, model in ipairs(usage.models or {}) do
-      table.insert(rows, {text=model.name, value=string.format('%.1f%%', model.percent), color=config.value})
+      table.insert(rows, {text=model.name,
+        value=string.format('%.1f%% · %dp', model.percent, model.prompts),
+        color=config.value})
     end
     if usage.partial then row('Partial local records') end
   else
@@ -93,7 +95,7 @@ function codex:draw()
     local expired = window and window.resets_at and window.resets_at <= now
     local value = window and string.format('%.0f%%', window.used_percent) or 'Unavailable'
     if expired then value = value..' · Awaiting'
-    elseif window and window.resets_at then value = value..' · Resets '..duration(window.resets_at - now) end
+    elseif window and window.resets_at then value = value..' · reset '..duration(window.resets_at - now) end
     draw.text{x=10, y=vertical, text=entry[1], color=config.value}
     draw.text{x=right, y=vertical, text=value, align='right', color=config.value, maxwidth=130}
     if window then
@@ -103,7 +105,7 @@ function codex:draw()
     vertical = vertical + 25
   end
   for _, item in ipairs(rows) do
-    draw.text{x=10, y=vertical, text=item.text, color=item.color, maxwidth=item.value and width-50 or width}
+    draw.text{x=10, y=vertical, text=item.text, color=item.color, maxwidth=item.value and width-75 or width}
     if item.value then draw.text{x=right, y=vertical, text=item.value, color=config.value, align='right'} end
     vertical = vertical + 15
   end

@@ -173,6 +173,8 @@ end
 function codexpoll.models(codex_home, start_time, end_time, timeout)
   local totals = {}
   local seen = {}
+  local prompts = {}
+  local seen_prompts = {}
   local files_read = 0
   local partial = false
   local deadline = socket.gettime() + (timeout or 3)
@@ -186,6 +188,7 @@ function codexpoll.models(codex_home, start_time, end_time, timeout)
         files_read = files_read + 1
         local model = 'Unknown'
         local session_id = file.path
+        local turn_id
         local previous_total
         for line in handle:lines() do
           if socket.gettime() > deadline then partial = true; break end
@@ -196,6 +199,9 @@ function codexpoll.models(codex_home, start_time, end_time, timeout)
               session_id = payload.session_id or payload.id or session_id
             elseif row.type == 'turn_context' then
               model = payload.model or 'Unknown'
+              turn_id = payload.turn_id or turn_id
+            elseif row.type == 'event_msg' and payload.type == 'task_started' then
+              turn_id = payload.turn_id or row.timestamp or turn_id
             elseif row.type == 'event_msg' and payload.type == 'token_count' then
               local info = payload.info or {}
               local total = (info.total_token_usage or {}).total_tokens
@@ -209,6 +215,11 @@ function codexpoll.models(codex_home, start_time, end_time, timeout)
                     and event_time <= end_time and not seen[identity] then
                   totals[model] = (totals[model] or 0) + delta
                   seen[identity] = true
+                  local prompt_identity = table.concat({session_id, turn_id or 'Unknown', model}, '|')
+                  if not seen_prompts[prompt_identity] then
+                    prompts[model] = (prompts[model] or 0) + 1
+                    seen_prompts[prompt_identity] = true
+                  end
                 end
               end
             end
@@ -224,7 +235,7 @@ function codexpoll.models(codex_home, start_time, end_time, timeout)
   local total = 0
   for model, tokens in pairs(totals) do
     total = total + tokens
-    table.insert(ranked, {name=model, tokens=tokens})
+    table.insert(ranked, {name=model, tokens=tokens, prompts=prompts[model] or 0})
   end
   table.sort(ranked, function(left, right) return left.tokens > right.tokens end)
   local models = {}

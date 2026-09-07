@@ -29,9 +29,9 @@ size, and Conky behavior are configured in `conkyrc`.
 ## Codex Usage
 
 The Codex widget displays five-hour and weekly usage, compact reset times,
-weekly pacing, and the top three locally recorded models by token share. It reads
-session records from `$CODEX_HOME` or `~/.codex`; it does not run Codex, start an
-app server, access credentials, or make network requests.
+weekly pacing, and the top three locally recorded models by token share and
+prompt count. It reads session records from `$CODEX_HOME` or `~/.codex`; it does
+not run Codex, start an app server, access credentials, or make network requests.
 
 Limits refresh every minute and model totals refresh every five minutes. Clicking
 the widget forces a local rescan. Model percentages represent local token share,
