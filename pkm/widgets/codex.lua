@@ -106,13 +106,15 @@ function codex:draw()
   for _, entry in ipairs({{'5 hour', 'five_hour'}, {'Weekly', 'weekly'}}) do
     local window = windows[entry[2]]
     local expired = window and window.resets_at and window.resets_at <= now
-    local value = window and string.format('%.0f%%', window.used_percent) or 'Unavailable'
-    if expired then value = value..' · Awaiting'
-    elseif window and window.resets_at then value = value..' · reset '..duration(window.resets_at - now) end
+    local used = expired and 0 or window and window.used_percent
+    local value = used and string.format('%.0f%%', used) or 'Unavailable'
+    if not expired and window and window.resets_at then
+      value = value..' · reset '..duration(window.resets_at - now)
+    end
     draw.text{x=10, y=vertical, text=entry[1], color=config.value}
     draw.text{x=right, y=vertical, text=value, align='right', color=config.value, maxwidth=130}
     if window then
-      draw.bargraph{x=10, y=vertical+5, width=width, height=2, value=window.used_percent,
+      draw.bargraph{x=10, y=vertical+5, width=width, height=2, value=used,
         maxvalue=100, color=config.accent, bgcolor=config.graph_bg}
     end
     vertical = vertical + 25
