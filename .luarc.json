@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "runtime.version": "Lua 5.4",
+  "diagnostics.disable": [
+    "lowercase-global",
+    "unused-local",
+    "trailing-space"
+  ],
+  "diagnostics.globalsRegex": [
+    "^conky$",
+    "^conky_",
+    "^cairo_",
+    "^CAIRO_",
+    "^imlib_",
+    "^tolua$"
+  ]
+}
