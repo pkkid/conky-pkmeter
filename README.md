@@ -28,10 +28,11 @@ size, and Conky behavior are configured in `conkyrc`.
 
 ## Codex Usage
 
-The Codex widget displays five-hour and weekly usage, compact reset times,
-weekly pacing, and the top three locally recorded models by token share and
-prompt count. It reads session records from `$CODEX_HOME` or `~/.codex`; it does
-not run Codex, start an app server, access credentials, or make network requests.
+The Codex widget displays available five-hour and weekly usage, compact reset
+times, weekly pacing, and the top three locally recorded models by token share
+and prompt count. It reads session records from `$CODEX_HOME` or `~/.codex`; it
+does not run Codex, start an app server, access credentials, or make network
+requests.
 
 Task status refreshes every five seconds, shown blue while running or orange
 while waiting. Limits refresh every minute and models every five minutes.

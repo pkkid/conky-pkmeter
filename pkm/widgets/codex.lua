@@ -92,7 +92,8 @@ function codex:draw()
   end
   if pace_label then row(pace_label) end
   if self.error then row(self.error, config.subheader) end
-  self.height = 105 + #rows * 15
+  local window_rows = (windows.five_hour and 1 or 0) + 1
+  self.height = 55 + window_rows * 25 + #rows * 15
   local subtitle = data.plan or 'Local usage'
   if age then subtitle = subtitle..' · '..duration(age)..' ago' end
   draw.widget_header(self.origin, self.height, 'Codex Usage', subtitle, function()
@@ -105,19 +106,21 @@ function codex:draw()
   local vertical = self.origin + 55
   for _, entry in ipairs({{'5 hour', 'five_hour'}, {'Weekly', 'weekly'}}) do
     local window = windows[entry[2]]
-    local expired = window and window.resets_at and window.resets_at <= now
-    local used = expired and 0 or window and window.used_percent
-    local value = used and string.format('%.0f%%', used) or 'Unavailable'
-    if not expired and window and window.resets_at then
-      value = value..' · reset '..duration(window.resets_at - now)
+    if entry[2] ~= 'five_hour' or window then
+      local expired = window and window.resets_at and window.resets_at <= now
+      local used = expired and 0 or window and window.used_percent
+      local value = used and string.format('%.0f%%', used) or 'Unavailable'
+      if not expired and window and window.resets_at then
+        value = value..' · reset '..duration(window.resets_at - now)
+      end
+      draw.text{x=10, y=vertical, text=entry[1], color=config.value}
+      draw.text{x=right, y=vertical, text=value, align='right', color=config.value, maxwidth=130}
+      if window then
+        draw.bargraph{x=10, y=vertical+5, width=width, height=2, value=used,
+          maxvalue=100, color=config.accent, bgcolor=config.graph_bg}
+      end
+      vertical = vertical + 25
     end
-    draw.text{x=10, y=vertical, text=entry[1], color=config.value}
-    draw.text{x=right, y=vertical, text=value, align='right', color=config.value, maxwidth=130}
-    if window then
-      draw.bargraph{x=10, y=vertical+5, width=width, height=2, value=used,
-        maxvalue=100, color=config.accent, bgcolor=config.graph_bg}
-    end
-    vertical = vertical + 25
   end
   for _, item in ipairs(rows) do
     draw.text{x=10, y=vertical, text=item.text, color=item.color, maxwidth=item.value and width-75 or width}
