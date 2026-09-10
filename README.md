@@ -36,8 +36,9 @@ requests.
 
 Task status refreshes every five seconds, shown blue while running or orange
 while waiting. Limits refresh every minute and models every five minutes.
-Clicking forces a local rescan. Model percentages represent local token share,
-not subscription-limit contribution. Codex's local session format may change.
+Clicking forces a local rescan. Model percentages show each model's share of the
+selected limit usage: five-hour when available, otherwise weekly, allocated
+using locally recorded token counts. Codex's local session format may change.
 
 ## Auto Start
 

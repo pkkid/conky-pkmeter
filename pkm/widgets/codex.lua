@@ -39,16 +39,19 @@ function codex:update(force)
     if task_status then self.task_status = task_status end
     self.last_status_update = now
   end
-  local weekly = self.snapshot and self.snapshot.data.windows.weekly
-  local reset = weekly and weekly.resets_at
-  local quota_week = reset and reset - 604800 <= now and now < reset
-  local start_time = quota_week and reset - 604800 or now - 604800
+  local windows = self.snapshot and self.snapshot.data and self.snapshot.data.windows or {}
+  local model_window_name = windows.five_hour and 'five_hour' or windows.weekly and 'weekly'
+  local model_window = model_window_name and windows[model_window_name]
+  local duration = model_window and model_window.duration_seconds or 604800
+  local reset = model_window and model_window.resets_at
+  local quota_window = reset and reset - duration <= now and now < reset
+  local start_time = quota_window and reset - duration or now - duration
   if force
       or utils.check_update(self.last_model_update, self.model_update_interval)
-      or self.model_usage and self.model_usage.quota_week ~= quota_week
-      or quota_week and self.model_usage and self.model_usage.start ~= start_time then
+      or self.model_usage and self.model_usage.window_name ~= model_window_name
+      or quota_window and self.model_usage and self.model_usage.start ~= start_time then
     self.model_usage = codexpoll.models(self:home_path(), start_time, now, self.model_scan_timeout or 3)
-    self.model_usage.quota_week = quota_week
+    self.model_usage.window_name = model_window_name
     self.last_model_update = now
   end
 end
@@ -80,10 +83,15 @@ function codex:draw()
   end
   if data.limit_reached then row('Account limit reached', config.subheader) end
   local usage = self.model_usage
+  local model_window = windows.five_hour or windows.weekly
+  local limit_used = model_window and model_window.used_percent
+  if model_window and model_window.resets_at and model_window.resets_at <= now then limit_used = 0 end
   if usage and usage.total_tokens > 0 then
     for _, model in ipairs(usage.models or {}) do
+      local percent = model.percent
+      if limit_used then percent = limit_used * model.tokens / usage.total_tokens end
       table.insert(rows, {text=model.name,
-        value=string.format('%.1f%% · %dp', model.percent, model.prompts),
+        value=string.format('%dp · %.0f%%', model.prompts, percent),
         color=config.value})
     end
     if usage.partial then row('Partial local records') end
