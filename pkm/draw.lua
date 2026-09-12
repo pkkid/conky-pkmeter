@@ -301,12 +301,13 @@ end
 --  title (string): header title text
 --  subtitle (string): optional subtitle text
 --  extras (function): optional function to draw extra elements in header
-function draw.widget_header(origin, height, title, subtitle, extras)
+--  subtitle_width (number): optional maximum subtitle width, defaults to 80
+function draw.widget_header(origin, height, title, subtitle, extras, subtitle_width)
   draw.rectangle{x=0, y=origin, width=conky_window.width, height=40, color=config.header_bg}
   draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background}
   draw.text{x=10, y=origin+17, text=title, size=12, color=config.header}
   if subtitle then
-    draw.text{x=10, y=origin+32, text=subtitle, maxwidth=80, color=config.subheader}
+    draw.text{x=10, y=origin+32, text=subtitle, maxwidth=subtitle_width or 80, color=config.subheader}
   end
   if extras then extras() end
 end

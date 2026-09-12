@@ -34,6 +34,10 @@ and prompt count. It reads session records from `$CODEX_HOME` or `~/.codex`; it
 does not run Codex, start an app server, access credentials, or make network
 requests.
 
+The header shows the plan and time since the last limit update. Weekly resets
+show the local weekday (e.g. `Sun`), or the reset time when it is today
+(e.g. `10:34a` or `9:30p`).
+
 Task status refreshes every five seconds, shown blue while running or orange
 while waiting. Limits refresh every minute and models every five minutes.
 Clicking forces a local rescan. Model percentages show each model's share of the

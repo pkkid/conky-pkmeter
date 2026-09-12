@@ -17,6 +17,17 @@ local function duration(seconds)
   return '1m'
 end
 
+-- Format Weekly Reset
+-- Shows the local weekday, or a compact twelve-hour time when the reset is today.
+local function weekly_reset(resets_at, now)
+  local reset = os.date('*t', resets_at)
+  local today = os.date('*t', now)
+  if reset.year ~= today.year or reset.yday ~= today.yday then
+    return os.date('%a', resets_at)
+  end
+  return string.format('%d:%02d%s', (reset.hour + 11) % 12 + 1, reset.min, reset.hour < 12 and 'a' or 'p')
+end
+
 -- Home Path
 -- Returns the configured Codex home or its environment-based default.
 function codex:home_path()
@@ -110,7 +121,7 @@ function codex:draw()
       draw.ring{x=conky_window.width-14, y=self.origin+20, radius=2, width=4,
         color=color}
     end
-  end)
+  end, width-14)
   local vertical = self.origin + 55
   for _, entry in ipairs({{'5 hour', 'five_hour'}, {'Weekly', 'weekly'}}) do
     local window = windows[entry[2]]
@@ -119,7 +130,9 @@ function codex:draw()
       local used = expired and 0 or window and window.used_percent
       local value = used and string.format('%.0f%%', used) or 'Unavailable'
       if not expired and window and window.resets_at then
-        value = value..' · reset '..duration(window.resets_at - now)
+        local reset = entry[2] == 'weekly' and weekly_reset(window.resets_at, now)
+          or duration(window.resets_at - now)
+        value = value..' · reset '..reset
       end
       draw.text{x=10, y=vertical, text=entry[1], color=config.value}
       draw.text{x=right, y=vertical, text=value, align='right', color=config.value, maxwidth=130}
