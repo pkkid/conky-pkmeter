@@ -270,7 +270,7 @@ function draw.text(args)
   if maxwidth and extents.width > maxwidth then
     local truncated_text = text
     while extents.width > maxwidth and #truncated_text > 0 do
-      truncated_text = truncated_text:sub(1, -2)
+      truncated_text = truncated_text:sub(1, utf8.offset(truncated_text, -1) - 1)
       local newextents = cairo_text_extents_t:create()
       tolua.takeownership(newextents)
       cairo_text_extents(cr, truncated_text..'...', newextents)

@@ -19,6 +19,7 @@ conky -c conkyrc
 
 Widget settings and display order are defined in `config.lua`. Window placement,
 size, and Conky behavior are configured in `conkyrc`.
+Long titles, including accented characters and emoji, are shortened to fit.
 
 - `openmeteo`: Set your location, timezone, units, and icon theme.
 - `networks`: Find interface names with `ip link`, then configure the devices to monitor.
@@ -30,19 +31,25 @@ size, and Conky behavior are configured in `conkyrc`.
 
 The Codex widget displays available five-hour and weekly usage, compact reset
 times, weekly pacing, and the top three locally recorded models by token share
-and prompt count. It reads session records from `$CODEX_HOME` or `~/.codex`; it
-does not run Codex, start an app server, access credentials, or make network
-requests.
+and prompt count. Every 15 minutes it starts the locally installed
+Codex App Server and reads the authenticated account's current limit snapshot;
+it stores the result in `/tmp/pkmeter-codex.json`. Codex must be on `PATH` and
+logged in with a supported account. API-key-only and Bedrock authentication do
+not provide this account usage data. The poller also requires the standard
+`timeout` command from GNU coreutils.
 
 The header shows the plan and time since the last limit update. Weekly resets
 show the local weekday (e.g. `Sun`), or the reset time when it is today
 (e.g. `10:34a` or `9:30p`).
 
 Task status refreshes every five seconds, shown blue while running or orange
-while waiting. Limits refresh every minute and models every five minutes.
-Clicking forces a local rescan. Model percentages show each model's share of the
-selected limit usage: five-hour when available, otherwise weekly, allocated
-using locally recorded token counts. Codex's local session format may change.
+while waiting; it reads local Codex session records for that state only.
+Clicking refreshes cloud limits immediately. Failed cloud reads retain the last
+successful snapshot and retry with capped exponential backoff. The local model
+mix refreshes every five minutes in a background Lua process without a network
+request, and its default scan limit is 30 seconds. Its percentages are each
+model's token share allocated against the selected cloud-reported limit, so it
+excludes Codex activity from other machines and services.
 
 ## Auto Start
 

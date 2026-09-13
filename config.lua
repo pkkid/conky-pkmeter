@@ -30,11 +30,15 @@ config.clock = {
 }
 config.codex = {
   limit_id = 'codex',
-  update_interval = 60,
+  snapshot_file = '/tmp/pkmeter-codex.json',
+  model_snapshot_file = '/tmp/pkmeter-codex-models.json',
+  update_interval = 900,
+  max_backoff_interval = 3600,
+  cloud_timeout = 10,
   status_update_interval = 5,
   scan_timeout = 1,
   model_update_interval = 300,
-  model_scan_timeout = 3,
+  model_scan_timeout = 30,
 }
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)

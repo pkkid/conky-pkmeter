@@ -84,7 +84,7 @@ local function session_files(codex_home)
 end
 
 -- Normalize Limits
--- Converts a recorded Codex limit bucket into the widget's stable data shape.
+-- Converts an App Server rate-limit bucket into the widget's stable data shape.
 local function normalize_limits(bucket)
   local windows = {}
   for _, source in ipairs({'primary', 'secondary'}) do
@@ -110,74 +110,55 @@ local function normalize_limits(bucket)
   }
 end
 
--- Scan Limit File
--- Reads new records from one session file and returns its latest matching limits.
-local function scan_limit_file(file, limit_id, offset, deadline)
-  local handle = io.open(file.path, 'r')
-  if not handle then return nil, offset or 0 end
-  if offset and offset > 0 then handle:seek('set', offset) end
-  local latest
-  for line in handle:lines() do
-    if socket.gettime() > deadline then
-      handle:close()
-      return latest, nil, 'Local session scan timed out'
-    end
-    local ok, row = pcall(json.decode, line)
-    local payload = ok and type(row) == 'table' and row.payload or nil
-    if type(payload) == 'table' and row.type == 'event_msg' and payload.type == 'token_count' then
-      local limits = payload.rate_limits or payload.rateLimits
-      local found_id = type(limits) == 'table' and pick(limits, 'limit_id', 'limitId') or nil
-      if type(limits) == 'table' and (not found_id or found_id == limit_id) then
-        local event_time = timestamp(row.timestamp)
-        if event_time then latest = {updated_at=event_time, data=normalize_limits(limits)} end
-      end
-    end
-  end
-  local final_offset = handle:seek()
-  handle:close()
-  return latest, final_offset
+-- Select Limit
+-- Selects the configured rate-limit bucket from an App Server response.
+local function select_limit(result, limit_id)
+  local buckets = result.rateLimitsByLimitId or result.rate_limits_by_limit_id
+  if type(buckets) == 'table' then return buckets[limit_id] end
+  return result.rateLimits or result.rate_limits
 end
 
--- Read Limits
--- Finds the latest local limit snapshot and incrementally updates a previous result.
-function codexpoll.limits(codex_home, limit_id, previous, timeout)
-  local files = session_files(codex_home)
-  local deadline = socket.gettime() + (timeout or 1)
-  if previous and previous.source_file then
-    for _, file in ipairs(files) do
-      if file.path == previous.source_file then
-        if file.modified <= (previous.source_modified or 0) then return previous end
-        local latest, offset, err = scan_limit_file(file, limit_id, previous.source_offset, deadline)
-        if err then return nil, err end
-        previous.source_modified = file.modified
-        previous.source_offset = offset
-        if latest then previous.updated_at = latest.updated_at; previous.data = latest.data end
-        return previous
-      end
-      if file.modified > (previous.source_modified or 0) then
-        local latest, offset, err = scan_limit_file(file, limit_id, nil, deadline)
-        if err then return nil, err end
-        if latest and latest.updated_at > previous.updated_at then
-          latest.source_file = file.path
-          latest.source_modified = file.modified
-          latest.source_offset = offset
-          return latest
-        end
+-- App Server Command
+-- Builds the short-lived JSONL App Server request for one rate-limit snapshot.
+local function app_server_command(timeout)
+  local messages = {
+    json.encode({method='initialize', id=0, params={clientInfo={
+      name='pkmeter', title='PKMeter', version='1.0',
+    }}}),
+    json.encode({method='initialized', params={}}),
+    json.encode({method='account/rateLimits/read', id=1, params={
+      excludeResetCreditDetails=true,
+    }}),
+  }
+  local quoted = {}
+  for _, message in ipairs(messages) do table.insert(quoted, shell_quote(message)) end
+  timeout = math.max(1, math.floor(tonumber(timeout) or 10))
+  return '{ printf '..shell_quote('%s\\n')..' '..table.concat(quoted, ' ')
+    ..'; tail -f /dev/null; } | timeout '..timeout..'s codex app-server 2>&1'
+end
+
+-- Read Cloud Limits
+-- Queries the authenticated local Codex App Server for one current rate-limit snapshot.
+function codexpoll.cloud_limits(limit_id, timeout)
+  local handle = io.popen(app_server_command(timeout))
+  if not handle then return nil, 'Unable to start Codex App Server' end
+  local response
+  local app_error
+  for line in handle:lines() do
+    local ok, message = pcall(json.decode, line)
+    if ok and type(message) == 'table' and message.id == 1 then
+      if type(message.result) == 'table' then
+        response = message.result
+      elseif type(message.error) == 'table' then
+        app_error = message.error.message or 'Codex App Server rejected the request'
       end
     end
-    return previous
   end
-  for _, file in ipairs(files) do
-    local latest, offset, err = scan_limit_file(file, limit_id, nil, deadline)
-    if err then return nil, err end
-    if latest then
-      latest.source_file = file.path
-      latest.source_modified = file.modified
-      latest.source_offset = offset
-      return latest
-    end
-  end
-  return nil, 'No local Codex usage found'
+  handle:close()
+  if not response then return nil, app_error or 'Codex usage refresh failed' end
+  local bucket = select_limit(response, limit_id)
+  if type(bucket) ~= 'table' then return nil, 'Configured Codex limit is unavailable' end
+  return {updated_at=os.time(), data=normalize_limits(bucket)}
 end
 
 -- Read Task Status
@@ -325,5 +306,131 @@ function codexpoll.models(codex_home, start_time, end_time, timeout)
     models=models,
   }
 end
+
+-- Read Cache
+-- Reads a previously written poll result without treating a bad cache as fatal.
+local function read_cache(path)
+  local handle = io.open(path, 'r')
+  if not handle then return nil end
+  local content = handle:read('*a')
+  handle:close()
+  local ok, cached = pcall(json.decode, content)
+  return ok and type(cached) == 'table' and cached or nil
+end
+
+-- Write Cache
+-- Atomically replaces a poll result cache after a completed poll attempt.
+local function write_cache(path, cached)
+  local temporary = path..'.tmp'
+  local handle, err = io.open(temporary, 'w')
+  if not handle then return nil, err end
+  local ok, encoded = pcall(json.encode, cached)
+  if ok then handle:write(encoded) end
+  handle:close()
+  if not ok then os.remove(temporary); return nil, encoded end
+  local renamed, rename_error = os.rename(temporary, path)
+  if not renamed then os.remove(temporary); return nil, rename_error end
+  return true
+end
+
+-- Parse Poll Arguments
+-- Reads the cloud-limit or local-model arguments accepted by the standalone poller.
+local function parse_poll_arguments(arguments)
+  local options = {mode='limits', out='/tmp/pkmeter-codex.json', limit_id='codex', timeout=10}
+  local index = 1
+  while index <= #arguments do
+    local option = arguments[index]
+    local value = arguments[index + 1]
+    if option == '--models' then
+      options.mode = 'models'
+      index = index + 1
+    elseif option == '--out' and value then
+      options.out = value
+      index = index + 2
+    elseif option == '--limit-id' and value then
+      options.limit_id = value
+      index = index + 2
+    elseif option == '--timeout' and value and tonumber(value) then
+      options.timeout = tonumber(value)
+      index = index + 2
+    elseif option == '--codex-home' and value then
+      options.codex_home = value
+      index = index + 2
+    elseif option == '--start' and value and tonumber(value) then
+      options.start_time = tonumber(value)
+      index = index + 2
+    elseif option == '--end' and value and tonumber(value) then
+      options.end_time = tonumber(value)
+      index = index + 2
+    elseif option == '--window' and value then
+      options.window_name = value
+      index = index + 2
+    else
+      return nil, 'Usage: codexpoll.lua [--models --codex-home PATH --start TIME --end TIME --window NAME] --out PATH [--limit-id ID] [--timeout SECONDS]'
+    end
+  end
+  if options.mode == 'models'
+      and (not options.codex_home or not options.start_time or not options.end_time or not options.window_name) then
+    return nil, 'Model polling requires --codex-home, --start, --end, and --window'
+  end
+  return options
+end
+
+-- Run Limit Poller
+-- Refreshes the cloud cache while preserving the most recent successful limit snapshot.
+local function run_limit_poller(options, cached)
+  local snapshot, refresh_error = codexpoll.cloud_limits(options.limit_id, options.timeout)
+  cached.checked_at = os.time()
+  if snapshot then
+    cached.updated_at = snapshot.updated_at
+    cached.data = snapshot.data
+    cached.error = nil
+    cached.failures = 0
+  else
+    cached.error = tostring(refresh_error or 'Codex usage refresh failed')
+    cached.failures = (tonumber(cached.failures) or 0) + 1
+  end
+  local written, write_error = write_cache(options.out, cached)
+  if not written then io.stderr:write('Unable to write Codex cache: '..tostring(write_error)..'\n') end
+  return written
+end
+
+-- Run Model Poller
+-- Refreshes the local model cache without blocking Conky's draw cycle.
+local function run_model_poller(options, cached)
+  local ok, usage = pcall(
+    codexpoll.models, options.codex_home, options.start_time, options.end_time, options.timeout)
+  cached.checked_at = os.time()
+  cached.start_time = options.start_time
+  cached.window_name = options.window_name
+  if ok then
+    usage.window_name = options.window_name
+    cached.usage = usage
+    cached.error = nil
+  else
+    cached.error = tostring(usage)
+  end
+  local written, write_error = write_cache(options.out, cached)
+  if not written then io.stderr:write('Unable to write Codex model cache: '..tostring(write_error)..'\n') end
+  return written
+end
+
+-- Run Poller
+-- Dispatches the configured cloud-limit or local-model background poll.
+local function run_poller(arguments)
+  local options, argument_error = parse_poll_arguments(arguments)
+  if not options then io.stderr:write(argument_error..'\n'); return false end
+  local cached = read_cache(options.out) or {}
+  if options.mode == 'models' then return run_model_poller(options, cached) end
+  return run_limit_poller(options, cached)
+end
+
+-- Is Standalone
+-- Returns true when Lua is executing this module as the background poller script.
+local function is_standalone()
+  return arg and type(arg[0]) == 'string' and arg[0]:match('pkm/codexpoll%.lua$') ~= nil
+end
+
+if is_standalone() and not run_poller(arg) then os.exit(1) end
 
 return codexpoll
