@@ -3,8 +3,8 @@
 <img align="right" src="preview.png">
 
 A Conky configuration written entirely in Lua. It includes clock, weather,
-system, GPU, process, network, filesystem, media, Bambu printer, and Codex usage
-widgets.
+system, GPU, process, network, filesystem, media, Bambu printer, Codex usage, and
+Claude usage widgets.
 
 ## Installation
 
@@ -50,6 +50,21 @@ mix refreshes every five minutes in a background Lua process without a network
 request, and its default scan limit is 30 seconds. Its percentages are each
 model's token share allocated against the selected cloud-reported limit, so it
 excludes Codex activity from other machines and services.
+
+## Claude Usage
+
+The Claude widget mirrors the Codex widget: five-hour and weekly usage, reset
+times, weekly pacing, task status, and the top three local models. Every 15
+minutes it reads the account usage endpoint with `curl`, using Claude Code's
+stored login in `~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`), and
+stores the result in `/tmp/pkmeter-claude.json`. It never refreshes the login
+itself; an expired token shows stale data until Claude Code is used again.
+
+Task status combines the live status Claude Code records for each running
+process in `~/.claude/sessions`, shown blue while any session is running or
+orange while any session waits for a permission, question, or dialog. This is
+an undocumented Claude Code file and may change between releases. The model mix
+reads local transcripts in `~/.claude/projects`.
 
 ## Auto Start
 
