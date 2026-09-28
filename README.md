@@ -44,7 +44,9 @@ show the local weekday (e.g. `Sun`), or the reset time when it is today
 
 Task status refreshes every five seconds, shown blue while running or orange
 while waiting; it reads local Codex session records for that state only.
-Clicking refreshes cloud limits immediately. Failed cloud reads retain the last
+Clicking the header refreshes cloud limits immediately. The model mix and
+weekly pacing are hidden by default; click the widget content to toggle them,
+or set `show_details = true`. Failed cloud reads retain the last
 successful snapshot and retry with capped exponential backoff. The local model
 mix refreshes every five minutes in a background Lua process without a network
 request, and its default scan limit is 30 seconds. Its percentages are each

@@ -29,6 +29,7 @@ config.clock = {
   onclick = 'gnome-clocks',               -- Click action
 }
 config.codex = {
+  show_details = false,                   -- Show model usage and weekly pace (click content to toggle)
   limit_id = 'codex',
   snapshot_file = '/tmp/pkmeter-codex.json',
   model_snapshot_file = '/tmp/pkmeter-codex-models.json',
@@ -41,6 +42,7 @@ config.codex = {
   model_scan_timeout = 30,
 }
 config.claude = {
+  show_details = false,                   -- Show model usage and weekly pace (click content to toggle)
   snapshot_file = '/tmp/pkmeter-claude.json',
   model_snapshot_file = '/tmp/pkmeter-claude-models.json',
   update_interval = 900,

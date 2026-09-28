@@ -179,6 +179,13 @@ function codex:update(force)
   self:update_model_usage(now, force)
 end
 
+-- Details Shown
+-- Returns the clicked detail visibility, or the configured default before any toggle.
+function codex:details_shown()
+  if self.details_visible == nil then return self.show_details end
+  return self.details_visible
+end
+
 -- Draw
 -- Draws the current cloud usage snapshot and the local Codex task-state indicator.
 function codex:draw()
@@ -210,14 +217,14 @@ function codex:draw()
   local model_window = windows.five_hour or windows.weekly
   local limit_used = model_window and model_window.used_percent
   if model_window and model_window.resets_at and model_window.resets_at <= now then limit_used = 0 end
-  if usage and usage.total_tokens > 0 then
+  if self:details_shown() and usage and usage.total_tokens > 0 then
     for _, model in ipairs(usage.models or {}) do
       local percent = model.percent
       if limit_used then percent = limit_used * model.tokens / usage.total_tokens end
       row(model.name, config.value, string.format('%dp · %.0f%%', model.prompts, percent))
     end
   end
-  if pace_label then row(pace_label) end
+  if self:details_shown() and pace_label then row(pace_label) end
   local window_rows = (windows.five_hour and 1 or 0) + 1
   self.height = 55 + window_rows * 25 + #rows * 15
   local subtitle = data.plan or 'Codex account'
@@ -261,8 +268,12 @@ function codex:draw()
 end
 
 -- Click
--- Forces immediate cloud and local model refreshes when no poll is already running.
+-- Refreshes cloud and local model data from the header, or toggles usage details from the content.
 function codex:click(event, x, y)
+  if y >= 40 then
+    self.details_visible = not self:details_shown()
+    return
+  end
   local now = socket.gettime()
   self:maybe_spawn_poll(now, true)
   local window_name, start_time = self:model_window(now)
