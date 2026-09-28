@@ -3,8 +3,8 @@
 <img align="right" src="preview.png">
 
 A Conky configuration written entirely in Lua. It includes clock, weather,
-system, GPU, process, network, filesystem, media, Bambu printer, Codex usage, and
-Claude usage widgets.
+system, GPU, process, network, filesystem, media, Bambu printer, and AI usage
+(Claude and Codex) widgets.
 
 ## Installation
 
@@ -27,46 +27,42 @@ Long titles, including accented characters and emoji, are shortened to fit.
 - `nowplaying`: Uses `playerctl` for playback information and controls.
 - `bambu`: Set the printer host, serial number, and LAN access code.
 
-## Codex Usage
+## AI Usage
 
-The Codex widget displays available five-hour and weekly usage, compact reset
-times, weekly pacing, and the top three locally recorded models by token share
-and prompt count. Every 15 minutes it starts the locally installed
-Codex App Server and reads the authenticated account's current limit snapshot;
-it stores the result in `/tmp/pkmeter-codex.json`. Codex must be on `PATH` and
-logged in with a supported account. API-key-only and Bedrock authentication do
-not provide this account usage data. The poller also requires the standard
-`timeout` command from GNU coreutils.
+The `aiusage` widget combines Claude and Codex usage in one panel. Enable or
+disable either service with `enabled` in `config.aiusage.claude` or
+`config.aiusage.codex`. Each service shows its five-hour and weekly usage
+(e.g. `Claude 5h`, `Codex Week`) with local reset times: `1:13p` for five-hour
+windows and `Sat 4:32p` for weekly windows.
 
-The header shows the plan and time since the last limit update. Weekly resets
-show the local weekday (e.g. `Sun`), or the reset time when it is today
-(e.g. `10:34a` or `9:30p`).
+The header shows the plans, time since the oldest limit update, and a status
+dot per service: blue while running, orange while waiting for you. With both
+active the dots sit side by side; clicking the header refreshes both services.
 
-Task status refreshes every five seconds, shown blue while running or orange
-while waiting; it reads local Codex session records for that state only.
-Clicking the header refreshes cloud limits immediately. The model mix and
-weekly pacing are hidden by default; click the widget content to toggle them,
-or set `show_details = true`. Failed cloud reads retain the last
-successful snapshot and retry with capped exponential backoff. The local model
-mix refreshes every five minutes in a background Lua process without a network
-request, and its default scan limit is 30 seconds. Its percentages are each
-model's token share allocated against the selected cloud-reported limit, so it
-excludes Codex activity from other machines and services.
+The model mix and weekly pacing are hidden by default; click the widget content
+to toggle them, or set `show_details = true`. The model mix lists each
+service's top three local models by token share and prompt count, allocated
+against that service's own limit, so the combined list totals up to 200%. It
+excludes activity from other machines. Cloud limits refresh every 15 minutes;
+failed reads keep the last snapshot and retry with capped backoff. Model mixes
+refresh every five minutes in a background Lua process.
 
-## Claude Usage
+### Codex
 
-The Claude widget mirrors the Codex widget: five-hour and weekly usage, reset
-times, weekly pacing, task status, and the top three local models. Every 15
-minutes it reads the account usage endpoint with `curl`, using Claude Code's
-stored login in `~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`), and
-stores the result in `/tmp/pkmeter-claude.json`. It never refreshes the login
-itself; an expired token shows stale data until Claude Code is used again.
+Starts the locally installed Codex App Server and reads the account's limit
+snapshot into `/tmp/pkmeter-codex.json`. Codex must be on `PATH` and logged in
+with a supported account; API-key-only and Bedrock authentication do not
+provide usage data. Requires `timeout` from GNU coreutils. Task status and the
+model mix read local Codex session records.
 
-Task status combines the live status Claude Code records for each running
-process in `~/.claude/sessions`, shown blue while any session is running or
-orange while any session waits for a permission, question, or dialog. This is
-an undocumented Claude Code file and may change between releases. The model mix
-reads local transcripts in `~/.claude/projects`.
+### Claude
+
+Reads the account usage endpoint with `curl`, using Claude Code's stored login
+in `~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`), into
+`/tmp/pkmeter-claude.json`. It never refreshes the login itself; an expired
+token shows stale data until Claude Code is used again. Task status reads the
+undocumented `~/.claude/sessions` files, which may change between releases. The
+model mix reads local transcripts in `~/.claude/projects`.
 
 ## Auto Start
 

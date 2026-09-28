@@ -4,7 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','bambu','codex','claude'}
+config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','bambu','aiusage'}
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -28,29 +28,32 @@ config.tempunit_pc = 'celsius'
 config.clock = {
   onclick = 'gnome-clocks',               -- Click action
 }
-config.codex = {
+config.aiusage = {
   show_details = false,                   -- Show model usage and weekly pace (click content to toggle)
-  limit_id = 'codex',
-  snapshot_file = '/tmp/pkmeter-codex.json',
-  model_snapshot_file = '/tmp/pkmeter-codex-models.json',
-  update_interval = 900,
-  max_backoff_interval = 3600,
-  cloud_timeout = 10,
-  status_update_interval = 5,
-  scan_timeout = 1,
-  model_update_interval = 300,
-  model_scan_timeout = 30,
-}
-config.claude = {
-  show_details = false,                   -- Show model usage and weekly pace (click content to toggle)
-  snapshot_file = '/tmp/pkmeter-claude.json',
-  model_snapshot_file = '/tmp/pkmeter-claude-models.json',
-  update_interval = 900,
-  max_backoff_interval = 3600,
-  cloud_timeout = 10,
-  status_update_interval = 5,
-  model_update_interval = 300,
-  model_scan_timeout = 30,
+  claude = {
+    enabled = true,                       -- Monitor Claude usage
+    snapshot_file = '/tmp/pkmeter-claude.json',
+    model_snapshot_file = '/tmp/pkmeter-claude-models.json',
+    update_interval = 900,
+    max_backoff_interval = 3600,
+    cloud_timeout = 10,
+    status_update_interval = 5,
+    model_update_interval = 300,
+    model_scan_timeout = 30,
+  },
+  codex = {
+    enabled = true,                       -- Monitor Codex usage
+    limit_id = 'codex',
+    snapshot_file = '/tmp/pkmeter-codex.json',
+    model_snapshot_file = '/tmp/pkmeter-codex-models.json',
+    update_interval = 900,
+    max_backoff_interval = 3600,
+    cloud_timeout = 10,
+    status_update_interval = 5,
+    scan_timeout = 1,
+    model_update_interval = 300,
+    model_scan_timeout = 30,
+  },
 }
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
@@ -182,7 +185,7 @@ config.fullpx = false
 -- Adding an entry for [<hostname>] will override
 -- any configuration variables above.
 config['[pkkid-laptop]'] = {
-  widgets = {'clock','openmeteo','codex','claude','system','processes','networks','filesystems','nowplaying'},
+  widgets = {'clock','openmeteo','aiusage','system','processes','networks','filesystems','nowplaying'},
   system = {
     logscale = false,                       -- Chart cpu usage in logscale
     coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
