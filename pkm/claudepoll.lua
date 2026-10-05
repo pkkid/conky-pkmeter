@@ -106,29 +106,46 @@ function claudepoll.credentials_path(claude_home)
   return claude_home..'/.credentials.json'
 end
 
+-- Read Token File
+-- Returns a long-lived token from `claude setup-token`, or nil when the file is missing or empty.
+local function read_token(path)
+  local handle = path and io.open(path, 'r')
+  if not handle then return nil end
+  local token = (handle:read('*a') or ''):match('^%s*(%S+)%s*$')
+  handle:close()
+  return token
+end
+
 -- Read Cloud Limits
--- Queries the account usage endpoint with Claude Code's stored OAuth login.
-function claudepoll.cloud_limits(claude_home, timeout)
+-- Queries the account usage endpoint with a setup-token file or Claude Code's stored OAuth login.
+function claudepoll.cloud_limits(claude_home, timeout, token_file)
   local credentials = read_json(claudepoll.credentials_path(claude_home)) or {}
-  local oauth = credentials.claudeAiOauth
-  if type(oauth) ~= 'table' or type(oauth.accessToken) ~= 'string' then
-    return nil, 'Claude Code is not logged in'
-  end
-  if number(oauth.expiresAt) and oauth.expiresAt / 1000 < os.time() then
-    return nil, 'Claude Code login expired'
+  local oauth = type(credentials.claudeAiOauth) == 'table' and credentials.claudeAiOauth or {}
+  local token = read_token(token_file)
+  if not token then
+    if type(oauth.accessToken) ~= 'string' then return nil, 'Claude Code is not logged in' end
+    -- Claude Code may store expiresAt=0 when the expiry is unknown; let the API decide
+    if number(oauth.expiresAt) and oauth.expiresAt > 0 and oauth.expiresAt / 1000 < os.time() then
+      return nil, 'Claude Code login expired'
+    end
+    token = oauth.accessToken
   end
   local headers_path = os.tmpname()
   local headers = io.open(headers_path, 'w')
   if not headers then return nil, 'Unable to write request headers' end
-  headers:write('Authorization: Bearer '..oauth.accessToken..'\n')
+  headers:write('Authorization: Bearer '..token..'\n')
   headers:write('anthropic-beta: oauth-2025-04-20\n')
   headers:close()
   timeout = math.max(1, math.floor(tonumber(timeout) or 10))
-  local handle = io.popen(string.format('curl -sf -m %d -H @%s %s 2>/dev/null',
+  local handle = io.popen(string.format("curl -s -m %d -w '\\n%%{http_code}' -H @%s %s 2>/dev/null",
     timeout, shell_quote(headers_path), shell_quote(USAGE_URL)))
-  local content = handle and handle:read('*a')
+  local output = handle and handle:read('*a') or ''
   if handle then handle:close() end
   os.remove(headers_path)
+  local content, status = output:match('^(.*)\n(%d+)$')
+  status = tonumber(status)
+  if status == 401 then return nil, 'Claude Code login expired' end
+  if status ~= 200 then return nil, 'Claude usage refresh failed (HTTP '..tostring(status or '?')..')' end
   local ok, response = pcall(json.decode, content or '')
   if not ok or type(response) ~= 'table' then return nil, 'Claude usage refresh failed' end
   local plan = type(oauth.subscriptionType) == 'string' and oauth.subscriptionType or nil
@@ -281,6 +298,9 @@ local function parse_poll_arguments(arguments)
     elseif option == '--claude-home' and value then
       options.claude_home = value
       index = index + 2
+    elseif option == '--token-file' and value then
+      options.token_file = value
+      index = index + 2
     elseif option == '--start' and value and tonumber(value) then
       options.start_time = tonumber(value)
       index = index + 2
@@ -291,7 +311,7 @@ local function parse_poll_arguments(arguments)
       options.window_name = value
       index = index + 2
     else
-      return nil, 'Usage: claudepoll.lua [--models --start TIME --end TIME --window NAME] --claude-home PATH --out PATH [--timeout SECONDS]'
+      return nil, 'Usage: claudepoll.lua [--models --start TIME --end TIME --window NAME] --claude-home PATH [--token-file PATH] --out PATH [--timeout SECONDS]'
     end
   end
   if not options.claude_home then return nil, 'Polling requires --claude-home' end
@@ -305,7 +325,7 @@ end
 -- Run Limit Poller
 -- Refreshes the cloud cache while preserving the most recent successful limit snapshot.
 local function run_limit_poller(options, cached)
-  local snapshot, refresh_error = claudepoll.cloud_limits(options.claude_home, options.timeout)
+  local snapshot, refresh_error = claudepoll.cloud_limits(options.claude_home, options.timeout, options.token_file)
   cached.checked_at = os.time()
   if snapshot then
     cached.updated_at = snapshot.updated_at

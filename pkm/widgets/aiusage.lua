@@ -23,7 +23,9 @@ local SERVICES = {
       return self.claude_home or os.getenv('CLAUDE_CONFIG_DIR') or ((os.getenv('HOME') or '')..'/.claude')
     end,
     cloud_args = function(self)
-      return string.format('--claude-home %q', self:home_path())
+      local args = string.format('--claude-home %q', self:home_path())
+      if self.token_file then args = args..string.format(' --token-file %q', self.token_file) end
+      return args
     end,
     status = function(self)
       return claudepoll.status(self:home_path())

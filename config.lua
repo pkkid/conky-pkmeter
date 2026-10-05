@@ -32,6 +32,7 @@ config.aiusage = {
   show_details = false,                   -- Show model usage and weekly pace (click content to toggle)
   claude = {
     enabled = true,                       -- Monitor Claude usage
+    token_file = os.getenv('HOME')..'/.config/pkmeter/claude-token',  -- Optional `claude setup-token` token (falls back to CLI login)
     snapshot_file = '/tmp/pkmeter-claude.json',
     model_snapshot_file = '/tmp/pkmeter-claude-models.json',
     update_interval = 900,
