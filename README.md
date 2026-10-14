@@ -47,26 +47,40 @@ The model mix and weekly pacing are hidden by default; click the widget content
 to toggle them, or set `show_details = true`. The model mix lists each
 service's top three local models by token share and prompt count, allocated
 against that service's own limit, so the combined list totals up to 200%. It
-excludes activity from other machines. Cloud limits refresh every 15 minutes;
-failed reads keep the last snapshot and retry with capped backoff. Model mixes
-refresh every five minutes in a background Lua process.
+excludes activity from other machines.
+Model mixes refresh every five minutes in a background Lua process.
 
 ### Codex
 
-Starts the locally installed Codex App Server and reads the account's limit
-snapshot into `/tmp/pkmeter-codex.json`. Codex must be on `PATH` and logged in
-with a supported account; API-key-only and Bedrock authentication do not
-provide usage data. Requires `timeout` from GNU coreutils. Task status and the
-model mix read local Codex session records.
+Every 15 minutes, starts the locally installed Codex App Server and reads the
+account's limit snapshot into `/tmp/pkmeter-codex.json`. The App Server renews
+its own login, so Codex only needs to be signed in once. Codex must be on
+`PATH`; API-key-only and Bedrock authentication do not provide usage data.
+Failed reads keep the last snapshot and retry with capped backoff. Requires
+`timeout` from GNU coreutils. Task status and the model mix read local Codex
+session records.
 
 ### Claude
 
-Reads the account usage endpoint with `curl`, using Claude Code's stored login
-in `~/.claude/.credentials.json` (or `$CLAUDE_CONFIG_DIR`), into
-`/tmp/pkmeter-claude.json`. It never refreshes the login itself; an expired
-token shows stale data until Claude Code is used again. Task status reads the
-undocumented `~/.claude/sessions` files, which may change between releases. The
-model mix reads local transcripts in `~/.claude/projects`.
+Claude has no usage API that works without a login, so Claude Code reports
+its own usage. After each reply it passes its status JSON, including the
+five-hour and weekly percentages, to its status line command. Have that command
+save the JSON to `~/.claude/statusline.json` by adding this to
+`~/.claude/settings.json`:
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "umask 077; cat > ~/.claude/statusline.json.$$ && mv ~/.claude/statusline.json.$$ ~/.claude/statusline.json"
+}
+```
+
+pkmeter reads the file, and other programs can read it too. Values update
+whenever you use Claude Code (Pro or Max plans only); a window shows 0% once
+its reset time passes. The command prints nothing, so a terminal session's
+status line stays blank. Set the header's plan name with `plan`. Task status
+reads the undocumented `~/.claude/sessions` files, which may change between
+releases. The model mix reads local transcripts in `~/.claude/projects`.
 
 ## Auto Start
 

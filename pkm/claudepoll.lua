@@ -2,9 +2,8 @@ local json = require 'pkm/json'
 local socket = require 'socket'
 
 local claudepoll = {}
-local USAGE_URL = 'https://api.anthropic.com/api/oauth/usage'
 local SESSION_STATES = {busy='running', waiting='waiting'}
-local WINDOWS = {five_hour=18000, seven_day=604800}
+local SAME_WINDOW_SECONDS = 300
 
 -- Shell Quote
 -- Quotes a value for safe use as one POSIX shell argument.
@@ -80,77 +79,63 @@ local function is_prompt(row, message)
     and content_type(message) == 'text'
 end
 
--- Normalize Limits
--- Converts the OAuth usage response into the widget's stable data shape.
-local function normalize_limits(response, plan)
-  local windows = {}
-  local limit_reached = false
-  for source, duration in pairs(WINDOWS) do
-    local window = response[source]
-    if type(window) == 'table' and number(window.utilization) then
-      local name = source == 'seven_day' and 'weekly' or source
-      windows[name] = {
-        used_percent=math.max(0, math.min(100, window.utilization)),
-        duration_seconds=duration,
-        resets_at=timestamp(window.resets_at),
-      }
-      if window.utilization >= 100 then limit_reached = true end
-    end
+-- Status Line Window
+-- Converts one rate-limit window from Claude Code's status line input into the widget's data shape.
+local function statusline_window(window, duration)
+  if type(window) ~= 'table' or not number(window.used_percentage) then return nil end
+  return {
+    used_percent=math.max(0, math.min(100, window.used_percentage)),
+    duration_seconds=duration,
+    resets_at=number(window.resets_at) and window.resets_at or nil,
+  }
+end
+
+-- Merge Window
+-- Returns the newest window and whether the report was used, ignoring stale idle-session reports.
+local function merge_window(cached, incoming)
+  if not incoming then return cached, false end
+  if type(cached) ~= 'table' or not cached.resets_at or not incoming.resets_at then return incoming, true end
+  if incoming.resets_at < cached.resets_at - SAME_WINDOW_SECONDS then return cached, false end
+  if math.abs(incoming.resets_at - cached.resets_at) <= SAME_WINDOW_SECONDS then
+    if incoming.used_percent < (cached.used_percent or 0) then return cached, false end
   end
-  return {windows=windows, plan=plan, limit_reached=limit_reached}
+  return incoming, true
 end
 
--- Credentials Path
--- Returns the Claude Code OAuth credentials file within the configured home.
-function claudepoll.credentials_path(claude_home)
-  return claude_home..'/.credentials.json'
-end
-
--- Read Token File
--- Returns a long-lived token from `claude setup-token`, or nil when the file is missing or empty.
-local function read_token(path)
-  local handle = path and io.open(path, 'r')
+-- File Modified
+-- Returns a file's modification time in Unix epoch seconds, or nil when it is missing.
+local function file_modified(path)
+  local handle = io.popen('stat -c %Y '..shell_quote(path)..' 2>/dev/null')
   if not handle then return nil end
-  local token = (handle:read('*a') or ''):match('^%s*(%S+)%s*$')
+  local modified = tonumber(handle:read('*l') or '')
   handle:close()
-  return token
+  return modified
 end
 
--- Read Cloud Limits
--- Queries the account usage endpoint with a setup-token file or Claude Code's stored OAuth login.
-function claudepoll.cloud_limits(claude_home, timeout, token_file)
-  local credentials = read_json(claudepoll.credentials_path(claude_home)) or {}
-  local oauth = type(credentials.claudeAiOauth) == 'table' and credentials.claudeAiOauth or {}
-  local token = read_token(token_file)
-  if not token then
-    if type(oauth.accessToken) ~= 'string' then return nil, 'Claude Code is not logged in' end
-    -- Claude Code may store expiresAt=0 when the expiry is unknown; let the API decide
-    if number(oauth.expiresAt) and oauth.expiresAt > 0 and oauth.expiresAt / 1000 < os.time() then
-      return nil, 'Claude Code login expired'
+-- Read Status Line Snapshot
+-- Merges the rate limits in Claude Code's saved status line JSON into the previous snapshot.
+function claudepoll.statusline_snapshot(path, previous)
+  local modified = file_modified(path)
+  if not modified or (previous and previous.source_modified == modified) then return previous end
+  local status = read_json(path) or {}
+  local limits = type(status.rate_limits) == 'table' and status.rate_limits or {}
+  local data = previous and previous.data or {}
+  local windows = data.windows or {}
+  local five_hour, five_hour_used = merge_window(windows.five_hour, statusline_window(limits.five_hour, 18000))
+  local weekly, weekly_used = merge_window(windows.weekly, statusline_window(limits.seven_day, 604800))
+  local limit_reached = false
+  for _, window in ipairs({five_hour or {}, weekly or {}}) do
+    if (window.used_percent or 0) >= 100 and (window.resets_at or math.huge) > os.time() then
+      limit_reached = true
     end
-    token = oauth.accessToken
   end
-  local headers_path = os.tmpname()
-  local headers = io.open(headers_path, 'w')
-  if not headers then return nil, 'Unable to write request headers' end
-  headers:write('Authorization: Bearer '..token..'\n')
-  headers:write('anthropic-beta: oauth-2025-04-20\n')
-  headers:close()
-  timeout = math.max(1, math.floor(tonumber(timeout) or 10))
-  local handle = io.popen(string.format("curl -s -m %d -w '\\n%%{http_code}' -H @%s %s 2>/dev/null",
-    timeout, shell_quote(headers_path), shell_quote(USAGE_URL)))
-  local output = handle and handle:read('*a') or ''
-  if handle then handle:close() end
-  os.remove(headers_path)
-  local content, status = output:match('^(.*)\n(%d+)$')
-  status = tonumber(status)
-  if status == 401 then return nil, 'Claude Code login expired' end
-  if status ~= 200 then return nil, 'Claude usage refresh failed (HTTP '..tostring(status or '?')..')' end
-  local ok, response = pcall(json.decode, content or '')
-  if not ok or type(response) ~= 'table' then return nil, 'Claude usage refresh failed' end
-  local plan = type(oauth.subscriptionType) == 'string' and oauth.subscriptionType or nil
-  if plan then plan = plan:sub(1, 1):upper()..plan:sub(2) end
-  return {updated_at=os.time(), data=normalize_limits(response, plan)}
+  local updated = five_hour_used or weekly_used
+  return {
+    source_modified=modified,
+    checked_at=modified,
+    updated_at=updated and modified or previous and previous.updated_at,
+    data={windows={five_hour=five_hour, weekly=weekly}, limit_reached=limit_reached},
+  }
 end
 
 -- Process Start
@@ -279,9 +264,9 @@ local function write_cache(path, cached)
 end
 
 -- Parse Poll Arguments
--- Reads the cloud-limit or local-model arguments accepted by the standalone poller.
+-- Reads the local-model arguments accepted by the standalone poller.
 local function parse_poll_arguments(arguments)
-  local options = {mode='limits', out='/tmp/pkmeter-claude.json', timeout=10}
+  local options = {out='/tmp/pkmeter-claude-models.json', timeout=10}
   local index = 1
   while index <= #arguments do
     local option = arguments[index]
@@ -298,9 +283,6 @@ local function parse_poll_arguments(arguments)
     elseif option == '--claude-home' and value then
       options.claude_home = value
       index = index + 2
-    elseif option == '--token-file' and value then
-      options.token_file = value
-      index = index + 2
     elseif option == '--start' and value and tonumber(value) then
       options.start_time = tonumber(value)
       index = index + 2
@@ -311,34 +293,16 @@ local function parse_poll_arguments(arguments)
       options.window_name = value
       index = index + 2
     else
-      return nil, 'Usage: claudepoll.lua [--models --start TIME --end TIME --window NAME] --claude-home PATH [--token-file PATH] --out PATH [--timeout SECONDS]'
+      return nil, 'Usage: claudepoll.lua --models --start TIME --end TIME --window NAME --claude-home PATH --out PATH [--timeout SECONDS]'
     end
   end
-  if not options.claude_home then return nil, 'Polling requires --claude-home' end
-  if options.mode == 'models'
-      and (not options.start_time or not options.end_time or not options.window_name) then
+  if options.mode ~= 'models' or not options.claude_home then
+    return nil, 'Polling requires --models and --claude-home'
+  end
+  if not options.start_time or not options.end_time or not options.window_name then
     return nil, 'Model polling requires --start, --end, and --window'
   end
   return options
-end
-
--- Run Limit Poller
--- Refreshes the cloud cache while preserving the most recent successful limit snapshot.
-local function run_limit_poller(options, cached)
-  local snapshot, refresh_error = claudepoll.cloud_limits(options.claude_home, options.timeout, options.token_file)
-  cached.checked_at = os.time()
-  if snapshot then
-    cached.updated_at = snapshot.updated_at
-    cached.data = snapshot.data
-    cached.error = nil
-    cached.failures = 0
-  else
-    cached.error = tostring(refresh_error or 'Claude usage refresh failed')
-    cached.failures = (tonumber(cached.failures) or 0) + 1
-  end
-  local written, write_error = write_cache(options.out, cached)
-  if not written then io.stderr:write('Unable to write Claude cache: '..tostring(write_error)..'\n') end
-  return written
 end
 
 -- Run Model Poller
@@ -362,13 +326,11 @@ local function run_model_poller(options, cached)
 end
 
 -- Run Poller
--- Dispatches the configured cloud-limit or local-model background poll.
+-- Runs the local-model background poll.
 local function run_poller(arguments)
   local options, argument_error = parse_poll_arguments(arguments)
   if not options then io.stderr:write(argument_error..'\n'); return false end
-  local cached = read_json(options.out) or {}
-  if options.mode == 'models' then return run_model_poller(options, cached) end
-  return run_limit_poller(options, cached)
+  return run_model_poller(options, read_json(options.out) or {})
 end
 
 -- Is Standalone

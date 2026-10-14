@@ -14,6 +14,7 @@ Service.__index = Service
 
 -- Service Definitions
 -- Describes the poller, home directory, and cloud arguments that differ between services.
+-- Claude has no cloud poll; it reads the status JSON Claude Code's status line saves.
 local SERVICES = {
   claude = {
     label = 'Claude',
@@ -22,10 +23,8 @@ local SERVICES = {
     home = function(self)
       return self.claude_home or os.getenv('CLAUDE_CONFIG_DIR') or ((os.getenv('HOME') or '')..'/.claude')
     end,
-    cloud_args = function(self)
-      local args = string.format('--claude-home %q', self:home_path())
-      if self.token_file then args = args..string.format(' --token-file %q', self.token_file) end
-      return args
+    read_snapshot = function(self, previous)
+      return claudepoll.statusline_snapshot(self:snapshot_path(), previous)
     end,
     status = function(self)
       return claudepoll.status(self:home_path())
@@ -114,7 +113,7 @@ end
 -- Maybe Spawn Poll
 -- Starts a background cloud usage read when the cache is due and no poll is active.
 function Service:maybe_spawn_poll(now, force)
-  if self.poll_started then return end
+  if self.poll_started or not self.definition.cloud_args then return end
   if not force and self.next_poll and now < self.next_poll then return end
   self.poll_started = now
   local command = string.format('cd %q && lua %s --out %q %s --timeout %q >/dev/null 2>&1 &',
@@ -124,8 +123,15 @@ function Service:maybe_spawn_poll(now, force)
 end
 
 -- Update Snapshot
--- Applies a completed cloud poll and schedules the next normal or backed-off refresh.
+-- Applies a completed cloud poll, or rereads a status file, and schedules the next refresh.
 function Service:update_snapshot(now)
+  if self.definition.read_snapshot then
+    if utils.check_update(self.last_snapshot_read, self.status_update_interval or 5) then
+      self.snapshot = self.definition.read_snapshot(self, self.snapshot)
+      self.last_snapshot_read = now
+    end
+    return
+  end
   local snapshot = read_json(self:snapshot_path())
   if snapshot and snapshot.checked_at ~= self.checked_at then
     self.checked_at = snapshot.checked_at
@@ -212,8 +218,9 @@ function Service:update(now, force)
 end
 
 -- Refresh Service
--- Forces an immediate cloud poll and local model scan for this service.
+-- Forces an immediate cloud poll or status reread and a local model scan for this service.
 function Service:refresh(now)
+  self.last_snapshot_read = nil
   self:maybe_spawn_poll(now, true)
   local window_name, start_time = self:model_window(now)
   if window_name then self:maybe_spawn_model_poll(now, window_name, start_time, true) end
@@ -268,7 +275,8 @@ function aiusage:draw()
     local snapshot = service.snapshot or {}
     local data = snapshot.data or {}
     local windows = data.windows or {}
-    if data.plan then table.insert(plans, (utils.titleize(tostring(data.plan):gsub('_', ' ')))) end
+    local plan = data.plan or service.plan
+    if plan then table.insert(plans, (utils.titleize(tostring(plan):gsub('_', ' ')))) end
     if snapshot.updated_at then oldest = math.min(oldest or snapshot.updated_at, snapshot.updated_at) end
     local color = service.task_status and STATUS_COLORS[service.task_status.state]
     if color then table.insert(colors, color) end
