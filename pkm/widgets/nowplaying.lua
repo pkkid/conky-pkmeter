@@ -18,7 +18,7 @@ function nowplaying:draw()
     self.height = 0
     return
   end
-  self.height = 51
+  self.height = 51 + (67 * #self.players)
 
   -- Header
   local playernames = self:list_playernames(self.players, self.max_players)
@@ -40,15 +40,16 @@ function nowplaying:draw()
   -- Player Info
   local y = self.origin + 50
   for _, player in ipairs(self.players) do
-    local duration = utils.duration(player.position)..' of '..utils.duration(player.length)
+    local duration = utils.duration(player.position or 0)..' of '..utils.duration(player.length or 0)
     draw.rectangle{x=0, y=y-1, width=conky_window.width, height=67, color=config.background} -- background
     draw.bargraph{x=10, y=y, width=120, height=2, value=player.position, maxvalue=player.length,
       color=config.accent, bgcolor=config.graph_bg} -- progress
     draw.text{x=10, y=y+17, text=player.title, maxwidth=120, color=config.value} -- title
     draw.text{x=10, y=y+32, text=player.artist, maxwidth=120, color=config.label} -- artist
     draw.text{x=10, y=y+47, text=duration, color=config.label} -- duration
-    draw.image{x=140, y=y+0, path=player.artpath, width=50}
-    self.height = self.height + 67
+    if player.artpath then
+      draw.image{x=140, y=y+0, path=player.artpath, width=50}
+    end
     y = y + 67
   end
 end
