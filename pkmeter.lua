@@ -162,10 +162,13 @@ function pkmeter:menu_items(name, widget)
 end
 
 -- Open Menu
--- Opens the right click menu for the widget under x,y
+-- Opens the right click menu for the widget under x,y and returns true. Empty
+-- space only opens it when no widget is shown, so hidden widgets can return.
 function pkmeter:open_menu(x, y)
   local name, widget = self:widget_at(y)
+  if not widget and self:widget_at(0) then return false end
   menu.open(x, y, function() return self:menu_items(name, widget) end)
+  return true
 end
 
 -- Signal
@@ -189,8 +192,7 @@ function conky_mouse_event(event)
     if event.y < margin or event.y > (conky_window.height - margin) then return end
     -- Open the menu on right click
     if event.button == 'right' then
-      pkmeter:open_menu(event.x, event.y)
-      return true
+      return pkmeter:open_menu(event.x, event.y)
     end
     -- Process the event
     local _, widget, y = pkmeter:widget_at(event.y)

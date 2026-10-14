@@ -108,9 +108,10 @@ This workaround may display a window title on the panel.
 
 ## Right Click Menu
 
-Right click anywhere to open a menu drawn inside the Conky window. Click
-outside it or wait ten seconds to close it. Set its colors with `menu_bg` and
-`menu_border` in `config.lua`.
+Right click a widget to open a menu drawn inside the Conky window. Empty space
+below the widgets passes right clicks to the desktop, unless every widget is
+hidden. Click outside the menu or wait ten seconds to close it. Set its colors
+with `menu_bg` and `menu_border` in `config.lua`.
 
 The top of the menu holds the clicked widget's options, such as refreshing,
 °F or °C, log scale graphs, the weather icon theme, the process sort, 12 or 24
