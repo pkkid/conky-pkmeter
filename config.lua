@@ -4,7 +4,7 @@ config = {}
 -- Add, remove, reorder widgets here.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','bambu','aiusage'}
+config.widgets = {'clock','openmeteo','todolist','system','nvidia','processes','networks','filesystems','nowplaying','bambu','aiusage'}
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -140,6 +140,12 @@ config.bambu = {
   min_spawn_gap = 15,                     -- Floor on how often we spawn the poller
   temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
 }
+config.todolist = {
+  file = nil,                             -- Path to markdown file (defaults to todolist.md beside conkyrc)
+  onclick = 'gnome-text-editor',          -- Command to open the file when clicking the header
+  checked_opacity = 0.4,                  -- Opacity of checked items
+  update_interval = 5,                    -- Reread the file every N seconds
+}
 
 -- Custom Widget
 -- Checking Game Server Status
@@ -186,7 +192,7 @@ config.fullpx = false
 -- Adding an entry for [<hostname>] will override
 -- any configuration variables above.
 config['[pkkid-laptop]'] = {
-  widgets = {'clock','openmeteo','aiusage','system','processes','networks','filesystems','nowplaying'},
+  widgets = {'clock','openmeteo','aiusage','system','processes','networks','filesystems','nowplaying','todolist'},
   system = {
     logscale = false,                       -- Chart cpu usage in logscale
     coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)

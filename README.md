@@ -3,8 +3,8 @@
 <img align="right" src="preview.png">
 
 A Conky configuration written entirely in Lua. It includes clock, weather,
-system, GPU, process, network, filesystem, media, Bambu printer, and AI usage
-(Claude and Codex) widgets.
+system, GPU, process, network, filesystem, media, Bambu printer, AI usage
+(Claude and Codex), and to do list widgets.
 
 ## Installation
 
@@ -26,6 +26,10 @@ Long titles, including accented characters and emoji, are shortened to fit.
 - `filesystems`: Find mount paths with `df -h`, then configure the paths to monitor.
 - `nowplaying`: Uses `playerctl` for playback information and controls.
 - `bambu`: Set the printer host, serial number, and LAN access code.
+- `todolist`: Shows checklist items (`- [ ]`, `- [x]`) from `todolist.md` beside
+  `conkyrc`, or the path set in `file`. Checked items are dimmed and listed last;
+  other content is ignored. The widget hides when there are no items. Click the
+  header to open the file, or click an item to check or uncheck it in the file.
 
 ## AI Usage
 

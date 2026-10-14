@@ -292,6 +292,45 @@ function draw.text(args)
   cairo_move_to(cr, x_align, y)
   cairo_show_text(cr, text)
   cairo_stroke(cr)
+  return extents.width + extents.x_bearing
+end
+
+-- Draw Line
+--  args.x1, args.y1 (number): Starting point of the line.
+--  args.x2, args.y2 (number): Ending point of the line.
+--  args.width (number): Width of the line. Default is 1.
+--  args.color (string): Color of the line in hex. Default is #ffffff.
+function draw.line(args)
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(args.color or '#ffffff'))
+  cairo_set_line_width(cr, args.width or 1)
+  cairo_move_to(cr, args.x1 or 0, args.y1 or 0)
+  cairo_line_to(cr, args.x2 or 0, args.y2 or 0)
+  cairo_stroke(cr)
+end
+
+-- Draw Checkbox
+--  args.x (number): x-coordinate of the box's top left corner. Default is 0.
+--  args.y (number): y-coordinate of the box's top left corner. Default is 0.
+--  args.size (number): Width and height of the box. Default is 9.
+--  args.checked (boolean): Set true to draw a check mark inside the box.
+--  args.color (string): Color of the box in hex. Default is #ffffff.
+function draw.checkbox(args)
+  local x = args.x or 0
+  local y = args.y or 0
+  local size = args.size or 9
+  local color = args.color or '#ffffff'
+
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(color))
+  cairo_set_line_width(cr, 1)
+  cairo_rectangle(cr, x+0.5, y+0.5, size, size)
+  cairo_stroke(cr)
+  if args.checked then
+    cairo_set_line_width(cr, 1.5)
+    cairo_move_to(cr, x+size*0.25, y+size*0.55)
+    cairo_line_to(cr, x+size*0.45, y+size*0.75)
+    cairo_line_to(cr, x+size*0.8, y+size*0.3)
+    cairo_stroke(cr)
+  end
 end
 
 -- Draw Widget Header
