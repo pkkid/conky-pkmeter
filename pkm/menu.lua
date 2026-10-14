@@ -172,7 +172,9 @@ function menu.toggle(label, section, key, default, after, on, off)
   if on == nil then on, off = true, false end
   local current = toggles.get(section, key, default)
   return {label=label, checked=current == on, action=function()
-    toggles.set(section, key, current == on and off or on)
+    local value = on
+    if current == on then value = off end
+    toggles.set(section, key, value)
     if after then after() end
   end}
 end
