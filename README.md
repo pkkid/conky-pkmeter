@@ -17,11 +17,13 @@ conky -c conkyrc
 
 ## Configuration
 
-Widget settings and display order are defined in `config.lua`. Window placement,
-size, and Conky behavior are configured in `conkyrc`.
+Widget settings and the default display order are defined in `config.lua`.
+Window placement, size, and Conky behavior are configured in `conkyrc`.
+Display choices such as units, icon theme, and sort order are set from the
+right click menu instead (see [Right Click Menu](#right-click-menu)).
 Long titles, including accented characters and emoji, are shortened to fit.
 
-- `openmeteo`: Set your location, timezone, units, and icon theme.
+- `openmeteo`: Set your location, timezone, and wind speed unit.
 - `networks`: Find interface names with `ip link`, then configure the devices to monitor.
 - `filesystems`: Find mount paths with `df -h`, then configure the paths to monitor.
 - `nowplaying`: Uses `playerctl` for playback information and controls.
@@ -44,7 +46,7 @@ dot per service: blue while running, orange while waiting for you. With both
 active the dots sit side by side; clicking the header refreshes both services.
 
 The model mix and weekly pacing are hidden by default; click the widget content
-to toggle them, or set `show_details = true`. The model mix lists each
+or use *Show details* in the right click menu to toggle them. The model mix lists each
 service's top three local models by token share and prompt count, allocated
 against that service's own limit, so the combined list totals up to 200%. It
 excludes activity from other machines.
@@ -104,11 +106,23 @@ own_window_hints = 'skip_taskbar,sticky,below',
 
 This workaround may display a window title on the panel.
 
-Right click anywhere to open a menu drawn inside the Conky window. It lists
-the clicked widget's options (such as refreshing or toggling details), *Hide
-widget*, and global options to show hidden widgets, edit `config.lua`, reload,
-or quit. Hidden widgets reappear after a reload. Click outside the menu or wait
-ten seconds to close it. Set its colors with `menu_bg` and `menu_border`.
+## Right Click Menu
+
+Right click anywhere to open a menu drawn inside the Conky window. Click
+outside it or wait ten seconds to close it. Set its colors with `menu_bg` and
+`menu_border` in `config.lua`.
+
+The top of the menu holds the clicked widget's options, such as refreshing,
+°F or °C, log scale graphs, the weather icon theme, the process sort, 12 or 24
+hour time, or opening a related app. *Copy external IP* needs `wl-copy` or
+`xclip`. Every widget can also be moved up, moved down, or hidden. The bottom
+holds *Widgets* to turn each widget on or off, plus edit config, reload, and
+quit.
+
+Choices are saved to `toggles.json` beside `conkyrc` and kept across restarts.
+The widget order in `config.lua` is used until you move or hide a widget, after
+which the saved layout is shown; *Widgets › Reset layout* returns to the config
+order. Widgets added to `config.widgets` later appear at the end.
 
 ## Credits
 

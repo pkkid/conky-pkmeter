@@ -1,9 +1,12 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local networks = {}
+networks.title = 'Networks'
 networks.origin = 0
 networks.height = 0
 networks.extip = nil
@@ -11,7 +14,6 @@ networks.extip_last_update = nil
 networks.last_update = nil
 networks.history_upspeed = nil
 networks.history_downspeed = nil
-networks.show_all = false
 
 
 -- Draw
@@ -29,8 +31,9 @@ function networks:draw()
 
   -- Devices
   local y = self.origin + 61
+  local show_all = toggles.get('networks', 'show_all', false)
   for _, dev in ipairs(self.devices) do
-    if dev.ipaddr ~= 'No Address' or self.show_all then
+    if dev.ipaddr ~= 'No Address' or show_all then
       draw.rectangle{x=0, y=y-4, width=conky_window.width, height=55, color=config.background} -- background
       draw.text{x=10, y=y, text=dev.name, color=config.value} -- device name
       draw.text{x=190, y=y, text=dev.ipaddr, color=config.value, align='right'} -- local ip address
@@ -83,8 +86,23 @@ function networks:click(event, x, y)
   if y < 40 then
     os.execute(self.onclick..' &')
   else
-    self.show_all = not self.show_all
+    toggles.set('networks', 'show_all', not toggles.get('networks', 'show_all', false))
   end
+end
+
+-- Menu
+-- Returns right click menu items to show all devices or copy and refresh the external ip
+function networks:menu()
+  local items = {menu.toggle('Show all devices', 'networks', 'show_all', false)}
+  if self.extip then
+    local ip = "'"..self.extip:gsub("'", "'\\''").."'"
+    table.insert(items, menu.command('Copy external IP',
+      'printf %s '..ip..' | (wl-copy 2>/dev/null || xclip -selection clipboard)'))
+  end
+  table.insert(items, {label='Refresh external IP', action=function()
+    self.last_update_extip = nil end})
+  table.insert(items, menu.app(self.onclick))
+  return items
 end
 
 return networks

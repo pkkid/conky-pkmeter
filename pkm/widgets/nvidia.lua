@@ -1,9 +1,12 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local nvidia = {}
+nvidia.title = 'NVIDIA'
 nvidia.QUERY_GPU = {
   'name', 'driver_version', 'clocks.current.graphics', 'clocks.current.memory',
   'clocks.current.sm', 'clocks.current.video', 'clocks.max.graphics', 'clocks.max.memory',
@@ -26,7 +29,7 @@ function nvidia:draw()
   color_usage = self.color_usage or config.accent
   draw.widget_header(self.origin, self.height, 'NVIDIA', self.cardname, function()
     draw.graph{data=self.history_usage, x=100, y=self.origin+8, width=90, height=24, color=color_usage,
-      bgcolor=config.header_graph_bg, maxvalue=100, logscale=self.logscale}
+      bgcolor=config.header_graph_bg, maxvalue=100, logscale=toggles.get('nvidia', 'logscale', false)}
   end)
 
   -- GPU Stats
@@ -67,7 +70,7 @@ function nvidia:update()
     self.driver = 'v'..data.driver_version
     self.usage = tonumber(data.utilization_gpu:match('^(%d+)'))
     self.freq = data.clocks_current_graphics
-    self.temp = utils.format_temp(data.temperature_gpu, self.temperature_unit)
+    self.temp = utils.format_temp(data.temperature_gpu, toggles.get('pkmeter', 'temperature_unit', 'celsius'))
     self.mempct = tonumber(data.utilization_memory:match('^(%d+)'))
     self.memtotal = utils.round(tonumber(data.memory_total:match('^(%d+)')) / 1024)
     self.memrate = (tonumber(data.clocks_current_memory:match('^(%d+)')) * 2)..' MHz' -- x2 for DDR
@@ -88,6 +91,16 @@ end
 -- Perform click action
 function nvidia:click(event, x, y)
   if y < 40 then os.execute(self.onclick..' &') end
+end
+
+-- Menu
+-- Returns right click menu items to change the graph scale or units
+function nvidia:menu()
+  return {
+    menu.toggle('Log scale', 'nvidia', 'logscale', false),
+    menu.fahrenheit(function() self.last_update = nil end),
+    menu.app(self.onclick),
+  }
 end
 
 return nvidia

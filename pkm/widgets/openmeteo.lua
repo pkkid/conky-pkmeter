@@ -1,12 +1,16 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local openmeteo = {}
+openmeteo.title = 'Weather'
 openmeteo.URL = 'https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}'
 openmeteo.URL = openmeteo.URL..'&current_weather=1&temperature_unit={temperature_unit}&wind_speed_unit={wind_speed_unit}'
 openmeteo.URL = openmeteo.URL..'&timezone={timezone}&daily=weathercode,apparent_temperature_max,sunrise,sunset'
+openmeteo.ICON_THEMES = {'colorful', 'dark', 'flat-black', 'flat-colorful', 'flat-white', 'light'}
 openmeteo.ICONCODES = {
     -- Clear, Cloudy
     {desc='Clear', day='32', night='31', weathercodes={0}},
@@ -83,7 +87,7 @@ function openmeteo:draw()
   local is_day = self.data.current_weather.is_day
   local isnight = not (is_day == 1 or is_day == true)
   local ipath, idesc = self:get_iconpath(self.data.current_weather.weathercode, isnight)
-  local tempunit = self.temperature_unit == 'fahrenheit' and '°F' or '°C'
+  local tempunit = self.data.unit == 'fahrenheit' and '°F' or '°C'
   local temp = math.floor(self.data.current_weather.temperature + 0.5)
   local windspeed = math.floor(self.data.current_weather.windspeed + 0.5)..' '..self.wind_speed_unit
   draw.rectangle{x=0, y=self.origin, width=conky_window.width, height=50, color=config.header_bg} -- header background
@@ -110,7 +114,6 @@ end
 --  openmeteo.city_name:         Display Name (only used for display)
 --  openmeteo.latitude:          Latitude of location
 --  openmeteo.longitude:         Longitude of location
---  openmeteo.temperature_unit:  Temperature unit {celsius, fahrenheit}
 --  openmeteo.timezone:          https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 --  openmeteo.wind_speed_unit:   OpenMeteo windspeed unit {kmh, ms, mph, kn}
 --  openmeteo.update_interval:   Update interval to call weather api
@@ -119,7 +122,8 @@ function openmeteo:update()
     local now = socket.gettime()
     local url = string.gsub(self.URL, '{latitude}', self.latitude)
     url = string.gsub(url, '{longitude}', self.longitude)
-    url = string.gsub(url, '{temperature_unit}', self.temperature_unit)
+    local unit = toggles.get('openmeteo', 'temperature_unit', 'celsius')
+    url = string.gsub(url, '{temperature_unit}', unit)
     url = string.gsub(url, '{wind_speed_unit}', self.wind_speed_unit)
     url = string.gsub(url, '{timezone}', self.timezone)
     local data = utils.request{url=url, json=true}
@@ -127,6 +131,7 @@ function openmeteo:update()
       and (now - self.last_success) > self.max_stale_seconds
     if self:is_valid_data(data) then
       self.data = data
+      self.data.unit = unit
       self.last_success = now
       self.errormsg = nil
     elseif not self.data or isstale then
@@ -142,6 +147,27 @@ function openmeteo:click(event, x, y)
   if y < 50 then os.execute(self.onclick..' &') end
 end
 
+-- Menu
+-- Returns right click menu items to refresh, open the forecast, or change units and icons
+function openmeteo:menu()
+  local refresh = function() self.last_update = nil end
+  local themes = function()
+    local items = {}
+    for _, theme in ipairs(self.ICON_THEMES) do
+      local label = utils.titleize((theme:gsub('-', ' ')))
+      table.insert(items, menu.choice(label, 'openmeteo', 'icon_theme', theme, 'colorful'))
+    end
+    return items
+  end
+  return {
+    {label='Refresh now', action=refresh},
+    menu.command('Open forecast', self.onclick),
+    menu.toggle('Fahrenheit', 'openmeteo', 'temperature_unit', 'celsius', refresh,
+      'fahrenheit', 'celsius'),
+    {label='Icon theme', items=themes},
+  }
+end
+
 -- Get Icon Path
 -- Return iconpath and description for the specified weathercode
 -- weathercode: Weather code from OpenMeteo API
@@ -152,7 +178,8 @@ function openmeteo:get_iconpath(weathercode, isnight)
     if utils.contains(idata.weathercodes or {}, weathercode) then
       local key = isnight and 'night' or 'day'
       local inum = idata[key] or idata['day']
-      local ipath = pkmeter.ROOT..'/pkm/img/weather/'..self.icon_theme..'/'..inum..'.png'
+      local theme = toggles.get('openmeteo', 'icon_theme', 'colorful')
+      local ipath = pkmeter.ROOT..'/pkm/img/weather/'..theme..'/'..inum..'.png'
       return ipath, idata.desc
     end
   end

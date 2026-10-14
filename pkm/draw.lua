@@ -349,8 +349,7 @@ function draw.checkbox(args)
 end
 
 -- Draw Widget Header
--- Draws a standard widget header with title and optional subtitle.
--- Remembers the first title in draw.header_title so menus can name the widget.
+-- Draws a standard widget header with title and optional subtitle
 --  origin (number): y-coordinate origin of the widget
 --  height (number): total height of the widget
 --  title (string): header title text
@@ -358,7 +357,6 @@ end
 --  extras (function): optional function to draw extra elements in header
 --  subtitle_width (number): optional maximum subtitle width, defaults to 80
 function draw.widget_header(origin, height, title, subtitle, extras, subtitle_width)
-  draw.header_title = draw.header_title or title
   draw.rectangle{x=0, y=origin, width=conky_window.width, height=40, color=config.header_bg}
   draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background}
   draw.text{x=10, y=origin+17, text=title, size=12, color=config.header}

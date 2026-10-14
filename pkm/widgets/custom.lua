@@ -3,6 +3,7 @@ local draw = require 'pkm/draw'
 local utils = require 'pkm/utils'
 
 local custom = {}
+custom.title = 'Custom'
 custom.origin = 0
 custom.height = 0
 custom.cmd_cache = {}

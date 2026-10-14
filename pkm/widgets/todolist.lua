@@ -1,9 +1,12 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local todolist = {}
+todolist.title = 'To Do List'
 todolist.origin = 0
 todolist.height = 0
 todolist.items = {}
@@ -79,15 +82,51 @@ function todolist:open()
 end
 
 -- Menu
--- Returns right click menu items to open the file or hide checked items
+-- Returns right click menu items to open the file, hide, uncheck, or clear checked items
 function todolist:menu()
-  return {
+  local checked = 0
+  for _, item in ipairs(self:parse(self:path(), true)) do
+    if item.checked then checked = checked + 1 end
+  end
+  local items = {
     {label='Open file', action=function() self:open() end},
-    {label='Hide checked items', checked=self.hide_checked == true, action=function()
-      self.hide_checked = not self.hide_checked
-      self.items = self:parse(self:path())
-    end},
+    menu.toggle('Hide checked items', 'todolist', 'hide_checked', false, function()
+      self.items = self:parse(self:path()) end),
   }
+  if checked > 0 then
+    table.insert(items, {label='Uncheck all', action=function()
+      self:rewrite(function(line) return (line:gsub('%[[xX]%]', '[ ]', 1)) end) end})
+    table.insert(items, {label='Clear checked items', items={
+      {title='Delete '..checked..(checked == 1 and ' checked item?' or ' checked items?')},
+      {label='Delete from file', action=function()
+        self:rewrite(function(line, item) if not item.checked then return line end end) end},
+    }})
+  end
+  return items
+end
+
+-- Rewrite
+-- Replaces each checklist line with fn(line, item), removing it when fn returns nil
+function todolist:rewrite(fn)
+  local path = self:path()
+  local lines = read_lines(path)
+  if not lines then return end
+  local byline = {}
+  for _, item in ipairs(self:parse(path, true)) do byline[item.line] = item end
+  local result = {}
+  for num, line in ipairs(lines) do
+    local item = byline[num]
+    local newline = line
+    if item then newline = fn(line, item) end
+    if newline then table.insert(result, newline) end
+  end
+  local handle = io.open(path, 'w')
+  if handle then
+    handle:write(table.concat(result, '\n'))
+    handle:close()
+  end
+  self.items = self:parse(path)
+  self.last_update = socket.gettime()
 end
 
 -- Toggle
@@ -113,15 +152,13 @@ end
 -- Returns the configured file, or todolist.md beside the loaded conkyrc
 function todolist:path()
   if self.file then return (self.file:gsub('^~', os.getenv('HOME') or '~')) end
-  local dir = (conky_config or ''):match('^(.*)/')
-  if not dir then dir = pkmeter.ROOT
-  elseif dir:sub(1, 1) ~= '/' then dir = pkmeter.ROOT..'/'..dir end
-  return dir..'/todolist.md'
+  return utils.config_dir()..'/todolist.md'
 end
 
 -- Parse
--- Returns unchecked then checked items from every checklist in the file
-function todolist:parse(path)
+-- Returns unchecked then checked items from every checklist in the file,
+-- leaving out checked items when they are hidden unless all is set
+function todolist:parse(path, all)
   local unchecked, checked, infence = {}, {}, false
   for num, line in ipairs(read_lines(path) or {}) do
     if line:match('^%s*```') or line:match('^%s*~~~') then infence = not infence end
@@ -131,7 +168,7 @@ function todolist:parse(path)
       table.insert(item.checked and checked or unchecked, item)
     end
   end
-  if self.hide_checked then return unchecked end
+  if not all and toggles.get('todolist', 'hide_checked', false) then return unchecked end
   for _, item in ipairs(checked) do table.insert(unchecked, item) end
   return unchecked
 end

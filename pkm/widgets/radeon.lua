@@ -1,9 +1,12 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local radeon = {}
+radeon.title = 'AMD GPU'
 radeon.origin = 0
 radeon.height = 0
 radeon.last_update = nil
@@ -27,7 +30,7 @@ function radeon:draw()
 
   -- GPU Charts
   draw.graph{data=self.history, x=155, y=self.origin+53, width=35, height=23, color=config.accent,
-    bgcolor=config.graph_bg, maxvalue=100, logscale=self.logscale} -- gpu history
+    bgcolor=config.graph_bg, maxvalue=100, logscale=toggles.get('radeon', 'logscale', false)} -- gpu history
   draw.ringgraph{value=self.data.vram, x=172, y=self.origin+109, radius=9, width=5,
     color=config.accent, bgcolor=config.graph_bg} -- memory percent
 end
@@ -56,7 +59,7 @@ function radeon:update()
 
     self.usage = data.gpu
     self.freq = math.floor(tonumber(utils.parse(self.gpufreq) or '0') / 1000000)
-    self.temp = utils.format_temp(utils.parse(self.gputemp), self.temperature_unit)
+    self.temp = utils.format_temp(utils.parse(self.gputemp), toggles.get('pkmeter', 'temperature_unit', 'celsius'))
     self.mempct = data.vram
     self.memtotal = data.vram_meta:gsub('%.%d+', '')
     self.memrate = utils.round(tonumber(data.mclk_meta:match('^([%d%.]+)') or '0') * 1000.0)
@@ -65,6 +68,15 @@ function radeon:update()
     self.history = utils.push_history(self.history, data.gpu, 35)
     self.last_update = socket.gettime()
   end
+end
+
+-- Menu
+-- Returns right click menu items to change the graph scale or units
+function radeon:menu()
+  return {
+    menu.toggle('Log scale', 'radeon', 'logscale', false),
+    menu.fahrenheit(function() self.last_update = nil end),
+  }
 end
 
 return radeon

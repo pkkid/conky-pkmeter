@@ -1,21 +1,24 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local system = {}
+system.title = 'System'
 system.origin = 0
 system.height = 0
 system.history = nil
 system.temp_history = nil
 system.cpucount = nil
-system.showextra = false
 
 -- Draw
 -- Draw this widget
 function system:draw()
   self.height = 142
-  if self.showextra then
+  local showextra = toggles.get('system', 'show_extra', false)
+  if showextra then
     self.height = self.height + 5 + (#self.extras * 15)
   end
 
@@ -23,7 +26,7 @@ function system:draw()
   color_usage = self.color_usage or config.accent
   draw.widget_header(self.origin, self.height, 'System', self.nodename, function()
     draw.graph{data=self.history, x=100, y=self.origin+8, width=90, height=24, color=color_usage,
-      bgcolor=config.header_graph_bg, maxvalue=100, logscale=self.logscale}
+      bgcolor=config.header_graph_bg, maxvalue=100, logscale=toggles.get('system', 'logscale', false)}
   end)
 
   -- System Stats
@@ -33,7 +36,7 @@ function system:draw()
   draw.stat_row(self.origin+106, 'Mem Used', self.memperc..'% of '..self.memtotal..'G')
   draw.stat_row(self.origin+121, 'Uptime', self.uptime)
 
-  if self.showextra then
+  if showextra then
     y = self.origin + 141
     for _, sensor in ipairs(self.extras) do
       draw.text{x=10, y=y, text=sensor.name, color=config.label} -- pump speed
@@ -83,7 +86,7 @@ function system:update()
     self.memtotal = utils.round(utils.parse('memmax'):match('^(%d+)'))
     self.memperc = tonumber(utils.parse('memperc'))
     self.coretemp = utils.parse(self.coretempstr)
-    self.tempstr = utils.format_temp(self.coretemp, self.temperature_unit)
+    self.tempstr = utils.format_temp(self.coretemp, toggles.get('pkmeter', 'temperature_unit', 'celsius'))
     self.uptime = utils.parse('uptime_short')
     -- Extras
     for _, sensor in ipairs(self.extras) do
@@ -114,8 +117,22 @@ function system:click(event, x, y)
   if y < 40 then
     os.execute(self.onclick..' &')
   else
-    self.showextra = not self.showextra
+    toggles.set('system', 'show_extra', not toggles.get('system', 'show_extra', false))
   end
+end
+
+-- Menu
+-- Returns right click menu items to change the graph scale, units, or extra sensors
+function system:menu()
+  local items = {
+    menu.toggle('Log scale', 'system', 'logscale', false),
+    menu.fahrenheit(function() self.last_update = nil end),
+  }
+  if #self.extras > 0 then
+    table.insert(items, menu.toggle('Show extra sensors', 'system', 'show_extra', false))
+  end
+  table.insert(items, menu.app(self.onclick))
+  return items
 end
 
 return system

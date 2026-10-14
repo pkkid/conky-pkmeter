@@ -38,6 +38,16 @@ function utils.check_update(last_update, update_interval)
 end
 
 
+-- Config Dir
+-- Returns the directory of the loaded conkyrc, or the pkmeter root
+function utils.config_dir()
+  local dir = (conky_config or ''):match('^(.*)/')
+  if not dir then return pkmeter.ROOT end
+  if dir:sub(1, 1) ~= '/' then return pkmeter.ROOT..'/'..dir end
+  return dir
+end
+
+
 -- Contains
 -- Return true if value is in the list
 function utils.contains(list, value)

@@ -1,10 +1,13 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
 local json = require 'pkm/json'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local bambu = {}
+bambu.title = 'Bambu Printer'
 bambu.origin = 0
 bambu.height = 0
 bambu.data = nil                -- parsed `print` object from the last poll
@@ -17,7 +20,6 @@ bambu.update_interval = 30      -- how old data must be before we repoll
 bambu.status_file = '/tmp/bambu_status.json'
 bambu.thumbnail_file = '/tmp/bambu_thumb.png'
 bambu.name = 'Bambu P2S'
-bambu.temperature_unit = 'celsius'
 
 bambu.STATE_LABEL = {
   IDLE='Idle', PREPARE='Preparing', RUNNING='Printing',
@@ -51,14 +53,15 @@ function bambu:draw()
   if state == 'RUNNING' and d.mc_percent then
     subtitle = string.format('%s %d%%', label, d.mc_percent)
   end
+  local unit = toggles.get('pkmeter', 'temperature_unit', 'celsius')
   draw.widget_header(self.origin, self.height, self.name, subtitle, function()
     -- Top-right: nozzle / bed temps as a compact status line.
     if d.nozzle_temper then
-      local t = utils.format_temp(d.nozzle_temper, self.temperature_unit)
+      local t = utils.format_temp(d.nozzle_temper, unit)
       draw.text{x=190, y=self.origin+17, text='N '..t, color=config.value, align='right'}
     end
     if d.bed_temper then
-      local t = utils.format_temp(d.bed_temper, self.temperature_unit)
+      local t = utils.format_temp(d.bed_temper, unit)
       draw.text{x=190, y=self.origin+32, text='B '..t, color=config.value, align='right'}
     end
   end)
@@ -149,8 +152,12 @@ end
 -- Menu
 -- Returns right click menu items to refresh the printer status.
 function bambu:menu()
-  return {{label='Refresh now', action=function()
-    self:maybe_spawn_poll(socket.gettime(), true) end}}
+  local items = {
+    {label='Refresh now', action=function() self:maybe_spawn_poll(socket.gettime(), true) end},
+    menu.fahrenheit(),
+  }
+  if self.studio then table.insert(items, menu.command('Open Bambu Studio', self.studio)) end
+  return items
 end
 
 

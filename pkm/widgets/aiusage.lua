@@ -3,10 +3,12 @@ local claudepoll = require 'pkm/claudepoll'
 local codexpoll = require 'pkm/codexpoll'
 local draw = require 'pkm/draw'
 local json = require 'pkm/json'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
+local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
-local aiusage = {origin=0, height=0}
+local aiusage = {origin=0, height=0, title='AI Usage'}
 local STATUS_COLORS = {running='#458588', waiting='#d65d0e'}
 local SERVICE_ORDER = {'claude', 'codex'}
 local Service = {}
@@ -249,10 +251,9 @@ function aiusage:update(force)
 end
 
 -- Details Shown
--- Returns the clicked detail visibility, or the configured default before any toggle.
+-- Returns the saved detail visibility, hidden by default.
 function aiusage:details_shown()
-  if self.details_visible == nil then return self.show_details end
-  return self.details_visible
+  return toggles.get('aiusage', 'show_details', false)
 end
 
 -- Draw
@@ -354,7 +355,7 @@ end
 -- Refreshes every service from the header, or toggles usage details from the content.
 function aiusage:click(event, x, y)
   if y >= 40 then
-    self.details_visible = not self:details_shown()
+    toggles.set('aiusage', 'show_details', not self:details_shown())
     return
   end
   self:refresh()
@@ -372,8 +373,7 @@ end
 function aiusage:menu()
   return {
     {label='Refresh now', action=function() self:refresh() end},
-    {label='Show details', checked=self:details_shown(), action=function()
-      self.details_visible = not self:details_shown() end},
+    menu.toggle('Show details', 'aiusage', 'show_details', false),
   }
 end
 

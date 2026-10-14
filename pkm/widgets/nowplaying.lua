@@ -4,6 +4,7 @@ local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local nowplaying = {}
+nowplaying.title = 'Now Playing'
 nowplaying.PLAYERCTL_FORMAT = {'playername={{playerName}}', 'status={{status}}',
   'title={{title}}', 'artist={{artist}}', 'album={{album}}', 'length={{mpris:length}}',
   'position={{position}}', 'arturl={{mpris:artUrl}}'}

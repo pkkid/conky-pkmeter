@@ -1,7 +1,8 @@
 
 config = {}
 -- List of widgets to display.
--- Add, remove, reorder widgets here.
+-- Add, remove, reorder widgets here. Moving or hiding a widget from the right
+-- click menu saves your layout to toggles.json, which then replaces this order.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
 config.widgets = {'clock','openmeteo','todolist','system','nvidia','processes','networks','filesystems','nowplaying','bambu','aiusage'}
@@ -23,15 +24,13 @@ config.graph_bg = '#cccccc33'
 config.header_graph_bg = '#cccccc11'
 config.menu_bg = '#1d2021f0'
 config.menu_border = '#665c54'
-config.tempunit_weather = 'fahrenheit'
-config.tempunit_pc = 'celsius'
 
 -- Widgets
 config.clock = {
   onclick = 'gnome-clocks',               -- Click action
+  calendar = 'gnome-calendar',            -- Calendar app in the right click menu
 }
 config.aiusage = {
-  show_details = false,                   -- Show model usage and weekly pace (click content to toggle)
   claude = {
     enabled = true,                       -- Monitor Claude usage
     plan = 'Max',                         -- Plan name shown in the header (Claude Code doesn't report it)
@@ -59,18 +58,14 @@ config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
   latitude = 42.20,                       -- Latitude of location
   longitude = -71.42,                     -- Longitude of location
-  temperature_unit = config.tempunit_weather,  -- Temperature unit {celsius, fahrenheit}
   timezone = 'America/New_York',          -- https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   wind_speed_unit = 'mph',                -- OpenMeteo windspeed unit {kmh, ms, mph, kn}
-  icon_theme = 'colorful',                -- Icon theme {colorful,dark,flat-black,flat-colorful,flat-white,light}
   onclick = 'xdg-open https://www.google.com/search?q=Holliston,+MA+weather', -- Click action
   update_interval = 900,                  -- Update interval to call weather api
   max_stale_seconds = 7200,               -- Keep showing old data for up to 2 hours when API updates fail
 }
 config.system = {
-  logscale = false,                       -- Chart cpu usage in logscale
   coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
-  temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
   onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=missioncenter io.missioncenter.MissionCenter',    -- Click action
   extras = {
   --   {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
@@ -82,8 +77,6 @@ config.system = {
 }
 config.nvidia = {
   nvidiasmi = '/usr/bin/nvidia-smi',      -- Path to nvidia-smi
-  temperature_unit = config.tempunit_pc, -- Temperature unit {celsius, fahrenheit}
-  logscale = false,                       -- Chart gpu usage in logscale
   onclick = 'nvidia-settings',            -- Click action
   color_usage = '#98971a',
   color_pwrpct = '#98971a',
@@ -95,13 +88,10 @@ config.radeon = {
   gpuname = 'Radeon HD 7750',             -- Name of the gpu to display (hard coded for now)
   gputemp = 'hwmon 1 temp 1',             -- Conky cmd to read gputemp (See /sys/class/hwmon/ on your pc)
   gpufreq = 'hwmon 1 freq 1',             -- Conky cmd to read gpufreq (See /sys/class/hwmon/ on your pc)
-  temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
-  logscale = false,                       -- Chart gpu usage in logscale
 }
 config.processes = {
   min_count = 6,                          -- Min number of processes to display
   max_count = 10,                         -- Max number of processes to display (max is 10)
-  sortby = 'top',                         -- Sort method {top, top_mem, top_io, top_time}
   onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=missioncenter io.missioncenter.MissionCenter',    -- Click action
 }
 config.networks = {
@@ -137,7 +127,7 @@ config.bambu = {
   thumbnail_file = '/tmp/bambu_thumb.png',-- Cached plate thumbnail (nil to disable)
   update_interval = 30,                   -- Repoll if the JSON is older than this (sec)
   min_spawn_gap = 15,                     -- Floor on how often we spawn the poller
-  temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
+  studio = 'flatpak run com.bambulab.BambuStudio',  -- Bambu Studio command in the right click menu
 }
 config.todolist = {
   file = nil,                             -- Path to markdown file (defaults to todolist.md beside conkyrc)
@@ -193,9 +183,7 @@ config.fullpx = false
 config['[pkkid-laptop]'] = {
   widgets = {'clock','openmeteo','aiusage','system','processes','networks','filesystems','nowplaying','todolist'},
   system = {
-    logscale = false,                       -- Chart cpu usage in logscale
     coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
-    temperature_unit = config.tempunit_pc,  -- Temperature unit {celsius, fahrenheit}
     onclick = 'gnome-system-monitor -r',    -- Click action
   },
   networks = {

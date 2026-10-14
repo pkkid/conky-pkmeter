@@ -1,9 +1,11 @@
 local config = require 'config'
 local draw = require 'pkm/draw'
+local menu = require 'pkm/menu'
 local socket = require 'socket'
 local utils = require 'pkm/utils'
 
 local filesystems = {}
+filesystems.title = 'File Systems'
 filesystems.origin = 0
 filesystems.height = 0
 filesystems.history = nil
@@ -59,6 +61,17 @@ end
 -- Perform click action
 function filesystems:click(event, x, y)
   os.execute(self.onclick..' &')
+end
+
+-- Menu
+-- Returns right click menu items to open each filesystem path
+function filesystems:menu()
+  local items = {}
+  for _, fs in ipairs(self.paths) do
+    local path = "'"..fs.path:gsub("'", "'\\''").."'"
+    table.insert(items, menu.command('Open '..fs.name, (self.onclick or 'xdg-open')..' '..path))
+  end
+  return items
 end
 
 return filesystems
