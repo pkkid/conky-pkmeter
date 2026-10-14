@@ -21,6 +21,8 @@ config.background = '#11111199'
 config.header_bg = '#444444bb'
 config.graph_bg = '#cccccc33'
 config.header_graph_bg = '#cccccc11'
+config.menu_bg = '#1d2021f0'
+config.menu_border = '#665c54'
 config.tempunit_weather = 'fahrenheit'
 config.tempunit_pc = 'celsius'
 

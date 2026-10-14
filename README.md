@@ -104,6 +104,12 @@ own_window_hints = 'skip_taskbar,sticky,below',
 
 This workaround may display a window title on the panel.
 
+Right click anywhere to open a menu drawn inside the Conky window. It lists
+the clicked widget's options (such as refreshing or toggling details), *Hide
+widget*, and global options to show hidden widgets, edit `config.lua`, reload,
+or quit. Hidden widgets reappear after a reload. Click outside the menu or wait
+ten seconds to close it. Set its colors with `menu_bg` and `menu_border`.
+
 ## Credits
 
 Fisadev and Zineddine SAIBI created the original Conky drawing scripts.

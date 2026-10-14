@@ -64,12 +64,30 @@ end
 -- Open the file when the header is clicked, or toggle the clicked item
 function todolist:click(event, x, y)
   if y < 40 then
-    local path = "'"..self:path():gsub("'", "'\\''").."'"
-    os.execute((self.onclick or 'xdg-open')..' '..path..' &')
+    self:open()
   elseif y >= 50 then
     local item = self.items[math.floor((y - 50) / 15) + 1]
     if item then self:toggle(item) end
   end
+end
+
+-- Open
+-- Open the markdown file with the configured command
+function todolist:open()
+  local path = "'"..self:path():gsub("'", "'\\''").."'"
+  os.execute((self.onclick or 'xdg-open')..' '..path..' &')
+end
+
+-- Menu
+-- Returns right click menu items to open the file or hide checked items
+function todolist:menu()
+  return {
+    {label='Open file', action=function() self:open() end},
+    {label='Hide checked items', checked=self.hide_checked == true, action=function()
+      self.hide_checked = not self.hide_checked
+      self.items = self:parse(self:path())
+    end},
+  }
 end
 
 -- Toggle
@@ -113,6 +131,7 @@ function todolist:parse(path)
       table.insert(item.checked and checked or unchecked, item)
     end
   end
+  if self.hide_checked then return unchecked end
   for _, item in ipairs(checked) do table.insert(unchecked, item) end
   return unchecked
 end

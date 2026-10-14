@@ -295,6 +295,21 @@ function draw.text(args)
   return extents.width + extents.x_bearing
 end
 
+-- Text Width
+-- Returns the drawn width of text using the same font arguments as draw.text
+function draw.text_width(args)
+  local bold = args.bold == nil and config.default_font_bold or args.bold
+  local italic = args.italic == nil and config.default_font_italic or args.italic
+  cairo_select_font_face(cr, args.font or config.default_font,
+    italic and CAIRO_FONT_SLANT_ITALIC or CAIRO_FONT_SLANT_NORMAL,
+    bold and CAIRO_FONT_WEIGHT_BOLD or CAIRO_FONT_WEIGHT_NORMAL)
+  cairo_set_font_size(cr, args.size or config.default_font_size)
+  local extents = cairo_text_extents_t:create()
+  tolua.takeownership(extents)
+  cairo_text_extents(cr, args.text or '', extents)
+  return extents.width + extents.x_bearing
+end
+
 -- Draw Line
 --  args.x1, args.y1 (number): Starting point of the line.
 --  args.x2, args.y2 (number): Ending point of the line.
@@ -334,7 +349,8 @@ function draw.checkbox(args)
 end
 
 -- Draw Widget Header
--- Draws a standard widget header with title and optional subtitle
+-- Draws a standard widget header with title and optional subtitle.
+-- Remembers the first title in draw.header_title so menus can name the widget.
 --  origin (number): y-coordinate origin of the widget
 --  height (number): total height of the widget
 --  title (string): header title text
@@ -342,6 +358,7 @@ end
 --  extras (function): optional function to draw extra elements in header
 --  subtitle_width (number): optional maximum subtitle width, defaults to 80
 function draw.widget_header(origin, height, title, subtitle, extras, subtitle_width)
+  draw.header_title = draw.header_title or title
   draw.rectangle{x=0, y=origin, width=conky_window.width, height=40, color=config.header_bg}
   draw.rectangle{x=0, y=origin+40, width=conky_window.width, height=height-40, color=config.background}
   draw.text{x=10, y=origin+17, text=title, size=12, color=config.header}

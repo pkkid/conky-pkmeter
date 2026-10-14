@@ -146,6 +146,14 @@ function bambu:click(event, x, y)
 end
 
 
+-- Menu
+-- Returns right click menu items to refresh the printer status.
+function bambu:menu()
+  return {{label='Refresh now', action=function()
+    self:maybe_spawn_poll(socket.gettime(), true) end}}
+end
+
+
 -- Read Status
 -- Load and decode the status JSON written by pkm/bambupoll.lua.
 function bambu:read_status()

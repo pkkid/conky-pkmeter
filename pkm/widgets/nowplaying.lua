@@ -100,6 +100,16 @@ function nowplaying:click(event, x, y)
   end
 end
 
+-- Menu
+-- Returns right click menu items to control playback
+function nowplaying:menu()
+  return {
+    {label='Play / Pause', action=function() os.execute(self.playerctl..' play-pause') end},
+    {label='Next track', action=function() os.execute(self.playerctl..' next') end},
+    {label='Previous track', action=function() os.execute(self.playerctl..' previous') end},
+  }
+end
+
 -- Get Image Data
 -- Check we need to download the image for this player
 function nowplaying:get_artpath(playername, arturl)

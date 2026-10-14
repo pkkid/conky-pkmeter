@@ -357,8 +357,24 @@ function aiusage:click(event, x, y)
     self.details_visible = not self:details_shown()
     return
   end
+  self:refresh()
+end
+
+-- Refresh
+-- Refreshes every enabled service now.
+function aiusage:refresh()
   local now = socket.gettime()
   for _, service in ipairs(self:enabled_services()) do service:refresh(now) end
+end
+
+-- Menu
+-- Returns right click menu items to refresh usage or toggle details.
+function aiusage:menu()
+  return {
+    {label='Refresh now', action=function() self:refresh() end},
+    {label='Show details', checked=self:details_shown(), action=function()
+      self.details_visible = not self:details_shown() end},
+  }
 end
 
 return aiusage
