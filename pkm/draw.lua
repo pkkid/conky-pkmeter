@@ -101,7 +101,7 @@ function draw.graph(args)
   cairo_set_line_width(cr, linewidth)
   local range = maxvalue - minvalue
   for i=1, #data do
-    local value = math.max(data[i] - minvalue, 0)
+    local value = math.max(math.min(data[i], maxvalue) - minvalue, 0)
     if logscale then
       value = value > 0 and math.log(value) or 0
       local logrange = range > 0 and math.log(range) or 1

@@ -80,7 +80,9 @@ function system:update()
   if utils.check_update(self.last_update, self.update_interval) then
     -- System Details
     self.cpucount = self.cpucount or utils.get_cpucount()
-    self.cpuusage = utils.parse('cpu cpu0')
+    -- Conky's first cpu reading can be garbage (200%+), so start from zero
+    local usage = self.history and tonumber(utils.parse('cpu cpu')) or 0
+    self.cpuusage = usage
     self.cpufreq = utils.parse('freq')
     self.nodename = self.nodename or utils.parse('nodename')
     self.memtotal = utils.round(utils.parse('memmax'):match('^(%d+)'))
@@ -93,7 +95,6 @@ function system:update()
       sensor._value = utils.parse(sensor.device)
     end
     -- Usage History
-    local usage = tonumber(utils.parse('cpu cpu'))
     local temp = tonumber(self.coretemp)
     self.history = utils.push_history(self.history, usage, 90)
     self.temp_history = utils.push_history(self.temp_history, temp, 35)
