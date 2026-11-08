@@ -2,6 +2,7 @@ require "cairo"
 require "cairo_xlib"
 require "imlib2"
 local config = require 'config'
+local draw = require 'pkm/draw'
 local menu = require 'pkm/menu'
 local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
@@ -180,9 +181,24 @@ function pkmeter:signal(signal)
   if pid then os.execute('kill -'..signal..' '..math.floor(pid)) end
 end
 
+-- Draw Tooltip
+-- Draws the tooltip of the widget under the pointer while no menu is open
+function pkmeter:draw_tooltip()
+  local pointer = self.pointer
+  if not pointer or menu.source then return end
+  local _, widget, y = self:widget_at(pointer.y)
+  local lines = widget and widget.tooltip and widget:tooltip(pointer.x, y)
+  if lines and #lines > 0 then draw.tooltip(pointer.x, pointer.y, lines) end
+end
+
 -- Conky Mouse Event
 -- Called on conky mouse events
 function conky_mouse_event(event)
+  if event.type == 'mouse_move' then
+    pkmeter.pointer = {x=event.x, y=event.y}
+  elseif event.type == 'mouse_leave' then
+    pkmeter.pointer = nil
+  end
   if menu.mouse(event) then return true end
   if event.type == 'button_down' then
     print("Mouse event: ".. event.type .." x=".. event.x .." y=".. event.y)
@@ -209,7 +225,9 @@ function conky_main()
   cr = cairo_create(cs)
   -- Draw the widgets and menu
   pkmeter:draw_widgets()
-  local ok, err = pcall(menu.draw)
+  local ok, err = pcall(pkmeter.draw_tooltip, pkmeter)
+  if not ok then io.stderr:write('Tooltip failed: '..tostring(err)..'\n') end
+  ok, err = pcall(menu.draw)
   if not ok then io.stderr:write('Menu failed: '..tostring(err)..'\n') end
   -- Clean up
   cairo_destroy(cr)

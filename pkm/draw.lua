@@ -348,6 +348,27 @@ function draw.checkbox(args)
   end
 end
 
+-- Draw Tooltip
+-- Draws a bordered box of text lines below the pointer, kept inside the window
+--  x, y (number): pointer position the tooltip is placed beside
+--  lines (table): lines of text to show
+function draw.tooltip(x, y, lines)
+  local width, height = 0, #lines * 15 + 7
+  for _, line in ipairs(lines) do width = math.max(width, draw.text_width{text=line}) end
+  width = math.min(width + 16, conky_window.width - 4)
+  local left = math.max(2, math.min(x - width / 2, conky_window.width - 2 - width))
+  local top = y + 18
+  if top + height > conky_window.height - 2 then top = y - 8 - height end
+  draw.rectangle{x=left, y=top, width=width, height=height, color=config.menu_bg}
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(config.menu_border))
+  cairo_set_line_width(cr, 1)
+  cairo_rectangle(cr, left+0.5, top+0.5, width-1, height-1)
+  cairo_stroke(cr)
+  for index, line in ipairs(lines) do
+    draw.text{x=left+8, y=top+(index*15), text=line, color=config.value, maxwidth=width-16}
+  end
+end
+
 -- Draw Widget Header
 -- Draws a standard widget header with title and optional subtitle
 --  origin (number): y-coordinate origin of the widget

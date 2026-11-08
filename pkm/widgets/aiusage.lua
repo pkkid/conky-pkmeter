@@ -1,6 +1,5 @@
 local config = require 'config'
 local claudepoll = require 'pkm/claudepoll'
-local codexpoll = require 'pkm/codexpoll'
 local draw = require 'pkm/draw'
 local json = require 'pkm/json'
 local menu = require 'pkm/menu'
@@ -9,14 +8,22 @@ local toggles = require 'pkm/toggles'
 local utils = require 'pkm/utils'
 
 local aiusage = {origin=0, height=0, title='AI Usage'}
-local STATUS_COLORS = {running='#458588', waiting='#d65d0e'}
-local SERVICE_ORDER = {'claude', 'codex'}
+local SERVICE_ORDER = {'claude', 'codex', 'openrouter'}
+local HISTORY_SECONDS = 7 * 86400   -- Span of the header usage graph
+local HISTORY_BUCKETS = 90          -- One graph column per bucket
+local SAME_WINDOW_SECONDS = 300     -- Reset time drift still treated as the same window
+local LOW_REMAINING = 15            -- Remaining percent drawn in color_low
+local COLUMNS = {{key='five_hour', label='5 hour', right=130, name='5 hour'},
+  {key='weekly', label='Week', right=190, name='Weekly'}}
+local COLUMN_WIDTH = 50
+local ROW_HEIGHT = 20
 local Service = {}
 Service.__index = Service
 
 -- Service Definitions
 -- Describes the poller, home directory, and cloud arguments that differ between services.
 -- Claude has no cloud poll; it reads the status JSON Claude Code's status line saves.
+-- OpenRouter reports a credit balance instead of usage windows.
 local SERVICES = {
   claude = {
     label = 'Claude',
@@ -27,9 +34,6 @@ local SERVICES = {
     end,
     read_snapshot = function(self, previous)
       return claudepoll.statusline_snapshot(self:snapshot_path(), previous)
-    end,
-    status = function(self)
-      return claudepoll.status(self:home_path())
     end,
   },
   codex = {
@@ -42,8 +46,15 @@ local SERVICES = {
     cloud_args = function(self)
       return string.format('--limit-id %q', self.limit_id or 'codex')
     end,
-    status = function(self)
-      return codexpoll.status(self:home_path(), self.task_status, self.scan_timeout or 1)
+  },
+  openrouter = {
+    label = 'OpenRouter',
+    credits = true,
+    poller = 'pkm/openrouterpoll.lua',
+    cloud_args = function(self)
+      local args = string.format('--key-name %q', self.key_name or 'OPENROUTER_API_KEY')
+      if self.key_file then args = args..string.format(' --key-file %q', self.key_file) end
+      return args
     end,
   },
 }
@@ -58,12 +69,22 @@ local function duration(seconds)
   return '1m'
 end
 
--- Format Reset Time
--- Shows the local twelve-hour reset time, prefixed with the weekday when requested.
-local function reset_time(resets_at, with_day)
-  local reset = os.date('*t', resets_at)
-  local time = string.format('%d:%02d%s', (reset.hour + 11) % 12 + 1, reset.min, reset.hour < 12 and 'a' or 'p')
-  return with_day and os.date('%a ', resets_at)..time or time
+-- Format Countdown
+-- Formats seconds with the two largest units, such as 4d 3h or 2h 14m.
+local function countdown(seconds)
+  seconds = math.max(0, math.floor(seconds))
+  local days, hours, minutes = seconds // 86400, seconds % 86400 // 3600, seconds % 3600 // 60
+  if days > 0 then return string.format('%dd %dh', days, hours) end
+  if hours > 0 then return string.format('%dh %dm', hours, minutes) end
+  return string.format('%dm', math.max(1, minutes))
+end
+
+-- Format Reset Date
+-- Shows the local reset weekday, date, and time using the clock's 12 or 24 hour choice.
+local function reset_date(resets_at)
+  local hour24 = toggles.get('clock', 'hour24', false)
+  local time = os.date(hour24 and '%H:%M' or '%I:%M %p', resets_at):gsub('^0(%d:)', '%1')
+  return os.date('%a %b ', resets_at)..tonumber(os.date('%d', resets_at))..' at '..time
 end
 
 -- Read JSON File
@@ -104,6 +125,12 @@ function Service:model_snapshot_path()
   return self.model_snapshot_file or '/tmp/pkmeter-'..self.key..'-models.json'
 end
 
+-- Windows
+-- Returns the service's usage windows from its latest snapshot, or an empty table.
+function Service:windows()
+  return self.snapshot and self.snapshot.data and self.snapshot.data.windows or {}
+end
+
 -- Poll Delay
 -- Returns the next cloud refresh delay with capped exponential backoff after errors.
 function Service:poll_delay(failures)
@@ -113,7 +140,7 @@ function Service:poll_delay(failures)
 end
 
 -- Maybe Spawn Poll
--- Starts a background cloud usage read when the cache is due and no poll is active.
+-- Starts a background cloud read when the cache is due and no poll is active.
 function Service:maybe_spawn_poll(now, force)
   if self.poll_started or not self.definition.cloud_args then return end
   if not force and self.next_poll and now < self.next_poll then return end
@@ -150,7 +177,8 @@ end
 -- Model Window
 -- Returns the current cloud-reported quota window and its local record start time.
 function Service:model_window(now)
-  local windows = self.snapshot and self.snapshot.data and self.snapshot.data.windows or {}
+  if not self.definition.home_flag then return nil end
+  local windows = self:windows()
   local window_name = windows.five_hour and 'five_hour' or windows.weekly and 'weekly'
   local window = window_name and windows[window_name]
   if not window then return nil end
@@ -207,15 +235,10 @@ function Service:update_model_usage(now, force)
 end
 
 -- Update Service
--- Refreshes cloud limits, local task status, and cached local model data on their own intervals.
+-- Refreshes cloud limits and cached local model data on their own intervals.
 function Service:update(now, force)
   self:update_snapshot(now)
   self:maybe_spawn_poll(now, force)
-  if force or utils.check_update(self.last_status_update, self.status_update_interval or 5) then
-    local task_status = self.definition.status(self)
-    if task_status then self.task_status = task_status end
-    self.last_status_update = now
-  end
   self:update_model_usage(now, force)
 end
 
@@ -243,11 +266,76 @@ function aiusage:enabled_services()
   return self.services
 end
 
+-- History Path
+-- Returns the usage history file, saved beside toggles.json unless configured.
+function aiusage:history_path()
+  return self.history_file or utils.config_dir()..'/aiusage-history.json'
+end
+
+-- Load History
+-- Reads the saved usage events and last weekly readings on first use.
+function aiusage:load_history()
+  if not self.usage_history then
+    local saved = read_json(self:history_path()) or {}
+    self.usage_history = {events=saved.events or {}, last=saved.last or {}}
+  end
+  return self.usage_history
+end
+
+-- Record Usage
+-- Adds each service's weekly limit increase to the history and drops events past seven days.
+function aiusage:record_usage(now)
+  local history = self:load_history()
+  local changed = false
+  for _, service in ipairs(self:enabled_services()) do
+    local weekly = service:windows().weekly
+    if weekly and weekly.used_percent then
+      local last = history.last[service.key]
+      local amount = 0
+      if last and weekly.resets_at and last.resets_at
+          and weekly.resets_at > last.resets_at + SAME_WINDOW_SECONDS then
+        amount = weekly.used_percent
+      elseif last then
+        amount = weekly.used_percent - (last.used or 0)
+      end
+      if amount > 0 then table.insert(history.events, {now, amount}) end
+      if not last or last.used ~= weekly.used_percent or last.resets_at ~= weekly.resets_at then
+        history.last[service.key] = {used=weekly.used_percent, resets_at=weekly.resets_at}
+        changed = true
+      end
+    end
+  end
+  while history.events[1] and history.events[1][1] < now - HISTORY_SECONDS do
+    table.remove(history.events, 1)
+    changed = true
+  end
+  if not changed then return end
+  local path = self:history_path()
+  local handle = io.open(path..'.tmp', 'w')
+  if not handle then return end
+  handle:write(json.encode(history))
+  handle:close()
+  os.rename(path..'.tmp', path)
+end
+
+-- History Buckets
+-- Sums the weekly limit percent used into equal time buckets covering the last seven days.
+function aiusage:history_buckets(now)
+  local buckets = utils.init_table(HISTORY_BUCKETS, 0)
+  local size = HISTORY_SECONDS / HISTORY_BUCKETS
+  for _, event in ipairs(self:load_history().events) do
+    local index = HISTORY_BUCKETS - math.floor((now - event[1]) / size)
+    if index >= 1 and index <= HISTORY_BUCKETS then buckets[index] = buckets[index] + event[2] end
+  end
+  return buckets
+end
+
 -- Update
--- Refreshes every enabled service on its own polling schedule.
+-- Refreshes every enabled service on its own polling schedule and records usage.
 function aiusage:update(force)
   local now = socket.gettime()
   for _, service in ipairs(self:enabled_services()) do service:update(now, force) end
+  self:record_usage(os.time())
 end
 
 -- Details Shown
@@ -256,36 +344,12 @@ function aiusage:details_shown()
   return toggles.get('aiusage', 'show_details', false)
 end
 
--- Draw
--- Draws each service's usage windows, combined model mix, and task-state indicators.
-function aiusage:draw()
-  local now = os.time()
-  local services = self:enabled_services()
-  local right = conky_window.width - 10
-  local width = conky_window.width - 20
-  local windows_list, models, rows, plans, colors = {}, {}, {}, {}, {}
-  local oldest
-
-  -- Add Row
-  -- Adds a labeled detail row to the widget's content area.
-  local function row(text, color, value)
-    table.insert(rows, {text=text, color=color or config.label, value=value})
-  end
-
+-- Detail Rows
+-- Returns the combined model mix and weekly pacing rows shown with details.
+function aiusage:detail_rows(services, now)
+  local rows = {}
   for _, service in ipairs(services) do
-    local snapshot = service.snapshot or {}
-    local data = snapshot.data or {}
-    local windows = data.windows or {}
-    local plan = data.plan or service.plan
-    if plan then table.insert(plans, (utils.titleize(tostring(plan):gsub('_', ' ')))) end
-    if snapshot.updated_at then oldest = math.min(oldest or snapshot.updated_at, snapshot.updated_at) end
-    local color = service.task_status and STATUS_COLORS[service.task_status.state]
-    if color then table.insert(colors, color) end
-    if data.limit_reached then row(service.label..' limit reached', config.subheader) end
-    if windows.five_hour then
-      table.insert(windows_list, {service.label..' 5h', windows.five_hour, false})
-    end
-    table.insert(windows_list, {service.label..' Week', windows.weekly, true})
+    local windows = service:windows()
     local usage = service.model_usage
     local model_window = windows.five_hour or windows.weekly
     local limit_used = model_window and model_window.used_percent
@@ -294,60 +358,114 @@ function aiusage:draw()
       for _, model in ipairs(usage.models or {}) do
         local percent = model.percent
         if limit_used then percent = limit_used * model.tokens / usage.total_tokens end
-        table.insert(models, {name=model.name, prompts=model.prompts, percent=percent})
+        table.insert(rows, {text=model.name, color=config.value,
+          value=string.format('%dp · %.0f%%', model.prompts, percent)})
       end
     end
   end
-  if self:details_shown() then
-    for _, model in ipairs(models) do
-      row(model.name, config.value, string.format('%dp · %.0f%%', model.prompts, model.percent))
-    end
-    for _, service in ipairs(services) do
-      local weekly = service.snapshot and service.snapshot.data and service.snapshot.data.windows
-        and service.snapshot.data.windows.weekly
-      if weekly and weekly.resets_at and weekly.resets_at > now then
-        local elapsed = math.max(0, math.min(100, 100 * (1 - (weekly.resets_at - now) / weekly.duration_seconds)))
-        local difference = weekly.used_percent - elapsed
-        row(math.abs(difference) < 1 and service.label..' on weekly pace'
-          or string.format('%s %.0f%% %s weekly pace', service.label, math.abs(difference),
-            difference > 0 and 'ahead of' or 'below'))
-      end
+  for _, service in ipairs(services) do
+    local weekly = service:windows().weekly
+    if weekly and weekly.resets_at and weekly.resets_at > now then
+      local elapsed = math.max(0, math.min(100, 100 * (1 - (weekly.resets_at - now) / weekly.duration_seconds)))
+      local difference = weekly.used_percent - elapsed
+      table.insert(rows, {color=config.label, text=math.abs(difference) < 1
+        and service.label..' on weekly pace'
+        or string.format('%s %.0f%% %s weekly pace', service.label, math.abs(difference),
+          difference > 0 and 'ahead of' or 'below')})
     end
   end
-  self.height = 55 + #windows_list * 25 + #rows * 15
-  local subtitle = #plans > 0 and table.concat(plans, ' · ') or 'AI accounts'
-  if oldest then subtitle = subtitle..' · '..duration(math.max(0, now - oldest))..' ago' end
+  return rows
+end
+
+-- Draw
+-- Draws remaining five-hour and weekly limits as a table, the usage graph, and credits.
+function aiusage:draw()
+  local now = os.time()
+  local services, limits, credits = self:enabled_services(), {}, nil
+  local oldest
+  for _, service in ipairs(services) do
+    if service.definition.credits then credits = service else table.insert(limits, service) end
+    local updated = service.snapshot and service.snapshot.updated_at
+    if updated then oldest = math.min(oldest or updated, updated) end
+  end
+  local rows = self:details_shown() and self:detail_rows(limits, now) or {}
+  self.height = 69 + #limits * ROW_HEIGHT + #rows * 15 + (credits and 28 or 0)
+  self.regions = {}
+  local subtitle = oldest and 'Updated '..duration(now - oldest)..' ago' or 'Waiting for data'
   draw.widget_header(self.origin, self.height, 'AI Usage', subtitle, function()
-    for index, color in ipairs(colors) do
-      draw.ring{x=conky_window.width-14-(#colors-index)*10, y=self.origin+20, radius=2, width=4,
-        color=color}
-    end
-  end, width-4-#colors*10)
+    draw.graph{data=self:history_buckets(now), x=100, y=self.origin+8, width=90, height=24,
+      color=config.accent, bgcolor=config.header_graph_bg, minmaxvalue=5}
+  end, 85)
+  table.insert(self.regions, {x1=100, y1=8, x2=190, y2=32,
+    lines={'Weekly limit used, last 7 days'}})
+
+  -- Limits Table
   local vertical = self.origin + 55
-  for _, entry in ipairs(windows_list) do
-    local label, window, weekly = entry[1], entry[2], entry[3]
-    local expired = window and window.resets_at and window.resets_at <= now
-    local used = expired and 0 or window and window.used_percent
-    local value = used and string.format('%.0f%%', used) or 'Unavailable'
-    if not expired and window and window.resets_at then
-      local reset = reset_time(window.resets_at, weekly)
-      value = value..' · '..reset
-    end
-    draw.text{x=10, y=vertical, text=label, color=config.value}
-    draw.text{x=right, y=vertical, text=value, align='right', color=config.value, maxwidth=115}
-    if window then
-      draw.bargraph{x=10, y=vertical+5, width=width, height=2, value=used,
-        maxvalue=100, color=config.accent, bgcolor=config.graph_bg}
-    end
-    vertical = vertical + 25
+  for _, column in ipairs(COLUMNS) do
+    draw.text{x=column.right, y=vertical, text=column.label, color=config.label, align='right'}
   end
-  for _, item in ipairs(rows) do
-    draw.text{x=10, y=vertical, text=item.text, color=item.color,
-      maxwidth=item.value and width-75 or width}
-    if item.value then
-      draw.text{x=right, y=vertical, text=item.value, color=config.value, align='right'}
+  for _, service in ipairs(limits) do
+    vertical = vertical + ROW_HEIGHT
+    local windows = service:windows()
+    draw.text{x=10, y=vertical, text=service.label, color=config.value, maxwidth=60}
+    for _, column in ipairs(COLUMNS) do
+      local window = windows[column.key]
+      local expired = window and window.resets_at and window.resets_at <= now
+      local remaining = window and (expired and 100 or 100 - window.used_percent)
+      local color = remaining and remaining < LOW_REMAINING and (self.color_low or '#cc2414')
+        or config.value
+      draw.text{x=column.right, y=vertical, text=remaining and string.format('%.0f%%', remaining) or '--',
+        color=color, align='right'}
+      if remaining then
+        draw.bargraph{x=column.right-COLUMN_WIDTH, y=vertical+4, width=COLUMN_WIDTH, height=2,
+          value=remaining, maxvalue=100, bgcolor=config.graph_bg,
+          color=remaining < LOW_REMAINING and color or config.accent}
+      end
+      local lines
+      if window and window.resets_at and not expired then
+        lines = {service.label..' '..column.name:lower()..' resets', reset_date(window.resets_at),
+          'in '..countdown(window.resets_at - now)}
+      elseif expired then
+        lines = {service.label..' '..column.name:lower()..' has reset'}
+      end
+      if lines then
+        table.insert(self.regions, {x1=column.right-COLUMN_WIDTH, x2=column.right,
+          y1=vertical-self.origin-12, y2=vertical-self.origin+7, lines=lines})
+      end
     end
+  end
+
+  -- Details
+  for _, item in ipairs(rows) do
     vertical = vertical + 15
+    draw.text{x=10, y=vertical, text=item.text, color=item.color, maxwidth=item.value and 105 or 180}
+    if item.value then
+      draw.text{x=190, y=vertical, text=item.value, color=config.value, align='right'}
+    end
+  end
+
+  -- Credits
+  if credits then
+    local data = credits.snapshot and credits.snapshot.data
+    draw.line{x1=10, y1=vertical+11.5, x2=190, y2=vertical+11.5, color=config.graph_bg}
+    vertical = vertical + 28
+    draw.text{x=10, y=vertical, text=credits.label, color=config.label}
+    draw.text{x=190, y=vertical, align='right', color=config.value,
+      text=data and string.format('$%.2f', data.remaining) or '--'}
+    local lines = data and {string.format('Used $%.2f of $%.2f', data.total_usage, data.total_credits)}
+      or {credits.snapshot and credits.snapshot.error or 'Waiting for data'}
+    table.insert(self.regions, {x1=10, x2=190, y1=vertical-self.origin-12,
+      y2=vertical-self.origin+5, lines=lines})
+  end
+end
+
+-- Tooltip
+-- Returns the reset time lines for the limit under x,y, or the graph and credit details.
+function aiusage:tooltip(x, y)
+  for _, region in ipairs(self.regions or {}) do
+    if x >= region.x1 and x <= region.x2 and y >= region.y1 and y <= region.y2 then
+      return region.lines
+    end
   end
 end
 

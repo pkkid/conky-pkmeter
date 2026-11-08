@@ -33,7 +33,6 @@ config.clock = {
 config.aiusage = {
   claude = {
     enabled = true,                       -- Monitor Claude usage
-    plan = 'Max',                         -- Plan name shown in the header (Claude Code doesn't report it)
     snapshot_file = os.getenv('HOME')..'/.claude/statusline.json',  -- Status JSON saved by Claude Code's status line (see README)
     model_snapshot_file = '/tmp/pkmeter-claude-models.json',
     status_update_interval = 5,
@@ -48,11 +47,19 @@ config.aiusage = {
     update_interval = 900,
     max_backoff_interval = 3600,
     cloud_timeout = 10,
-    status_update_interval = 5,
-    scan_timeout = 1,
     model_update_interval = 300,
     model_scan_timeout = 30,
   },
+  openrouter = {
+    enabled = true,                       -- Show remaining OpenRouter credits
+    key_file = os.getenv('HOME')..'/Private/Secrets/ai.env',  -- KEY=value file holding the API key
+    key_name = 'OPENROUTER_API_KEY',      -- Key name in key_file, or the environment variable used
+    snapshot_file = '/tmp/pkmeter-openrouter.json',
+    update_interval = 300,
+    max_backoff_interval = 3600,
+    cloud_timeout = 10,
+  },
+  color_low = '#cc2414',                  -- Color for limits with under 15% remaining
 }
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)

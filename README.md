@@ -4,7 +4,7 @@
 
 A Conky configuration written entirely in Lua. It includes clock, weather,
 system, GPU, process, network, filesystem, media, Bambu printer, AI usage
-(Claude and Codex), and to do list widgets.
+(Claude, Codex, and OpenRouter credits), and to do list widgets.
 
 ## Installation
 
@@ -35,15 +35,17 @@ Long titles, including accented characters and emoji, are shortened to fit.
 
 ## AI Usage
 
-The `aiusage` widget combines Claude and Codex usage in one panel. Enable or
-disable either service with `enabled` in `config.aiusage.claude` or
-`config.aiusage.codex`. Each service shows its five-hour and weekly usage
-(e.g. `Claude 5h`, `Codex Week`) with local reset times: `1:13p` for five-hour
-windows and `Sat 4:32p` for weekly windows.
+The `aiusage` widget shows Claude and Codex limits in one table, with a row
+per service and columns for the five-hour and weekly limits remaining. Limits
+under 15% remaining turn `color_low`. Hover over a value to see when that
+limit resets. Enable or disable each service with `enabled` in
+`config.aiusage.claude`, `config.aiusage.codex`, or `config.aiusage.openrouter`.
 
-The header shows the plans, time since the oldest limit update, and a status
-dot per service: blue while running, orange while waiting for you. With both
-active the dots sit side by side; clicking the header refreshes both services.
+The header shows the time since the oldest update and a graph of weekly limit
+use over the last seven days, summed across services. The graph is built from
+readings taken while pkmeter runs and saved to `aiusage-history.json` beside
+`conkyrc` (set `history_file` to move it). Clicking the header refreshes every
+service.
 
 The model mix and weekly pacing are hidden by default; click the widget content
 or use *Show details* in the right click menu to toggle them. The model mix lists each
@@ -52,6 +54,15 @@ against that service's own limit, so the combined list totals up to 200%. It
 excludes activity from other machines.
 Model mixes refresh every five minutes in a background Lua process.
 
+### OpenRouter
+
+Shows the remaining OpenRouter credit balance at the bottom of the widget;
+hover over it to see credits used and purchased. Every five minutes a
+background Lua process reads `OPENROUTER_API_KEY` from `key_file` (`KEY=value`
+lines) or the environment and saves the balance to
+`/tmp/pkmeter-openrouter.json`. If the key can't be read, the last balance
+stays and the poll retries with capped backoff. Requires LuaSec (`ssl.https`).
+
 ### Codex
 
 Every 15 minutes, starts the locally installed Codex App Server and reads the
@@ -59,8 +70,7 @@ account's limit snapshot into `/tmp/pkmeter-codex.json`. The App Server renews
 its own login, so Codex only needs to be signed in once. Codex must be on
 `PATH`; API-key-only and Bedrock authentication do not provide usage data.
 Failed reads keep the last snapshot and retry with capped backoff. Requires
-`timeout` from GNU coreutils. Task status and the model mix read local Codex
-session records.
+`timeout` from GNU coreutils. The model mix reads local Codex session records.
 
 ### Claude
 
@@ -78,11 +88,10 @@ save the JSON to `~/.claude/statusline.json` by adding this to
 ```
 
 pkmeter reads the file, and other programs can read it too. Values update
-whenever you use Claude Code (Pro or Max plans only); a window shows 0% once
+whenever you use Claude Code (Pro or Max plans only); a window shows 100% remaining once
 its reset time passes. The command prints nothing, so a terminal session's
-status line stays blank. Set the header's plan name with `plan`. Task status
-reads the undocumented `~/.claude/sessions` files, which may change between
-releases. The model mix reads local transcripts in `~/.claude/projects`.
+status line stays blank. The model mix reads local transcripts in
+`~/.claude/projects`.
 
 ## Auto Start
 

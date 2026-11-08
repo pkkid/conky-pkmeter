@@ -2,7 +2,6 @@ local json = require 'pkm/json'
 local socket = require 'socket'
 
 local claudepoll = {}
-local SESSION_STATES = {busy='running', waiting='waiting'}
 local SAME_WINDOW_SECONDS = 300
 
 -- Shell Quote
@@ -136,39 +135,6 @@ function claudepoll.statusline_snapshot(path, previous)
     updated_at=updated and modified or previous and previous.updated_at,
     data={windows={five_hour=five_hour, weekly=weekly}, limit_reached=limit_reached},
   }
-end
-
--- Process Start
--- Returns a process start time from /proc so reused process IDs can be detected.
-local function process_start(pid)
-  local handle = io.open('/proc/'..pid..'/stat', 'r')
-  if not handle then return nil end
-  local stat = handle:read('*l') or ''
-  handle:close()
-  local fields = {}
-  for field in (stat:match('%) (.*)$') or ''):gmatch('%S+') do table.insert(fields, field) end
-  return fields[20]
-end
-
--- Read Task Status
--- Combines the live status Claude Code records for each running interactive process.
-function claudepoll.status(claude_home)
-  local handle = io.popen('find '..shell_quote(claude_home..'/sessions')
-    .." -maxdepth 1 -type f -name '*.json' 2>/dev/null")
-  if not handle then return nil, 'Unable to list Claude sessions' end
-  local state = 'idle'
-  for path in handle:lines() do
-    local pid = path:match('/(%d+)%.json$')
-    local session = pid and read_json(path)
-    local started = pid and process_start(pid)
-    if session and started and (session.procStart == nil or tostring(session.procStart) == started) then
-      local session_state = SESSION_STATES[session.status]
-      if session_state == 'waiting' then state = 'waiting' end
-      if session_state == 'running' and state == 'idle' then state = 'running' end
-    end
-  end
-  handle:close()
-  return {state=state}
 end
 
 -- Read Model Usage
