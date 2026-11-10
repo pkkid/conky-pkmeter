@@ -182,10 +182,17 @@ function pkmeter:signal(signal)
 end
 
 -- Draw Tooltip
--- Draws the tooltip of the widget under the pointer while no menu is open
+-- Draws a tooltip pinned by a click, or the one under the pointer, while no menu is open
 function pkmeter:draw_tooltip()
+  if menu.source then return end
+  local pinned = self.pinned
+  if pinned and os.time() < pinned.expires then
+    draw.tooltip(pinned.x, pinned.y, pinned.lines)
+    return
+  end
+  self.pinned = nil
   local pointer = self.pointer
-  if not pointer or menu.source then return end
+  if not pointer then return end
   local _, widget, y = self:widget_at(pointer.y)
   local lines = widget and widget.tooltip and widget:tooltip(pointer.x, y)
   if lines and #lines > 0 then draw.tooltip(pointer.x, pointer.y, lines) end
@@ -202,6 +209,7 @@ function conky_mouse_event(event)
   if menu.mouse(event) then return true end
   if event.type == 'button_down' then
     print("Mouse event: ".. event.type .." x=".. event.x .." y=".. event.y)
+    pkmeter.pinned = nil
     -- Ignore events too close to the window edge
     local margin = 2
     if event.x < margin or event.x > (conky_window.width - margin) then return end
@@ -210,9 +218,12 @@ function conky_mouse_event(event)
     if event.button == 'right' then
       return pkmeter:open_menu(event.x, event.y)
     end
-    -- Process the event
+    -- Process the event; a widget may return tooltip lines to pin at the click
     local _, widget, y = pkmeter:widget_at(event.y)
-    if widget and widget.click then widget:click(event, event.x, y) end
+    local pin = widget and widget.click and widget:click(event, event.x, y)
+    if type(pin) == 'table' and pin.lines then
+      pkmeter.pinned = {x=event.x, y=event.y, lines=pin.lines, expires=os.time() + (pin.seconds or 5)}
+    end
   end
 end
 

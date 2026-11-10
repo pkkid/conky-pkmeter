@@ -9,12 +9,12 @@ local utils = require 'pkm/utils'
 
 local aiusage = {origin=0, height=0, title='AI Usage'}
 local SERVICE_ORDER = {'claude', 'codex', 'openrouter'}
-local HISTORY_SECONDS = 7 * 86400   -- Span of the header usage graph
+local HISTORY_DAYS = 7              -- Span of the header token graph
 local HISTORY_BUCKETS = 90          -- One graph column per bucket
-local SAME_WINDOW_SECONDS = 300     -- Reset time drift still treated as the same window
 local LOW_REMAINING = 15            -- Remaining percent drawn in color_low
-local COLUMNS = {{key='five_hour', label='5 hour', right=130, name='5 hour'},
-  {key='weekly', label='Week', right=190, name='Weekly'}}
+local PIN_SECONDS = 6               -- How long a clicked reset tooltip stays open
+local COLUMNS = {{key='five_hour', label='5 hour', right=130},
+  {key='weekly', label='Week', right=190}}
 local COLUMN_WIDTH = 50
 local ROW_HEIGHT = 20
 local Service = {}
@@ -77,6 +77,24 @@ local function countdown(seconds)
   if days > 0 then return string.format('%dd %dh', days, hours) end
   if hours > 0 then return string.format('%dh %dm', hours, minutes) end
   return string.format('%dm', math.max(1, minutes))
+end
+
+-- Format Tokens
+-- Shortens a token count to K, M, or B with one decimal place.
+local function tokens(count)
+  if count >= 1e9 then return string.format('%.1fB', count / 1e9) end
+  if count >= 1e6 then return string.format('%.1fM', count / 1e6) end
+  if count >= 1e3 then return string.format('%.0fK', count / 1e3) end
+  return string.format('%d', count)
+end
+
+-- Window Name
+-- Names a limit window by its length, such as 5 hour, weekly, or 30 day.
+local function window_name(window)
+  local seconds = window.duration_seconds or 0
+  if seconds == 604800 then return 'weekly' end
+  if seconds >= 86400 then return string.format('%d day', seconds // 86400) end
+  return string.format('%d hour', seconds // 3600)
 end
 
 -- Format Reset Date
@@ -266,76 +284,76 @@ function aiusage:enabled_services()
   return self.services
 end
 
--- History Path
--- Returns the usage history file, saved beside toggles.json unless configured.
-function aiusage:history_path()
-  return self.history_file or utils.config_dir()..'/aiusage-history.json'
+-- Token Path
+-- Returns the hourly token cache written by the background transcript scanner.
+function aiusage:token_path()
+  return self.token_file or '/tmp/pkmeter-tokens.json'
 end
 
--- Load History
--- Reads the saved usage events and last weekly readings on first use.
-function aiusage:load_history()
-  if not self.usage_history then
-    local saved = read_json(self:history_path()) or {}
-    self.usage_history = {events=saved.events or {}, last=saved.last or {}}
+-- Update Tokens
+-- Reads the latest transcript token scan and starts a new one in the background when due.
+function aiusage:update_tokens(now, force)
+  if utils.check_update(self.last_token_read, 5) then
+    self.token_snapshot = read_json(self:token_path()) or self.token_snapshot
+    self.last_token_read = now
   end
-  return self.usage_history
-end
-
--- Record Usage
--- Adds each service's weekly limit increase to the history and drops events past seven days.
-function aiusage:record_usage(now)
-  local history = self:load_history()
-  local changed = false
+  if self.token_poll_started and now - self.token_poll_started < (self.token_scan_timeout or 30) + 5
+      and not force then
+    return
+  end
+  if not force and self.next_token_poll and now < self.next_token_poll then return end
+  local homes = ''
   for _, service in ipairs(self:enabled_services()) do
-    local weekly = service:windows().weekly
-    if weekly and weekly.used_percent then
-      local last = history.last[service.key]
-      local amount = 0
-      if last and weekly.resets_at and last.resets_at
-          and weekly.resets_at > last.resets_at + SAME_WINDOW_SECONDS then
-        amount = weekly.used_percent
-      elseif last then
-        amount = weekly.used_percent - (last.used or 0)
-      end
-      if amount > 0 then table.insert(history.events, {now, amount}) end
-      if not last or last.used ~= weekly.used_percent or last.resets_at ~= weekly.resets_at then
-        history.last[service.key] = {used=weekly.used_percent, resets_at=weekly.resets_at}
-        changed = true
-      end
+    if service.definition.home_flag then
+      homes = homes..string.format(' %s %q', service.definition.home_flag, service:home_path())
     end
   end
-  while history.events[1] and history.events[1][1] < now - HISTORY_SECONDS do
-    table.remove(history.events, 1)
-    changed = true
+  if homes == '' then return end
+  self.token_poll_started = now
+  self.next_token_poll = now + (self.token_update_interval or 300)
+  os.execute(string.format('cd %q && lua pkm/tokenpoll.lua --out %q%s --days %d --timeout %d >/dev/null 2>&1 &',
+    pkmeter.ROOT, self:token_path(), homes, HISTORY_DAYS, self.token_scan_timeout or 30))
+end
+
+-- Token Totals
+-- Returns each enabled service's tokens over the history span, in service order.
+function aiusage:token_totals(now)
+  local services = self.token_snapshot and self.token_snapshot.services or {}
+  local totals = {}
+  for _, service in ipairs(self:enabled_services()) do
+    local entry = services[service.key]
+    if entry then
+      local total = 0
+      for hour, count in pairs(entry.buckets or {}) do
+        if tonumber(hour) >= now - HISTORY_DAYS * 86400 then total = total + count end
+      end
+      table.insert(totals, {label=service.label, tokens=total})
+    end
   end
-  if not changed then return end
-  local path = self:history_path()
-  local handle = io.open(path..'.tmp', 'w')
-  if not handle then return end
-  handle:write(json.encode(history))
-  handle:close()
-  os.rename(path..'.tmp', path)
+  return totals
 end
 
 -- History Buckets
--- Sums the weekly limit percent used into equal time buckets covering the last seven days.
+-- Sums the hourly token counts of every service into equal buckets covering the last seven days.
 function aiusage:history_buckets(now)
   local buckets = utils.init_table(HISTORY_BUCKETS, 0)
-  local size = HISTORY_SECONDS / HISTORY_BUCKETS
-  for _, event in ipairs(self:load_history().events) do
-    local index = HISTORY_BUCKETS - math.floor((now - event[1]) / size)
-    if index >= 1 and index <= HISTORY_BUCKETS then buckets[index] = buckets[index] + event[2] end
+  local size = HISTORY_DAYS * 86400 / HISTORY_BUCKETS
+  local services = self.token_snapshot and self.token_snapshot.services or {}
+  for _, service in ipairs(self:enabled_services()) do
+    for hour, count in pairs((services[service.key] or {}).buckets or {}) do
+      local index = HISTORY_BUCKETS - math.floor(math.max(0, now - tonumber(hour) - 1800) / size)
+      if index >= 1 and index <= HISTORY_BUCKETS then buckets[index] = buckets[index] + count end
+    end
   end
   return buckets
 end
 
 -- Update
--- Refreshes every enabled service on its own polling schedule and records usage.
+-- Refreshes every enabled service and the token history on their own polling schedules.
 function aiusage:update(force)
   local now = socket.gettime()
   for _, service in ipairs(self:enabled_services()) do service:update(now, force) end
-  self:record_usage(os.time())
+  self:update_tokens(now, force)
 end
 
 -- Details Shown
@@ -394,10 +412,14 @@ function aiusage:draw()
   local subtitle = oldest and 'Updated '..duration(now - oldest)..' ago' or 'Waiting for data'
   draw.widget_header(self.origin, self.height, 'AI Usage', subtitle, function()
     draw.graph{data=self:history_buckets(now), x=100, y=self.origin+8, width=90, height=24,
-      color=config.accent, bgcolor=config.header_graph_bg, minmaxvalue=5}
+      color=config.accent, bgcolor=config.header_graph_bg, minmaxvalue=1}
   end, 85)
-  table.insert(self.regions, {x1=100, y1=8, x2=190, y2=32,
-    lines={'Weekly limit used, last 7 days'}})
+  local graph_lines = {'Tokens used, last 7 days'}
+  for _, total in ipairs(self:token_totals(now)) do
+    table.insert(graph_lines, total.label..': '..tokens(total.tokens))
+  end
+  if not self.token_snapshot then table.insert(graph_lines, 'Scanning transcripts') end
+  table.insert(self.regions, {x1=100, y1=8, x2=190, y2=32, lines=graph_lines})
 
   -- Limits Table
   local vertical = self.origin + 55
@@ -423,14 +445,14 @@ function aiusage:draw()
       end
       local lines
       if window and window.resets_at and not expired then
-        lines = {service.label..' '..column.name:lower()..' resets', reset_date(window.resets_at),
+        lines = {service.label..' '..window_name(window)..' limit resets', reset_date(window.resets_at),
           'in '..countdown(window.resets_at - now)}
       elseif expired then
-        lines = {service.label..' '..column.name:lower()..' has reset'}
+        lines = {service.label..' '..window_name(window)..' limit has reset'}
       end
       if lines then
         table.insert(self.regions, {x1=column.right-COLUMN_WIDTH, x2=column.right,
-          y1=vertical-self.origin-12, y2=vertical-self.origin+7, lines=lines})
+          y1=vertical-self.origin-12, y2=vertical-self.origin+7, lines=lines, pin=true})
       end
     end
   end
@@ -459,19 +481,28 @@ function aiusage:draw()
   end
 end
 
--- Tooltip
--- Returns the reset time lines for the limit under x,y, or the graph and credit details.
-function aiusage:tooltip(x, y)
+-- Region At
+-- Returns the tooltip region under x,y, if any.
+function aiusage:region_at(x, y)
   for _, region in ipairs(self.regions or {}) do
     if x >= region.x1 and x <= region.x2 and y >= region.y1 and y <= region.y2 then
-      return region.lines
+      return region
     end
   end
 end
 
+-- Tooltip
+-- Returns the reset time lines for the limit under x,y, or the graph and credit details.
+function aiusage:tooltip(x, y)
+  local region = self:region_at(x, y)
+  return region and region.lines
+end
+
 -- Click
--- Refreshes every service from the header, or toggles usage details from the content.
+-- Pins the reset time tooltip of a clicked limit, refreshes from the header, or toggles details.
 function aiusage:click(event, x, y)
+  local region = self:region_at(x, y)
+  if region and region.pin then return {lines=region.lines, seconds=PIN_SECONDS} end
   if y >= 40 then
     toggles.set('aiusage', 'show_details', not self:details_shown())
     return
@@ -484,6 +515,8 @@ end
 function aiusage:refresh()
   local now = socket.gettime()
   for _, service in ipairs(self:enabled_services()) do service:refresh(now) end
+  self.last_token_read = nil
+  self:update_tokens(now, true)
 end
 
 -- Menu

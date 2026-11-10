@@ -37,15 +37,16 @@ Long titles, including accented characters and emoji, are shortened to fit.
 
 The `aiusage` widget shows Claude and Codex limits in one table, with a row
 per service and columns for the five-hour and weekly limits remaining. Limits
-under 15% remaining turn `color_low`. Hover over a value to see when that
-limit resets. Enable or disable each service with `enabled` in
+under 15% remaining turn `color_low`. Hover over or click a value to see the
+exact day and time that limit resets. Enable or disable each service with `enabled` in
 `config.aiusage.claude`, `config.aiusage.codex`, or `config.aiusage.openrouter`.
 
-The header shows the time since the oldest update and a graph of weekly limit
-use over the last seven days, summed across services. The graph is built from
-readings taken while pkmeter runs and saved to `aiusage-history.json` beside
-`conkyrc` (set `history_file` to move it). Clicking the header refreshes every
-service.
+The header shows the time since the oldest update and a graph of tokens used
+over the last seven days, summed across Claude and Codex; hover over it for
+per-service totals. Every five minutes a background Lua process reads only the
+new lines of the local Claude Code and Codex transcripts and saves hourly
+totals to `/tmp/pkmeter-tokens.json`, so it covers all local use, not just
+time pkmeter was running. Clicking the header refreshes every service.
 
 The model mix and weekly pacing are hidden by default; click the widget content
 or use *Show details* in the right click menu to toggle them. The model mix lists each
@@ -69,6 +70,7 @@ Every 15 minutes, starts the locally installed Codex App Server and reads the
 account's limit snapshot into `/tmp/pkmeter-codex.json`. The App Server renews
 its own login, so Codex only needs to be signed in once. Codex must be on
 `PATH`; API-key-only and Bedrock authentication do not provide usage data.
+A free plan's single 30 day limit shows in the *Week* column.
 Failed reads keep the last snapshot and retry with capped backoff. Requires
 `timeout` from GNU coreutils. The model mix reads local Codex session records.
 

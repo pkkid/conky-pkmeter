@@ -72,7 +72,9 @@ local function session_files(codex_home)
 end
 
 -- Normalize Limits
--- Converts an App Server rate-limit bucket into the widget's stable data shape.
+-- Converts an App Server rate-limit bucket into the widget's stable data shape. Windows of
+-- five hours or less fill the five_hour slot; longer ones, such as the free plan's 30 day
+-- window, fill the weekly slot.
 local function normalize_limits(bucket)
   local windows = {}
   for _, source in ipairs({'primary', 'secondary'}) do
@@ -80,8 +82,8 @@ local function normalize_limits(bucket)
     if type(window) == 'table' then
       local used = pick(window, 'used_percent', 'usedPercent')
       local minutes = pick(window, 'window_minutes', 'windowDurationMins')
-      local name = ({[300]='five_hour', [10080]='weekly'})[minutes]
-      if name and number(used) then
+      local name = number(minutes) and minutes > 0 and (minutes <= 300 and 'five_hour' or 'weekly')
+      if name and number(used) and not windows[name] then
         local reset = pick(window, 'resets_at', 'resetsAt')
         windows[name] = {
           used_percent=math.max(0, math.min(100, used)),
