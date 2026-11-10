@@ -154,7 +154,7 @@ config.bambu = {
 }
 config.todolist = {
   file = nil,                             -- Path to markdown file (defaults to todolist.md beside conkyrc)
-  onclick = 'gnome-text-editor',          -- Command to open the file when clicking the header
+  onclick = 'zed',                        -- Command to open the file when clicking the header
   checked_opacity = 0.4,                  -- Opacity of checked items
   update_interval = 5,                    -- Reread the file every N seconds
 }

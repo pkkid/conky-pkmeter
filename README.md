@@ -42,7 +42,8 @@ Long titles, including accented characters and emoji, are shortened to fit.
 
 The `aiusage` widget shows Claude, Codex, and Gemini limits in one table, with a row
 per service: the left meter is the five-hour limit left and the right meter the
-weekly (or longer) limit left. Limits
+weekly (or longer) limit left. A dot under each meter marks how much of that
+window's time is left; a meter that reaches past its dot is under pace. Limits
 under 15% remaining turn `color_low`. Hover over or click a value to see the
 exact day and time that limit resets; the next click only closes it. Enable or disable each service with `enabled` in
 `config.aiusage.claude`, `config.aiusage.codex`, `config.aiusage.gemini`, or

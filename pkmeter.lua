@@ -208,7 +208,6 @@ function conky_mouse_event(event)
   end
   if menu.mouse(event) then return true end
   if event.type == 'button_down' then
-    print("Mouse event: ".. event.type .." x=".. event.x .." y=".. event.y)
     -- A left click while a tooltip is pinned only closes the tooltip
     local pinned = pkmeter.pinned and os.time() < pkmeter.pinned.expires
     pkmeter.pinned = nil

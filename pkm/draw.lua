@@ -203,6 +203,17 @@ function draw.ring(args)
   cairo_stroke(cr)
 end
 
+-- Draw Dot
+-- Draws a small filled circle
+--  args.x, args.y (number): Center of the dot. Default is 0.
+--  args.radius (number): Radius of the dot. Default is 1.
+--  args.color (string): Color of the dot in hex. Default is #ffffff.
+function draw.dot(args)
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(args.color or '#ffffff'))
+  cairo_arc(cr, args.x or 0, args.y or 0, args.radius or 1, 0, 2 * math.pi)
+  cairo_fill(cr)
+end
+
 -- Draw Ring Graph
 --  args.value (number): Value of the ring. Default is 0.
 --  args.x (number): x-coordinate where the ring will be drawn. Default is 0.

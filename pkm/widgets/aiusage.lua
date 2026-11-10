@@ -513,6 +513,14 @@ function aiusage:draw()
           value=remaining, maxvalue=100, bgcolor=config.graph_bg,
           color=remaining < LOW_REMAINING and color or service.color or config.accent}
       end
+      -- Pace dot under the meter at the share of the window's time still left, like T3 Code's
+      -- pace mark: a fill reaching past the dot means usage is under pace
+      if window and window.resets_at and not expired and window.duration_seconds then
+        local time_left = math.max(0, math.min(1, (window.resets_at - now) / window.duration_seconds))
+        -- Round to a pixel corner so every dot covers the same 2x2 pixels
+        local dot_x = math.floor(column.right - COLUMN_WIDTH + COLUMN_WIDTH * time_left + 0.5)
+        draw.dot{x=dot_x, y=math.floor(vertical) + 8, radius=1.2, color=service.color or config.value}
+      end
       local lines
       if window and window.resets_at and not expired then
         lines = {service.label..' '..window_name(window)..' limit resets', reset_date(window.resets_at),
