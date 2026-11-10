@@ -328,6 +328,7 @@ end
 --  args.data (table): Values to plot, left to right. Required.
 --  args.x, args.y (number): Top left corner of the plot area. Default is 0.
 --  args.width, args.height (number): Size of the plot area. Default is 10.
+--  args.maxvalue (number): Top of the scale, to share one scale across curves. Default is the largest value.
 --  args.minmaxvalue (number): Smallest value used as the top of the scale. Default is 1.
 --  args.color (string): Line color. Default is #ffffff.
 --  args.linewidth (number): Line width. Default is 1.5.
@@ -337,8 +338,8 @@ function draw.curve(args)
   local x, y = args.x or 0, args.y or 0
   local width, height = args.width or 10, args.height or 10
   local linewidth = args.linewidth or 1.5
-  local maxvalue = math.max(args.minmaxvalue or 1, table.unpack(data))
-  draw.rectangle{x=x, y=y, width=width, height=height, color=args.bgcolor or '#00000000'}
+  local maxvalue = math.max(args.minmaxvalue or 1, args.maxvalue or math.max(table.unpack(data)))
+  if args.bgcolor then draw.rectangle{x=x, y=y, width=width, height=height, color=args.bgcolor} end
   if #data < 2 then return end
   local inset = linewidth / 2
   local points = {}

@@ -35,19 +35,25 @@ Long titles, including accented characters and emoji, are shortened to fit.
 
 ## AI Usage
 
-The `aiusage` widget shows Claude and Codex limits in one table, with a row
-per service and columns for the five-hour and weekly limits remaining. Limits
+The `aiusage` widget shows Claude, Codex, and Gemini limits in one table, with a row
+per service: the left meter is the five-hour limit left and the right meter the
+weekly (or longer) limit left. Limits
 under 15% remaining turn `color_low`. Hover over or click a value to see the
-exact day and time that limit resets. Enable or disable each service with `enabled` in
-`config.aiusage.claude`, `config.aiusage.codex`, or `config.aiusage.openrouter`,
-or show and hide Claude and Codex from *Providers* in the right click menu.
+exact day and time that limit resets; the next click only closes it. Enable or disable each service with `enabled` in
+`config.aiusage.claude`, `config.aiusage.codex`, `config.aiusage.gemini`, or
+`config.aiusage.openrouter`,
+or show and hide each provider from *Providers* in the right click menu.
 
-The header shows the time since the oldest update and a smooth line of tokens
-used per day over the last seven days (set `history_days` to change it), summed
-across the shown providers; hover over it for per-service totals. Every five minutes a background Lua process reads only the
-new lines of the local Claude Code and Codex transcripts and saves hourly
-totals to `/tmp/pkmeter-tokens.json`, so it covers all local use, not just
-time pkmeter was running. Clicking the header refreshes every service.
+Each provider has its own gruvbox `color`, used for its limit bars and its line in
+the header graph. The header shows the time since the oldest update and a
+smooth line per provider of tokens used each day over the last seven days (set
+`history_days` to change it), on a shared log scale so smaller providers still
+show their shape (toggle *Log scale graph* in the right click menu); hover over
+it for totals. Every five minutes a background Lua process reads only the
+new lines of the local Claude Code and Codex transcripts, plus any changed
+Antigravity conversation databases from `agy` and T3 Code (read with the
+`sqlite3` command), and saves hourly totals to `/tmp/pkmeter-tokens.json`, so it
+covers all local use, not just time pkmeter was running. Clicking the header refreshes every service.
 
 The model mix and weekly pacing are hidden by default; click the widget content
 or use *Show details* in the right click menu to toggle them. The model mix lists each
@@ -75,26 +81,28 @@ A free plan's single 30 day limit shows in the *Week* column.
 Failed reads keep the last snapshot and retry with capped backoff. Requires
 `timeout` from GNU coreutils. The model mix reads local Codex session records.
 
+### Gemini
+
+Gemini limits are a workaround until the Antigravity CLI (`agy`) can report
+usage. Every five minutes a background Lua process reads the Google login T3
+Code saved when you signed into Antigravity
+(`~/.t3/userdata/providers/antigravity/*/antigravity-acp/acp_token.json`, or
+`token_file`), trades it for a short-lived access token, and asks Google's
+quota service for the summary, the same way T3 Code does. The token is only
+sent to Google and is never logged or saved elsewhere. Results go to
+`/tmp/pkmeter-gemini.json`. Hover over or click the weekly value to see the
+Gemini Argon and shared Claude and GPT pools. Requires LuaSec (`ssl.https`).
+Set `enabled = false` to turn it off.
+
 ### Claude
 
-Claude has no usage API that works without a login, so Claude Code reports
-its own usage. After each reply it passes its status JSON, including the
-five-hour and weekly percentages, to its status line command. Have that command
-save the JSON to `~/.claude/statusline.json` by adding this to
-`~/.claude/settings.json`:
-
-```json
-"statusLine": {
-  "type": "command",
-  "command": "umask 077; cat > ~/.claude/statusline.json.$$ && mv ~/.claude/statusline.json.$$ ~/.claude/statusline.json"
-}
-```
-
-pkmeter reads the file, and other programs can read it too. Values update
-whenever you use Claude Code (Pro or Max plans only); a window shows 100% remaining once
-its reset time passes. The command prints nothing, so a terminal session's
-status line stays blank. The model mix reads local transcripts in
-`~/.claude/projects`.
+Every five minutes, runs the locally installed Claude CLI with a `get_usage`
+control request (no prompt is sent, so it uses no tokens) and saves the
+five-hour, weekly, and per-model weekly limits to `/tmp/pkmeter-claude.json`.
+This is the same request T3 Code uses, so it works however you run Claude Code.
+`claude` must be on `PATH` and signed in to a Pro or Max plan. Hover over or
+click the weekly value to see per-model limits such as Fable. The model mix
+reads local transcripts in `~/.claude/projects`.
 
 ## Auto Start
 
