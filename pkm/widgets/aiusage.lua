@@ -9,8 +9,6 @@ local utils = require 'pkm/utils'
 
 local aiusage = {origin=0, height=0, title='AI Usage'}
 local SERVICE_ORDER = {'claude', 'codex', 'openrouter'}
-local HISTORY_DAYS = 7              -- Span of the header token graph
-local HISTORY_BUCKETS = 90          -- One graph column per bucket
 local LOW_REMAINING = 15            -- Remaining percent drawn in color_low
 local PIN_SECONDS = 6               -- How long a clicked reset tooltip stays open
 local COLUMNS = {{key='five_hour', label='5 hour', right=130},
@@ -284,6 +282,37 @@ function aiusage:enabled_services()
   return self.services
 end
 
+-- Service Shown
+-- Returns true unless the service was hidden from the right click menu.
+function aiusage:service_shown(service)
+  return service.definition.credits or toggles.get('aiusage', 'show_'..service.key, true)
+end
+
+-- Shown Services
+-- Returns the enabled services that are not hidden from the right click menu.
+function aiusage:shown_services()
+  local services = {}
+  for _, service in ipairs(self:enabled_services()) do
+    if self:service_shown(service) then table.insert(services, service) end
+  end
+  return services
+end
+
+-- History Days
+-- Returns the number of days drawn in the header token graph.
+function aiusage:history_days()
+  return math.max(2, math.floor(tonumber(self.history_days) or 7))
+end
+
+-- Day Start
+-- Returns the local midnight that starts the given graph day, where the last day is today.
+function aiusage:day_start(now, index)
+  local date = os.date('*t', math.floor(now))
+  date.day = date.day - (self:history_days() - index)
+  date.hour, date.min, date.sec, date.isdst = 0, 0, 0, nil
+  return os.time(date)
+end
+
 -- Token Path
 -- Returns the hourly token cache written by the background transcript scanner.
 function aiusage:token_path()
@@ -312,20 +341,21 @@ function aiusage:update_tokens(now, force)
   self.token_poll_started = now
   self.next_token_poll = now + (self.token_update_interval or 300)
   os.execute(string.format('cd %q && lua pkm/tokenpoll.lua --out %q%s --days %d --timeout %d >/dev/null 2>&1 &',
-    pkmeter.ROOT, self:token_path(), homes, HISTORY_DAYS, self.token_scan_timeout or 30))
+    pkmeter.ROOT, self:token_path(), homes, self:history_days() + 1, self.token_scan_timeout or 30))
 end
 
 -- Token Totals
--- Returns each enabled service's tokens over the history span, in service order.
+-- Returns each shown service's tokens over the graph's days, in service order.
 function aiusage:token_totals(now)
   local services = self.token_snapshot and self.token_snapshot.services or {}
+  local since = self:day_start(now, 1)
   local totals = {}
-  for _, service in ipairs(self:enabled_services()) do
+  for _, service in ipairs(self:shown_services()) do
     local entry = services[service.key]
     if entry then
       local total = 0
       for hour, count in pairs(entry.buckets or {}) do
-        if tonumber(hour) >= now - HISTORY_DAYS * 86400 then total = total + count end
+        if tonumber(hour) >= since then total = total + count end
       end
       table.insert(totals, {label=service.label, tokens=total})
     end
@@ -334,15 +364,18 @@ function aiusage:token_totals(now)
 end
 
 -- History Buckets
--- Sums the hourly token counts of every service into equal buckets covering the last seven days.
+-- Sums the hourly token counts of every shown service into one total per local day.
 function aiusage:history_buckets(now)
-  local buckets = utils.init_table(HISTORY_BUCKETS, 0)
-  local size = HISTORY_DAYS * 86400 / HISTORY_BUCKETS
+  local days = self:history_days()
+  local starts, buckets = {}, utils.init_table(days, 0)
+  for index=1,days do starts[index] = self:day_start(now, index) end
   local services = self.token_snapshot and self.token_snapshot.services or {}
-  for _, service in ipairs(self:enabled_services()) do
-    for hour, count in pairs((services[service.key] or {}).buckets or {}) do
-      local index = HISTORY_BUCKETS - math.floor(math.max(0, now - tonumber(hour) - 1800) / size)
-      if index >= 1 and index <= HISTORY_BUCKETS then buckets[index] = buckets[index] + count end
+  for _, service in ipairs(self:shown_services()) do
+    for key, count in pairs((services[service.key] or {}).buckets or {}) do
+      local hour = tonumber(key)
+      for index=days,1,-1 do
+        if hour >= starts[index] then buckets[index] = buckets[index] + count; break end
+      end
     end
   end
   return buckets
@@ -399,7 +432,7 @@ end
 -- Draws remaining five-hour and weekly limits as a table, the usage graph, and credits.
 function aiusage:draw()
   local now = os.time()
-  local services, limits, credits = self:enabled_services(), {}, nil
+  local services, limits, credits = self:shown_services(), {}, nil
   local oldest
   for _, service in ipairs(services) do
     if service.definition.credits then credits = service else table.insert(limits, service) end
@@ -411,10 +444,10 @@ function aiusage:draw()
   self.regions = {}
   local subtitle = oldest and 'Updated '..duration(now - oldest)..' ago' or 'Waiting for data'
   draw.widget_header(self.origin, self.height, 'AI Usage', subtitle, function()
-    draw.graph{data=self:history_buckets(now), x=100, y=self.origin+8, width=90, height=24,
-      color=config.accent, bgcolor=config.header_graph_bg, minmaxvalue=1}
+    draw.curve{data=self:history_buckets(now), x=100, y=self.origin+8, width=90, height=24,
+      color=config.accent, bgcolor=config.header_graph_bg}
   end, 85)
-  local graph_lines = {'Tokens used, last 7 days'}
+  local graph_lines = {'Tokens used, last '..self:history_days()..' days'}
   for _, total in ipairs(self:token_totals(now)) do
     table.insert(graph_lines, total.label..': '..tokens(total.tokens))
   end
@@ -520,12 +553,24 @@ function aiusage:refresh()
 end
 
 -- Menu
--- Returns right click menu items to refresh usage or toggle details.
+-- Returns right click menu items to refresh usage, toggle details, and show or hide providers.
 function aiusage:menu()
-  return {
+  local items = {
     {label='Refresh now', action=function() self:refresh() end},
     menu.toggle('Show details', 'aiusage', 'show_details', false),
   }
+  table.insert(items, {label='Providers', items=function()
+    local providers = {}
+    for _, service in ipairs(self:enabled_services()) do
+      if not service.definition.credits then
+        local item = menu.toggle(service.label, 'aiusage', 'show_'..service.key, true)
+        item.keep_open = true
+        table.insert(providers, item)
+      end
+    end
+    return providers
+  end})
+  return items
 end
 
 return aiusage

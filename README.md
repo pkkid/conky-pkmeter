@@ -39,11 +39,12 @@ The `aiusage` widget shows Claude and Codex limits in one table, with a row
 per service and columns for the five-hour and weekly limits remaining. Limits
 under 15% remaining turn `color_low`. Hover over or click a value to see the
 exact day and time that limit resets. Enable or disable each service with `enabled` in
-`config.aiusage.claude`, `config.aiusage.codex`, or `config.aiusage.openrouter`.
+`config.aiusage.claude`, `config.aiusage.codex`, or `config.aiusage.openrouter`,
+or show and hide Claude and Codex from *Providers* in the right click menu.
 
-The header shows the time since the oldest update and a graph of tokens used
-over the last seven days, summed across Claude and Codex; hover over it for
-per-service totals. Every five minutes a background Lua process reads only the
+The header shows the time since the oldest update and a smooth line of tokens
+used per day over the last seven days (set `history_days` to change it), summed
+across the shown providers; hover over it for per-service totals. Every five minutes a background Lua process reads only the
 new lines of the local Claude Code and Codex transcripts and saves hourly
 totals to `/tmp/pkmeter-tokens.json`, so it covers all local use, not just
 time pkmeter was running. Clicking the header refreshes every service.

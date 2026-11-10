@@ -323,6 +323,44 @@ function draw.line(args)
   cairo_stroke(cr)
 end
 
+-- Draw Curve
+-- Draws data as a smooth line through evenly spaced points, scaled from zero to the largest value
+--  args.data (table): Values to plot, left to right. Required.
+--  args.x, args.y (number): Top left corner of the plot area. Default is 0.
+--  args.width, args.height (number): Size of the plot area. Default is 10.
+--  args.minmaxvalue (number): Smallest value used as the top of the scale. Default is 1.
+--  args.color (string): Line color. Default is #ffffff.
+--  args.linewidth (number): Line width. Default is 1.5.
+--  args.bgcolor (string): Background color of the plot area. Default is transparent.
+function draw.curve(args)
+  local data = args.data
+  local x, y = args.x or 0, args.y or 0
+  local width, height = args.width or 10, args.height or 10
+  local linewidth = args.linewidth or 1.5
+  local maxvalue = math.max(args.minmaxvalue or 1, table.unpack(data))
+  draw.rectangle{x=x, y=y, width=width, height=height, color=args.bgcolor or '#00000000'}
+  if #data < 2 then return end
+  local inset = linewidth / 2
+  local points = {}
+  for i, value in ipairs(data) do
+    points[i] = {x + (i - 1) * width / (#data - 1),
+      y + height - inset - (height - linewidth) * math.max(0, value) / maxvalue}
+  end
+  cairo_set_source_rgba(cr, utils.hex_to_rgba(args.color or '#ffffff'))
+  cairo_set_line_width(cr, linewidth)
+  cairo_set_line_join(cr, CAIRO_LINE_JOIN_ROUND)
+  cairo_move_to(cr, points[1][1], points[1][2])
+  for i=1, #points - 1 do
+    local p0, p1, p2 = points[math.max(1, i - 1)], points[i], points[i + 1]
+    local p3 = points[math.min(#points, i + 2)]
+    -- Catmull-Rom control points, with heights clamped so the curve stays inside the area
+    local c1y = math.max(y + inset, math.min(y + height - inset, p1[2] + (p2[2] - p0[2]) / 6))
+    local c2y = math.max(y + inset, math.min(y + height - inset, p2[2] - (p3[2] - p1[2]) / 6))
+    cairo_curve_to(cr, p1[1] + (p2[1] - p0[1]) / 6, c1y, p2[1] - (p3[1] - p1[1]) / 6, c2y, p2[1], p2[2])
+  end
+  cairo_stroke(cr)
+end
+
 -- Draw Checkbox
 --  args.x (number): x-coordinate of the box's top left corner. Default is 0.
 --  args.y (number): y-coordinate of the box's top left corner. Default is 0.
