@@ -24,6 +24,7 @@ config.graph_bg = '#cccccc33'
 config.header_graph_bg = '#cccccc11'
 config.menu_bg = '#1d2021f0'
 config.menu_border = '#665c54'
+config.menu_hover = '#504945'
 
 -- Widgets
 config.clock = {
@@ -36,10 +37,10 @@ config.aiusage = {
     color = '#d79921',                    -- Bar and graph line color (gruvbox yellow)
     snapshot_file = '/tmp/pkmeter-claude.json',
     model_snapshot_file = '/tmp/pkmeter-claude-models.json',
-    update_interval = 300,
+    update_interval = 900,
     max_backoff_interval = 3600,
     cloud_timeout = 20,
-    model_update_interval = 300,
+    model_update_interval = 900,
     model_scan_timeout = 30,
   },
   codex = {
@@ -51,7 +52,7 @@ config.aiusage = {
     update_interval = 900,
     max_backoff_interval = 3600,
     cloud_timeout = 10,
-    model_update_interval = 300,
+    model_update_interval = 900,
     model_scan_timeout = 30,
   },
   gemini = {
@@ -59,7 +60,7 @@ config.aiusage = {
     color = '#d3869b',                    -- Bar color (gruvbox purple)
     token_file = nil,                     -- acp_token.json path; nil finds the one T3 Code saved
     snapshot_file = '/tmp/pkmeter-gemini.json',
-    update_interval = 300,
+    update_interval = 900,
     max_backoff_interval = 3600,
     cloud_timeout = 10,
   },
@@ -68,12 +69,13 @@ config.aiusage = {
     key_file = os.getenv('HOME')..'/Private/Secrets/ai.env',  -- KEY=value file holding the API key
     key_name = 'OPENROUTER_API_KEY',      -- Key name in key_file, or the environment variable used
     snapshot_file = '/tmp/pkmeter-openrouter.json',
-    update_interval = 300,
+    update_interval = 900,
     max_backoff_interval = 3600,
     cloud_timeout = 10,
   },
   color_low = '#cc2414',                  -- Color for limits with under 15% remaining
   history_days = 14,                      -- Days shown in the header usage graph
+  token_update_interval = 900,            -- Seconds between token graph scans
 }
 config.openmeteo = {
   city_name = 'Holliston',                -- Display Name (only used for display)
@@ -86,12 +88,12 @@ config.openmeteo = {
   max_stale_seconds = 7200,               -- Keep showing old data for up to 2 hours when API updates fail
 }
 config.system = {
-  coretempstr = 'hwmon 5 temp 1',         -- Conky cmd to read coretemp (See /sys/class/hwmon/ on your pc)
+  coretempstr = 'hwmon coretemp temp 1',  -- Conky cmd to read coretemp; use the driver name or number from /sys/class/hwmon/*/name
   onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=missioncenter io.missioncenter.MissionCenter',    -- Click action
   extras = {
-  --   {name='Mem Temp', device='hwmon 3 temp 1', unit='°C'},
-  --   {name='Pump Temp', device='hwmon 7 temp 1', unit='°C'},
-  --   {name='Pump Speed', device='hwmon 7 fan 1', unit=' RPM'},
+  --   {name='Mem Temp', device='hwmon spd5118 temp 1', unit='°C'},
+  --   {name='Pump Temp', device='hwmon x53 temp 1', unit='°C'},
+  --   {name='Pump Speed', device='hwmon x53 fan 1', unit=' RPM'},
   },
   cpubars_update_interval = 0.1,
   color_temp = '#cc2414'

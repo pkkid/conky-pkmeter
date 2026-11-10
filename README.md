@@ -23,6 +23,11 @@ Display choices such as units, icon theme, and sort order are set from the
 right click menu instead (see [Right Click Menu](#right-click-menu)).
 Long titles, including accented characters and emoji, are shortened to fit.
 
+- `system`: Set `coretempstr` to the CPU temperature sensor. Sensors such as
+  `hwmon coretemp temp 1` can use the driver name from
+  `/sys/class/hwmon/*/name` instead of a number, since the numbers can change
+  between boots. The memory ring shows used memory solid and cache the kernel
+  can free on demand faded.
 - `openmeteo`: Set your location, timezone, and wind speed unit.
 - `networks`: Find interface names with `ip link`, then configure the devices to monitor.
 - `filesystems`: Find mount paths with `df -h`, then configure the paths to monitor.
@@ -49,23 +54,24 @@ the header graph. The header shows the time since the oldest update and a
 smooth line per provider of tokens used each day over the last seven days (set
 `history_days` to change it), on a shared log scale so smaller providers still
 show their shape (toggle *Log scale graph* in the right click menu); hover over
-it for totals. Every five minutes a background Lua process reads only the
+it for totals. Every 15 minutes a background Lua process reads only the
 new lines of the local Claude Code and Codex transcripts, plus any changed
 Antigravity conversation databases from `agy` and T3 Code (read with the
 `sqlite3` command), and saves hourly totals to `/tmp/pkmeter-tokens.json`, so it
-covers all local use, not just time pkmeter was running. Clicking the header refreshes every service.
+covers all local use, not just time pkmeter was running. Use *Refresh now* in
+the right click menu to update every service immediately.
 
 The model mix and weekly pacing are hidden by default; click the widget content
 or use *Show details* in the right click menu to toggle them. The model mix lists each
 service's top three local models by token share and prompt count, allocated
 against that service's own limit, so the combined list totals up to 200%. It
 excludes activity from other machines.
-Model mixes refresh every five minutes in a background Lua process.
+Model mixes refresh every 15 minutes in a background Lua process.
 
 ### OpenRouter
 
 Shows the remaining OpenRouter credit balance at the bottom of the widget;
-hover over it to see credits used and purchased. Every five minutes a
+hover over it to see credits used and purchased. Every 15 minutes a
 background Lua process reads `OPENROUTER_API_KEY` from `key_file` (`KEY=value`
 lines) or the environment and saves the balance to
 `/tmp/pkmeter-openrouter.json`. If the key can't be read, the last balance
@@ -84,7 +90,7 @@ Failed reads keep the last snapshot and retry with capped backoff. Requires
 ### Gemini
 
 Gemini limits are a workaround until the Antigravity CLI (`agy`) can report
-usage. Every five minutes a background Lua process reads the Google login T3
+usage. Every 15 minutes a background Lua process reads the Google login T3
 Code saved when you signed into Antigravity
 (`~/.t3/userdata/providers/antigravity/*/antigravity-acp/acp_token.json`, or
 `token_file`), trades it for a short-lived access token, and asks Google's
@@ -96,7 +102,7 @@ Set `enabled = false` to turn it off.
 
 ### Claude
 
-Every five minutes, runs the locally installed Claude CLI with a `get_usage`
+Every 15 minutes, runs the locally installed Claude CLI with a `get_usage`
 control request (no prompt is sent, so it uses no tokens) and saves the
 five-hour, weekly, and per-model weekly limits to `/tmp/pkmeter-claude.json`.
 This is the same request T3 Code uses, so it works however you run Claude Code.
@@ -131,7 +137,8 @@ This workaround may display a window title on the panel.
 Right click a widget to open a menu drawn inside the Conky window. Empty space
 below the widgets passes right clicks to the desktop, unless every widget is
 hidden. Click outside the menu or wait ten seconds to close it. Set its colors
-with `menu_bg` and `menu_border` in `config.lua`.
+with `menu_bg`, `menu_border`, and `menu_hover` (the row under the pointer) in
+`config.lua`.
 
 The top of the menu holds the clicked widget's options, such as refreshing,
 °F or °C, log scale graphs, the weather icon theme, the process sort, 12 or 24

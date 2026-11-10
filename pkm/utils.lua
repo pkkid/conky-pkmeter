@@ -9,7 +9,34 @@ local socket = require 'socket'
 utils = {}
 
 function utils.format_date(str) return utils.parse(string.format('time %s', str)) end
-function utils.parse(str) return conky_parse(string.format('${%s}', str)) end
+local hwmon_numbers = {}
+
+-- Hwmon Number
+-- Returns the current /sys/class/hwmon number of a sensor driver name such as coretemp. The
+-- numbers follow detection order and can change between boots, so names are safer in config.
+function utils.hwmon_number(name)
+  if hwmon_numbers[name] == nil then
+    hwmon_numbers[name] = false
+    local handle = io.popen('grep -lx '..string.format('%q', name)..' /sys/class/hwmon/hwmon*/name 2>/dev/null')
+    local path = handle and handle:read('*l')
+    if handle then handle:close() end
+    local number = path and path:match('/hwmon(%d+)/name$')
+    if number then hwmon_numbers[name] = number end
+  end
+  return hwmon_numbers[name] or nil
+end
+
+-- Parse
+-- Evaluates a Conky variable, accepting a sensor driver name in place of the hwmon number.
+function utils.parse(str)
+  local name, rest = str:match('^hwmon%s+([%a_][%w_%-]*)%s+(%a+%s+%d.*)$')
+  if name then
+    local number = utils.hwmon_number(name)
+    if not number then return '' end
+    str = 'hwmon '..number..' '..rest
+  end
+  return conky_parse(string.format('${%s}', str))
+end
 function utils.updates() return utils.parse('updates') end
 
 -- Celsius To Fahrenheit

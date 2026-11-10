@@ -10,6 +10,23 @@ system.title = 'System'
 system.origin = 0
 system.height = 0
 system.history = nil
+
+-- Reclaimable Memory Percent
+-- Returns the percent of memory holding cache and buffers the kernel can free on demand,
+-- which is what is available beyond the truly free memory.
+local function reclaimable_percent()
+  local handle = io.open('/proc/meminfo', 'r')
+  if not handle then return 0 end
+  local values = {}
+  for line in handle:lines() do
+    local name, kb = line:match('^(%w+):%s+(%d+)')
+    if name then values[name] = tonumber(kb) end
+  end
+  handle:close()
+  local total, free, available = values.MemTotal, values.MemFree, values.MemAvailable
+  if not total or not free or not available or total == 0 then return 0 end
+  return math.max(0, 100 * (available - free) / total)
+end
 system.temp_history = nil
 system.cpucount = nil
 
@@ -72,6 +89,13 @@ function system:draw()
   color_mem = self.color_mem or config.accent
   draw.ringgraph{value=self.memperc, x=172, y=self.origin+110, radius=9, width=5,
     color=color_mem, bgcolor=config.graph_bg}
+  -- Cache the kernel can free on demand, drawn at 25% opacity after the used memory
+  local used_angle = 360 * math.min(self.memperc or 0, 100) / 100
+  local cache_angle = 360 * math.min(self.memcache or 0, 100 - math.min(self.memperc or 0, 100)) / 100
+  if cache_angle > 0 then
+    draw.ring{x=172, y=self.origin+110, radius=9, width=5, angle_start=used_angle,
+      angle_end=used_angle+cache_angle, color=color_mem:sub(1, 7)..'40'}
+  end
 end
 
 -- Update
@@ -81,12 +105,13 @@ function system:update()
     -- System Details
     self.cpucount = self.cpucount or utils.get_cpucount()
     -- Conky's first cpu reading can be garbage (200%+), so start from zero
-    local usage = self.history and tonumber(utils.parse('cpu cpu')) or 0
+    local usage = self.history and tonumber(utils.parse('cpu cpu0')) or 0
     self.cpuusage = usage
-    self.cpufreq = utils.parse('freq')
+    self.cpufreq = utils.parse('freq 1')
     self.nodename = self.nodename or utils.parse('nodename')
     self.memtotal = utils.round(utils.parse('memmax'):match('^(%d+)'))
     self.memperc = tonumber(utils.parse('memperc'))
+    self.memcache = reclaimable_percent()
     self.coretemp = utils.parse(self.coretempstr)
     self.tempstr = utils.format_temp(self.coretemp, toggles.get('pkmeter', 'temperature_unit', 'celsius'))
     self.uptime = utils.parse('uptime_short')

@@ -15,6 +15,7 @@ local COLUMN_WIDTH = 47
 local PERCENT_SIZE = 10             -- Font size of the remaining limit percentages
 local ROW_HEIGHT = 20
 local DETAILS_GAP = 6               -- Space above the model rows when details are shown
+local CREDITS_GAP = 2               -- Extra space above the OpenRouter row
 local Service = {}
 Service.__index = Service
 
@@ -475,7 +476,7 @@ function aiusage:draw()
   end
   local rows = self:details_shown() and self:detail_rows(limits, now) or {}
   local details_gap = #rows > 0 and DETAILS_GAP or 0
-  self.height = 52 + #limits * ROW_HEIGHT + details_gap + #rows * 15 + (credits and ROW_HEIGHT or 0)
+  self.height = 52 + #limits * ROW_HEIGHT + details_gap + #rows * 15 + (credits and ROW_HEIGHT + CREDITS_GAP or 0)
   self.regions = {}
   local subtitle = oldest and duration(now - oldest)..' ago' or 'Waiting for data'
   draw.widget_header(self.origin, self.height, 'AI Usage', subtitle, function()
@@ -484,7 +485,7 @@ function aiusage:draw()
     if toggles.get('aiusage', 'log_scale', true) then series, maxvalue = log_series(series, maxvalue) end
     for _, line in ipairs(series) do
       draw.curve{data=line.data, x=100, y=self.origin+8, width=90, height=24,
-        color=line.color, maxvalue=maxvalue}
+        color=line.color, maxvalue=maxvalue, linewidth=1}
     end
   end, 85)
   local graph_lines = {'Tokens used, last '..self:graph_days()..' days'}
@@ -499,13 +500,12 @@ function aiusage:draw()
   for _, service in ipairs(limits) do
     vertical = vertical + ROW_HEIGHT
     local windows = service:windows()
-    draw.text{x=10, y=vertical, text=service.label, color=config.value, maxwidth=60}
+    draw.text{x=10, y=vertical, text=service.label, color=config.label, maxwidth=60}
     for _, column in ipairs(COLUMNS) do
       local window = windows[column.key]
       local expired = window and window.resets_at and window.resets_at <= now
       local remaining = window and (expired and 100 or 100 - window.used_percent)
-      local color = not remaining and config.label
-        or remaining < LOW_REMAINING and (self.color_low or '#cc2414') or config.value
+      local color = remaining and remaining < LOW_REMAINING and (self.color_low or '#cc2414') or config.label
       draw.text{x=column.right, y=vertical, text=remaining and string.format('%.0f%%', remaining) or '--',
         color=color, align='right', size=PERCENT_SIZE}
       if remaining then
@@ -538,8 +538,8 @@ function aiusage:draw()
   -- Credits
   if credits then
     local data = credits.snapshot and credits.snapshot.data
-    vertical = vertical + ROW_HEIGHT
-    draw.text{x=10, y=vertical, text=credits.label, color=config.value}
+    vertical = vertical + ROW_HEIGHT + CREDITS_GAP
+    draw.text{x=10, y=vertical, text=credits.label, color=config.label}
     draw.text{x=190, y=vertical, align='right', color=data and config.value or config.label,
       text=data and string.format('$%.2f', data.remaining) or '--'}
     local lines = data and {string.format('Used $%.2f of $%.2f', data.total_usage, data.total_credits)}
@@ -577,15 +577,12 @@ function aiusage:tooltip(x, y)
 end
 
 -- Click
--- Pins the reset time tooltip of a clicked limit, refreshes from the header, or toggles details.
+-- Pins the reset time tooltip of a clicked limit, or toggles details from the content. The
+-- header does nothing; refreshing is only in the right click menu.
 function aiusage:click(event, x, y)
   local region = self:region_at(x, y)
   if region and region.pin then return {lines=region.lines, seconds=PIN_SECONDS} end
-  if y >= 40 then
-    toggles.set('aiusage', 'show_details', not self:details_shown())
-    return
-  end
-  self:refresh()
+  if y >= 40 then toggles.set('aiusage', 'show_details', not self:details_shown()) end
 end
 
 -- Refresh

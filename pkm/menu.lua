@@ -147,7 +147,7 @@ function menu.draw()
       else
         if #menu.rows + 1 == menu.hover then
           draw.rectangle{x=box.x+2, y=y, width=box.width-4, height=menu.ROW_HEIGHT,
-            color=config.header_bg}
+            color=config.menu_hover or config.header_bg}
         end
         if item.checked ~= nil then
           draw.checkbox{x=box.x+10, y=y+4, size=9, checked=item.checked, color=config.label}
