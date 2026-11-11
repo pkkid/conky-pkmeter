@@ -3,8 +3,8 @@
 <img align="right" src="preview.png">
 
 A Conky configuration written entirely in Lua. It includes clock, weather,
-system, GPU, process, network, filesystem, media, Bambu printer, AI usage
-(Claude, Codex, and OpenRouter credits), and to do list widgets.
+system, GPU, process, network, filesystem, media, Discord voice, Bambu printer,
+AI usage (Claude, Codex, and OpenRouter credits), and to do list widgets.
 
 ## Installation
 
@@ -32,6 +32,7 @@ Long titles, including accented characters and emoji, are shortened to fit.
 - `networks`: Find interface names with `ip link`, then configure the devices to monitor.
 - `filesystems`: Find mount paths with `df -h`, then configure the paths to monitor.
 - `nowplaying`: Uses `playerctl` for playback information and controls.
+- `discord`: See [Discord](#discord).
 - `bambu`: Set the printer host, serial number, and LAN access code.
 - `todolist`: Shows checklist items (`- [ ]`, `- [x]`) from `todolist.md` beside
   `conkyrc`, or the path set in `file`. Checked items are dimmed and listed last;
@@ -111,6 +112,26 @@ This is the same request T3 Code uses, so it works however you run Claude Code.
 click the weekly value to see per-model limits such as Fable. The model mix
 reads local transcripts in `~/.claude/projects`.
 
+## Discord
+
+The `discord` widget lists who is in your current voice channel with round
+avatars, a green ring around whoever is speaking, and a red dot on anyone muted
+or deafened. Header buttons (or the right click menu) mute, deafen, or leave
+the channel; hover over a name to see it in full. The widget hides when you
+are not in a voice channel.
+
+It talks to the running Discord app over its local RPC socket, so no bot or
+server access is needed. While you are out of voice it checks once every
+`check_interval` seconds; once you join, it keeps the socket open for live
+join, leave, mute, and speaking events, and closes it when you leave. Hiding
+the widget from the right click menu closes the socket and stops all checks.
+
+The first time, Discord shows a popup asking to authorize StreamKit (Discord's
+own overlay app); click Authorize. The access token is saved to `token_file`
+(owner only) and reused. When it expires the widget asks again, at most once
+per Conky run. Avatars are downloaded with `curl` to `cache_dir`. Works with
+the native and Flatpak builds of Discord.
+
 ## Auto Start
 
 Add the following command to Ubuntu Startup Applications:
@@ -156,3 +177,5 @@ order. Widgets added to `config.widgets` later appear at the end.
 ## Credits
 
 Fisadev and Zineddine SAIBI created the original Conky drawing scripts.
+Media and Discord button icons are Google's
+[Material Icons](https://fonts.google.com/icons) (Apache 2.0).

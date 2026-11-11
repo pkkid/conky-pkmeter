@@ -162,7 +162,7 @@ end
 
 
 -- Read Status
--- Load and decode the status JSON written by pkm/bambupoll.lua.
+-- Load and decode the status JSON written by pkm/utils/bambupoll.lua.
 function bambu:read_status()
   local fh = io.open(self.status_file, 'r')
   if not fh then return nil end
@@ -196,7 +196,7 @@ function bambu:maybe_spawn_poll(now, force)
     thumb_arg = string.format(' --thumb-out %q', self.thumbnail_file)
   end
   local cmd = string.format(
-    'cd %q && lua pkm/bambupoll.lua --host %q --serial %q --code %q --out %q%s >/dev/null 2>&1 &',
+    'cd %q && lua pkm/utils/bambupoll.lua --host %q --serial %q --code %q --out %q%s >/dev/null 2>&1 &',
     pkmeter.ROOT, self.host, self.serial, self.access_code, self.status_file, thumb_arg)
   os.execute(cmd)
 end

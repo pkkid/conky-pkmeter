@@ -7,7 +7,7 @@
 -- writes them as JSON to the given output path (atomic rename).
 --
 -- Usage:
---   lua pkm/bambupoll.lua --host IP --serial SN --code ACCESS_CODE \
+--   lua pkm/utils/bambupoll.lua --host IP --serial SN --code ACCESS_CODE \
 --       [--out /tmp/bambu_status.json] [--duration 3]
 --
 -- Exit code:
@@ -52,7 +52,7 @@ local function parse_args()
     elseif a == '--duration' then opts.duration = tonumber(arg[i+1]); i = i + 2
     elseif a == '--verbose' or a == '-v' then opts.verbose = true; i = i + 1
     elseif a == '-h' or a == '--help' then
-      io.write('Usage: lua pkm/bambupoll.lua --host IP --serial SN --code CODE ',
+      io.write('Usage: lua pkm/utils/bambupoll.lua --host IP --serial SN --code CODE ',
                '[--out PATH] [--thumb-out PATH] [--duration SEC] [--verbose]\n')
       os.exit(0)
     else

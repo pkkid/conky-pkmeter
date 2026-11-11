@@ -5,7 +5,7 @@ config = {}
 -- click menu saves your layout to toggles.json, which then replaces this order.
 -- See pkm/widgets/ for available widgets.
 -- config.widgets = {'clock','openmeteo','system','nvidia','processes','networks','filesystems','nowplaying','custom'}
-config.widgets = {'clock','openmeteo','todolist','system','nvidia','processes','networks','filesystems','nowplaying','bambu','aiusage'}
+config.widgets = {'clock','openmeteo','todolist','system','nvidia','processes','networks','filesystems','nowplaying','discord','bambu','aiusage'}
 config.default_update_interval = 2        -- Update interval for widgets (update conkyrc also)
 
 -- Theme
@@ -141,12 +141,19 @@ config.nowplaying = {
   ignore_players = 'org.gnome.Showtime',  -- Ignore players (comma separated list)
   max_players = 2,                        -- Maximum number of players to display
 }
+config.discord = {
+  token_file = os.getenv('HOME')..'/.config/pkmeter/discord-token.json',  -- Saved RPC access token
+  cache_dir = '/tmp/pkmeter-discord',     -- Downloaded avatars
+  check_interval = 60,                    -- Seconds between checks while not in a voice channel
+  muted_color = '#cc2414',                -- Dot on muted or deafened members
+  speaking_color = '#43b581',             -- Ring around the avatar of whoever is speaking
+}
 config.bambu = {
   name = 'Bambu P2S',                     -- Display name shown in the widget header
   host = '192.168.4.45',                  -- Printer IP or hostname on the LAN
   serial = '22E8AJ591300031',             -- Printer serial number (Settings -> WLAN)
   access_code = '9428a131',               -- LAN access code (Settings -> WLAN)
-  status_file = '/tmp/bambu_status.json', -- Where pkm/bambupoll.lua writes state
+  status_file = '/tmp/bambu_status.json', -- Where pkm/utils/bambupoll.lua writes state
   thumbnail_file = '/tmp/bambu_thumb.png',-- Cached plate thumbnail (nil to disable)
   update_interval = 30,                   -- Repoll if the JSON is older than this (sec)
   min_spawn_gap = 15,                     -- Floor on how often we spawn the poller

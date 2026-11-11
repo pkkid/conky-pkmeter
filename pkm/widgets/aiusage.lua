@@ -22,13 +22,13 @@ Service.__index = Service
 -- Service Definitions
 -- Describes the poller, home directory, and cloud arguments that differ between services.
 -- Claude and Codex ask their signed in CLIs for limits, so no credentials are read here.
--- Gemini is a workaround that reuses T3 Code's Antigravity login; see pkm/geminipoll.lua.
+-- Gemini is a workaround that reuses T3 Code's Antigravity login; see pkm/utils/geminipoll.lua.
 -- OpenRouter reports a credit balance instead of usage windows.
 local SERVICES = {
   claude = {
     label = 'Claude',
     color = '#d79921',
-    poller = 'pkm/claudepoll.lua',
+    poller = 'pkm/utils/claudepoll.lua',
     home_flag = '--claude-home',
     home = function(self)
       return self.claude_home or os.getenv('CLAUDE_CONFIG_DIR') or ((os.getenv('HOME') or '')..'/.claude')
@@ -38,7 +38,7 @@ local SERVICES = {
   codex = {
     label = 'Codex',
     color = '#83a598',
-    poller = 'pkm/codexpoll.lua',
+    poller = 'pkm/utils/codexpoll.lua',
     home_flag = '--codex-home',
     home = function(self)
       return self.codex_home or os.getenv('CODEX_HOME') or ((os.getenv('HOME') or '')..'/.codex')
@@ -50,7 +50,7 @@ local SERVICES = {
   gemini = {
     label = 'Gemini',
     color = '#d3869b',
-    poller = 'pkm/geminipoll.lua',
+    poller = 'pkm/utils/geminipoll.lua',
     token_args = '--antigravity yes',
     cloud_args = function(self)
       return self.token_file and string.format('--token-file %q', self.token_file) or ''
@@ -59,7 +59,7 @@ local SERVICES = {
   openrouter = {
     label = 'OpenRouter',
     credits = true,
-    poller = 'pkm/openrouterpoll.lua',
+    poller = 'pkm/utils/openrouterpoll.lua',
     cloud_args = function(self)
       local args = string.format('--key-name %q', self.key_name or 'OPENROUTER_API_KEY')
       if self.key_file then args = args..string.format(' --key-file %q', self.key_file) end
@@ -346,7 +346,7 @@ function aiusage:update_tokens(now, force)
   if homes == '' then return end
   self.token_poll_started = now
   self.next_token_poll = now + (self.token_update_interval or 300)
-  os.execute(string.format('cd %q && lua pkm/tokenpoll.lua --out %q%s --days %d --timeout %d >/dev/null 2>&1 &',
+  os.execute(string.format('cd %q && lua pkm/utils/tokenpoll.lua --out %q%s --days %d --timeout %d >/dev/null 2>&1 &',
     pkmeter.ROOT, self:token_path(), homes, self:graph_days() + 1, self.token_scan_timeout or 30))
 end
 

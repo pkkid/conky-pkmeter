@@ -30,6 +30,10 @@ function pkmeter:draw_widgets()
         io.stderr:write('Widget '..name..' failed: '..tostring(err)..'\n')
       end
       origin = origin + (widget.height or 0)
+    elseif widget.stop then
+      -- Hidden widgets may release connections or other resources they hold
+      local ok, err = pcall(widget.stop, widget)
+      if not ok then io.stderr:write('Widget '..name..' stop failed: '..tostring(err)..'\n') end
     end
   end
 end

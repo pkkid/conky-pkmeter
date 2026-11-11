@@ -323,7 +323,7 @@ end
 -- Is Standalone
 -- Returns true when Lua is executing this module as the background poller script.
 local function is_standalone()
-  return arg and type(arg[0]) == 'string' and arg[0]:match('pkm/claudepoll%.lua$') ~= nil
+  return arg and type(arg[0]) == 'string' and arg[0]:match('pkm/utils/claudepoll%.lua$') ~= nil
 end
 
 if is_standalone() and not run_poller(arg) then os.exit(1) end

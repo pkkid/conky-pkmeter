@@ -28,13 +28,13 @@ function nowplaying:draw()
     local imgplay = pkmeter.ROOT..'/pkm/img/nowplaying/play.png'
     local imgpause = pkmeter.ROOT..'/pkm/img/nowplaying/pause.png'
     local imgprev = pkmeter.ROOT..'/pkm/img/nowplaying/prev.png'
-    draw.image{x=122, y=self.origin+6, path=imgprev, width=21}
+    draw.image{x=118, y=self.origin+11, path=imgprev, width=18}
     if self.players[1].status == 'Playing' then
-      draw.image{x=147, y=self.origin+6, path=imgpause, width=21}
+      draw.image{x=146, y=self.origin+11, path=imgpause, width=18}
     else
-      draw.image{x=147, y=self.origin+6, path=imgplay, width=21}
+      draw.image{x=146, y=self.origin+11, path=imgplay, width=18}
     end
-    draw.image{x=172, y=self.origin+6, path=imgnext, width=21}
+    draw.image{x=174, y=self.origin+11, path=imgnext, width=18}
   end)
   
 
@@ -90,12 +90,12 @@ end
 -- Click
 -- Perform click action
 function nowplaying:click(event, x, y)
-  if 5 <= y and y <= 5+20 then
-    if 122 <= x and x <= 122+20 then
+  if 7 <= y and y <= 33 then
+    if 113 <= x and x <= 141 then
       os.execute(self.playerctl..' previous')
-    elseif 147 <= x and x <= 147+20 then
+    elseif 141 < x and x <= 169 then
       os.execute(self.playerctl..' play-pause')
-    elseif 172 <= x and x <= 172+20 then
+    elseif 169 < x and x <= 197 then
       os.execute(self.playerctl..' next')
     end
   end
