@@ -132,6 +132,7 @@ end
 --  args.width (number): Width of the image. Default is nil
 --  args.height (number): Height of the image. Default is nil
 function draw.image(args)
+  if draw.queue then table.insert(draw.queue, args) return end
   local x = args.x or 0
   local y = args.y or 0
   local path = args.path or error('path is required')
@@ -158,6 +159,14 @@ function draw.image(args)
   imlib_render_image_on_drawable(x, y)
   imlib_free_image()
   img = nil
+end
+
+-- Flush Images
+-- Draws the images queued by draw.image while a cairo group was open
+function draw.flush_images()
+  local queue = draw.queue or {}
+  draw.queue = nil
+  for _, args in ipairs(queue) do draw.image(args) end
 end
 
 -- Draw Rectangle

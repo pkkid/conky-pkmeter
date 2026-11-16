@@ -13,9 +13,11 @@ config = utils.merge(config, config['['..utils.parse('nodename')..']'] or {})
 
 -- Draw Rounded
 -- Draws the widgets into a group and paints it through a rounded rectangle
--- the height of the widget stack, then outlines it with a 1px border
+-- the height of the widget stack, then outlines it with a 1px border.
+-- Images are queued and drawn last so the group does not paint over them
 function pkmeter:draw_rounded()
   local radius = config.radius or 0
+  draw.queue = {}
   cairo_push_group(cr)
   local height = self:draw_widgets()
   local pattern = cairo_pop_group(cr)
@@ -29,6 +31,8 @@ function pkmeter:draw_rounded()
     draw.rounded_path(0.5, 0.5, conky_window.width-1, height-1, radius-0.5)
     cairo_stroke(cr)
   end
+  cairo_surface_flush(cairo_get_target(cr))
+  draw.flush_images()
 end
 
 -- Draw Widgets
