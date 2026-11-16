@@ -178,6 +178,18 @@ function draw.rectangle(args)
   cairo_fill(cr)
 end
 
+-- Rounded Rectangle Path
+-- Adds a rectangle path with rounded corners to cr without filling it
+function draw.rounded_path(x, y, width, height, radius)
+  radius = math.max(0, math.min(radius or 0, width / 2, height / 2))
+  cairo_new_sub_path(cr)
+  cairo_arc(cr, x+width-radius, y+radius, radius, -math.pi/2, 0)
+  cairo_arc(cr, x+width-radius, y+height-radius, radius, 0, math.pi/2)
+  cairo_arc(cr, x+radius, y+height-radius, radius, math.pi/2, math.pi)
+  cairo_arc(cr, x+radius, y+radius, radius, math.pi, 3*math.pi/2)
+  cairo_close_path(cr)
+end
+
 -- Draw Ring
 --  args.x (number): x-coordinate where the ring will be drawn. Default is 0.
 --  args.y (number): y-coordinate where the ring will be drawn. Default is 0.

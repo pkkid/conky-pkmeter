@@ -25,6 +25,8 @@ config.header_graph_bg = '#cccccc11'
 config.menu_bg = '#1d2021f0'
 config.menu_border = '#665c54'
 config.menu_hover = '#504945'
+config.radius = 10                        -- Corner radius of the widget stack (0 for square)
+config.border = '#44444466'               -- 1px border around the widget stack (nil for none)
 
 -- Widgets
 config.clock = {

@@ -22,6 +22,9 @@ Window placement, size, and Conky behavior are configured in `conkyrc`.
 Display choices such as units, icon theme, and sort order are set from the
 right click menu instead (see [Right Click Menu](#right-click-menu)).
 Long titles, including accented characters and emoji, are shortened to fit.
+Set `radius` in `config.lua` to round the corners of the widget stack (0 for
+square corners) and `border` for its 1px outline (nil for none). `gap_x` and
+`gap_y` in `conkyrc` set where the window sits.
 
 - `system`: Set `coretempstr` to the CPU temperature sensor. Sensors such as
   `hwmon coretemp temp 1` can use the driver name from

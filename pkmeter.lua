@@ -11,8 +11,28 @@ pkmeter = {}
 pkmeter.ROOT = config.root or io.popen('pwd'):read('*l')
 config = utils.merge(config, config['['..utils.parse('nodename')..']'] or {})
 
+-- Draw Rounded
+-- Draws the widgets into a group and paints it through a rounded rectangle
+-- the height of the widget stack, then outlines it with a 1px border
+function pkmeter:draw_rounded()
+  local radius = config.radius or 0
+  cairo_push_group(cr)
+  local height = self:draw_widgets()
+  local pattern = cairo_pop_group(cr)
+  cairo_set_source(cr, pattern)
+  draw.rounded_path(0, 0, conky_window.width, height, radius)
+  cairo_fill(cr)
+  cairo_pattern_destroy(pattern)
+  if config.border and height > 0 then
+    cairo_set_source_rgba(cr, utils.hex_to_rgba(config.border))
+    cairo_set_line_width(cr, 1)
+    draw.rounded_path(0.5, 0.5, conky_window.width-1, height-1, radius-0.5)
+    cairo_stroke(cr)
+  end
+end
+
 -- Draw Widgets
--- Draw the PKMeter widgets
+-- Draws the PKMeter widgets and returns the total height of the shown widgets
 function pkmeter:draw_widgets()
   local origin = 0
   for _, name in ipairs(self:widget_names()) do
@@ -36,6 +56,7 @@ function pkmeter:draw_widgets()
       if not ok then io.stderr:write('Widget '..name..' stop failed: '..tostring(err)..'\n') end
     end
   end
+  return origin
 end
 
 -- Widget Names
@@ -241,7 +262,7 @@ function conky_main()
       conky_window.visual, conky_window.width, conky_window.height)
   cr = cairo_create(cs)
   -- Draw the widgets and menu
-  pkmeter:draw_widgets()
+  pkmeter:draw_rounded()
   local ok, err = pcall(pkmeter.draw_tooltip, pkmeter)
   if not ok then io.stderr:write('Tooltip failed: '..tostring(err)..'\n') end
   ok, err = pcall(menu.draw)
