@@ -85,7 +85,7 @@ config.openmeteo = {
   longitude = -71.42,                     -- Longitude of location
   timezone = 'America/New_York',          -- https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
   wind_speed_unit = 'mph',                -- OpenMeteo windspeed unit {kmh, ms, mph, kn}
-  onclick = 'xdg-open https://www.google.com/search?q=Holliston,+MA+weather', -- Click action
+  onclick = '/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=mousam io.github.amit9838.mousam', -- Click action
   update_interval = 900,                  -- Update interval to call weather api
   max_stale_seconds = 7200,               -- Keep showing old data for up to 2 hours when API updates fail
 }
