@@ -36,7 +36,6 @@ config.clock = {
 config.aiusage = {
   claude = {
     enabled = true,                       -- Monitor Claude usage
-    color = '#d79921',                    -- Bar and graph line color (gruvbox yellow)
     snapshot_file = '/tmp/pkmeter-claude.json',
     model_snapshot_file = '/tmp/pkmeter-claude-models.json',
     update_interval = 900,
@@ -47,7 +46,6 @@ config.aiusage = {
   },
   codex = {
     enabled = true,                       -- Monitor Codex usage
-    color = '#83a598',                    -- Bar and graph line color (gruvbox blue)
     limit_id = 'codex',
     snapshot_file = '/tmp/pkmeter-codex.json',
     model_snapshot_file = '/tmp/pkmeter-codex-models.json',
@@ -59,7 +57,6 @@ config.aiusage = {
   },
   gemini = {
     enabled = true,                       -- Monitor Gemini usage (reuses T3 Code's Antigravity login, see README)
-    color = '#d3869b',                    -- Bar color (gruvbox purple)
     token_file = nil,                     -- acp_token.json path; nil finds the one T3 Code saved
     snapshot_file = '/tmp/pkmeter-gemini.json',
     update_interval = 900,
@@ -75,6 +72,7 @@ config.aiusage = {
     max_backoff_interval = 3600,
     cloud_timeout = 10,
   },
+  color = '#d79921',                      -- Limit bar and graph line color (gruvbox yellow)
   color_low = '#cc2414',                  -- Color for limits with under 15% remaining
   history_days = 14,                      -- Days shown in the header usage graph
   token_update_interval = 900,            -- Seconds between token graph scans

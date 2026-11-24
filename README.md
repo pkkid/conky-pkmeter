@@ -54,12 +54,13 @@ exact day and time that limit resets; the next click only closes it. Enable or d
 `config.aiusage.openrouter`,
 or show and hide each provider from *Providers* in the right click menu.
 
-Each provider has its own gruvbox `color`, used for its limit bars and its line in
-the header graph. The header shows the time since the oldest update and a
-smooth line per provider of tokens used each day over the last seven days (set
-`history_days` to change it), on a shared log scale so smaller providers still
-show their shape (toggle *Log scale graph* in the right click menu); hover over
-it for totals. Every 15 minutes a background Lua process reads only the
+`config.aiusage.color` (gruvbox yellow) colors the limit bars and the header
+graph; set `color` in a provider's section to override its bars. The header
+shows the time since the oldest update and one smooth line of tokens used each
+day by all shown providers combined over the last seven days (set
+`history_days` to change it), on a log scale so light days still show their
+shape (toggle *Log scale graph* in the right click menu); hover over it for
+per-provider and total counts. Every 15 minutes a background Lua process reads only the
 new lines of the local Claude Code and Codex transcripts, plus any changed
 Antigravity conversation databases from `agy` and T3 Code (read with the
 `sqlite3` command), and saves hourly totals to `/tmp/pkmeter-tokens.json`, so it

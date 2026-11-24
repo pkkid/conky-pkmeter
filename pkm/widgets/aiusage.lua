@@ -27,7 +27,6 @@ Service.__index = Service
 local SERVICES = {
   claude = {
     label = 'Claude',
-    color = '#d79921',
     poller = 'pkm/utils/claudepoll.lua',
     home_flag = '--claude-home',
     home = function(self)
@@ -37,7 +36,6 @@ local SERVICES = {
   },
   codex = {
     label = 'Codex',
-    color = '#83a598',
     poller = 'pkm/utils/codexpoll.lua',
     home_flag = '--codex-home',
     home = function(self)
@@ -49,7 +47,6 @@ local SERVICES = {
   },
   gemini = {
     label = 'Gemini',
-    color = '#d3869b',
     poller = 'pkm/utils/geminipoll.lua',
     token_args = '--antigravity yes',
     cloud_args = function(self)
@@ -126,12 +123,13 @@ local function read_json(path)
 end
 
 -- New Service
--- Creates the polling state for one service from its definition and config section.
-function Service.new(key, settings)
+-- Creates the polling state for one service from its definition and config section, using
+-- the widget color unless the service sets its own.
+function Service.new(key, settings, color)
   local service = setmetatable({key=key, definition=SERVICES[key]}, Service)
   for name, value in pairs(settings or {}) do service[name] = value end
   service.label = service.definition.label
-  service.color = service.color or service.definition.color
+  service.color = service.color or color
   return service
 end
 
@@ -279,7 +277,7 @@ function aiusage:enabled_services()
     for _, key in ipairs(SERVICE_ORDER) do
       local settings = self[key]
       if settings and settings.enabled ~= false then
-        table.insert(self.services, Service.new(key, settings))
+        table.insert(self.services, Service.new(key, settings, self.color))
       end
     end
   end
@@ -370,33 +368,29 @@ function aiusage:token_totals(now)
 end
 
 -- History Series
--- Sums each shown service's hourly token counts into one total per local day, and returns
--- the series with the largest daily total so every line shares one scale.
+-- Sums every shown service's hourly token counts into one total per local day, and returns
+-- that single line with its largest daily total.
 function aiusage:history_series(now)
   local days = self:graph_days()
-  local starts, series, maxvalue = {}, {}, 1
+  local starts, buckets, maxvalue = {}, utils.init_table(days, 0), 1
   for index=1,days do starts[index] = self:day_start(now, index) end
   local services = self.token_snapshot and self.token_snapshot.services or {}
   for _, service in ipairs(self:shown_services()) do
     local entry = services[service.key]
-    if entry then
-      local buckets = utils.init_table(days, 0)
-      for key, count in pairs(entry.buckets or {}) do
-        local hour = tonumber(key)
-        for index=days,1,-1 do
-          if hour >= starts[index] then buckets[index] = buckets[index] + count; break end
-        end
+    for key, count in pairs(entry and entry.buckets or {}) do
+      local hour = tonumber(key)
+      for index=days,1,-1 do
+        if hour >= starts[index] then buckets[index] = buckets[index] + count; break end
       end
-      for _, value in ipairs(buckets) do maxvalue = math.max(maxvalue, value) end
-      table.insert(series, {color=service.color or config.accent, data=buckets})
     end
   end
-  return series, maxvalue
+  for _, value in ipairs(buckets) do maxvalue = math.max(maxvalue, value) end
+  return {{color=self.color or config.accent, data=buckets}}, maxvalue
 end
 
 -- Log Scale Series
 -- Converts daily token totals to a log scale that starts just below the smallest non-zero day,
--- so providers with far fewer tokens still show their shape. Days without use stay at zero.
+-- so light days still show their shape. Days without use stay at zero.
 local function log_series(series, maxvalue)
   local smallest = maxvalue
   for _, line in ipairs(series) do
@@ -489,9 +483,12 @@ function aiusage:draw()
     end
   end, 85)
   local graph_lines = {'Tokens used, last '..self:graph_days()..' days'}
-  for _, total in ipairs(self:token_totals(now)) do
+  local totals, sum = self:token_totals(now), 0
+  for _, total in ipairs(totals) do
     table.insert(graph_lines, total.label..': '..tokens(total.tokens))
+    sum = sum + total.tokens
   end
+  if #totals > 1 then table.insert(graph_lines, 'Total: '..tokens(sum)) end
   if not self.token_snapshot then table.insert(graph_lines, 'Scanning transcripts') end
   table.insert(self.regions, {x1=100, y1=8, x2=190, y2=32, lines=graph_lines})
 
